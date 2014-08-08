@@ -22,6 +22,7 @@ the number of data points) and is also output sensitive in the complexity of the
 * [Eigen](http://eigen.tuxfamily.org/)
 * [LibANN](http://www.cs.umd.edu/~mount/ANN/)
 * [OpenCV](http://opencv.org/)
+* [Chealpix](http://healpix.jpl.nasa.gov/html/csubnode4.htm), [Ubuntu package](http://packages.ubuntu.com/km/source/utopic/all/misc/chealpix), [Debian package](https://packages.debian.org/source/jessie/chealpix)
 
 You may need to update the enclosed Makefile to add the paths to these libraries.
 
