@@ -18,15 +18,6 @@ set (Super4PCS_VERSION_MINOR 1)
  
 # add the binary tree to the search path for include files
 include_directories("${PROJECT_BINARY_DIR}")
-# The version number.
-
-################################################################################
-## Compiler configuration 
-################################################################################
-ADD_DEFINITIONS(
-    -std=c++11
-)
-
 
 ################################################################################
 ## GUARDS
@@ -52,6 +43,12 @@ endif()
 ## Dependencies
 ################################################################################
 
+add_subdirectory(${PROJECT_SOURCE_DIR}/dep/chealpix EXCLUDE_FROM_ALL)
+include_directories(${Chealpix_INCLUDE_DIR})
+
+# switch from C to CXX11
+ADD_DEFINITIONS( -std=c++11 )
+
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR}) 
 
@@ -66,10 +63,6 @@ IF(DEFINED ANN_DIR)
   set(ANN_LIBS "${ANN_DIR}/lib/libANN.a")
 ENDIF(DEFINED ANN_DIR)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/dep/chealpix)
-include_directories(${Chealpix_INCLUDE_DIR})
-
-message ("${Chealpix_LIBS}")
 
 ################################################################################
 ## Project files
@@ -86,8 +79,6 @@ set(Super4PCS_SRC
  
 # add the executable
 add_executable(${PROJECT_NAME} ${Super4PCS_SRC})
-
-#add_dependencies(${PROJECT_NAME} ${Chealpix_LIBS})
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OpenCV_LIBS} )
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${ANN_LIBS} )
