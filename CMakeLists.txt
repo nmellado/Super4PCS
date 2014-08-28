@@ -68,7 +68,8 @@ ENDIF(DEFINED ANN_DIR)
 ## Tests
 ################################################################################
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/tests EXCLUDE_FROM_ALL)
+include(cmake/ConfigureTesting.cmake)
+add_subdirectory(tests EXCLUDE_FROM_ALL)
 
 ################################################################################
 ## Project files

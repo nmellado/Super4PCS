@@ -20,6 +20,9 @@ the number of data points) and is also output sensitive in the complexity of the
 ##Development state
 I am currently working on the source code to clean it and define a stable API. More interesting updates will come soon !
 
+###Test
+Tests are currently under active development (see [CDash](http://my.cdash.org/index.php?project=Super4PCS)). More details will be added soon.
+
 
 ##Compilation and usage
 ###Dependencies:
