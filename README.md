@@ -23,8 +23,7 @@ I am currently working on the source code to clean it and define a stable API. M
 ###Test
 Tests are currently under active development (see [CDash](http://my.cdash.org/index.php?project=Super4PCS)). More tests will be added soon.
 
-To submit the result of the test from your computer, go into your 'build' 
-directory, and run 'ctest -D Experimental'. 
+To submit the result of the test from your computer, go into your `build` directory, and run `ctest -D Experimental`. 
 
 
 ##Compilation and usage
