@@ -26,8 +26,9 @@ I am currently working on the source code to clean it and define a stable API. M
 * [Eigen](http://eigen.tuxfamily.org/)
 * [LibANN](http://www.cs.umd.edu/~mount/ANN/)
 * [OpenCV](http://opencv.org/)
-* [Chealpix](http://healpix.jpl.nasa.gov/html/csubnode4.htm), [Ubuntu package](http://packages.ubuntu.com/km/source/utopic/all/misc/chealpix), [Debian package](https://packages.debian.org/source/jessie/chealpix)
 * [CFITSIO](http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html), a dependency of chealpix. Both ubuntu and debian provide a virtual package 'cfitsio-dev'.
+
+Super4PCS also requires [Chealpix](http://healpix.jpl.nasa.gov/html/csubnode4.htm), but we included it in the source tree to ease the installation procedure.
 
 
 ###Compilation
