@@ -1,3 +1,49 @@
+// Copyright 2014 Nicolas Mellado
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// -------------------------------------------------------------------------- //
+//
+// Authors: Nicolas Mellado
+//
+// An implementation of the Super 4-points Congruent Sets (Super 4PCS) 
+// algorithm presented in:
+//
+// Super 4PCS: Fast Global Pointcloud Registration via Smart Indexing
+// Nicolas Mellado, Dror Aiger, Niloy J. Mitra
+// Symposium on Geometry Processing 2014.
+//
+// Data acquisition in large-scale scenes regularly involves accumulating 
+// information across multiple scans. A common approach is to locally align scan 
+// pairs using Iterative Closest Point (ICP) algorithm (or its variants), but 
+// requires static scenes and small motion between scan pairs. This prevents 
+// accumulating data across multiple scan sessions and/or different acquisition
+// modalities (e.g., stereo, depth scans). Alternatively, one can use a global
+// registration algorithm allowing scans to be in arbitrary initial poses. The 
+// state-of-the-art global registration algorithm, 4PCS, however has a quadratic
+// time complexity in the number of data points. This vastly limits its 
+// applicability to acquisition of large environments. We present Super 4PCS for
+// global pointcloud registration that is optimal, i.e., runs in linear time (in 
+// the number of data points) and is also output sensitive in the complexity of 
+// the alignment problem based on the (unknown) overlap across scan pairs. 
+// Technically, we map the algorithm as an ‘instance problem’ and solve it 
+// efficiently using a smart indexing data organization. The algorithm is 
+// simple, memory-efficient, and fast. We demonstrate that Super 4PCS results in
+// significant speedup over alternative approaches and allows unstructured 
+// efficient acquisition of scenes at scales previously not possible. Complete 
+// source code and datasets are available for research use at 
+// http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
+
 #include "4pcs.h"
 
 #include "Eigen/Dense"
@@ -14,6 +60,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdlib.h>
+
+#include "testing.h"
 
 //#include "normalset.h"
 //#include "normalHealSet.h"
@@ -48,291 +96,137 @@ struct PairCreationFunctor{
   inline void endPrimitiveCollect(int primId){
   }
   inline void process(int primId, int pointId){
-    if(pointId >= 10)
-      pairs.push_back(ResPair(pointId, primId));
+    //if(pointId >= 10)
+    pairs.push_back(ResPair(pointId, primId));
   }
 };
 
 
-#define dim 3
-typedef double Scalar;
-typedef Eigen::Matrix<Scalar, dim, 1> EigenPoint;
-typedef HyperSphere< EigenPoint, dim, Scalar > Sphere ;
-
-
-void
-testIntersection(std::vector<EigenPoint>&points, 
-                 std::vector<Sphere> &primitives,
-                 Scalar epsilon){
-                 
-  unsigned int nbPoints = points.size();
+/*!
+ * \brief Generate a set of random points and spheres, and test the pair extraction
+ 
+   Two tests are operated here:
+    - Check the validity of the sphere to point intersection test
+    - Check the rendering 
     
-  cout << "Compute for " << nbPoints << " points ...." << flush;
-  IntersectionFunctor<Sphere, EigenPoint, dim, Scalar> IF;
-  
+   Note here that rendering timings are not optimal because we have a volume 
+   uniformly sampled and not a surface.
+   
+ */
+template<typename Scalar, typename Point, typename Primitive, typename Functor>
+void testFunction( Scalar r, Scalar epsilon, 
+                   unsigned int nbPoints, unsigned int nbPrimitives){
+                   
+  // Init required structures
   Utilities::Timer t; 
-  PairCreationFunctor functor;
-  
-  Utilities::startTimer(t);
-  //std::vector< std::pair<unsigned int, unsigned int> > pairs = 
-  IF.process(primitives, points, epsilon, 0, functor);
-  Utilities::stopTimer(t);
-  
-  
-  cout << "DONE " << t << endl;
-
-  cout << functor.pairs.size() << " pairs extracted: " 
-       << " for epsilon = " << epsilon << endl;
-       
-  Utilities::startTimer(t);
-       
   vector< pair<unsigned int, unsigned int> > p2;
-  p2.reserve(nbPoints*primitives.size());
+  p2.reserve(nbPoints*nbPrimitives);
   
-  cout << "Compute euclidean...." << flush;
-  for(unsigned int i = 0; i != nbPoints; i++)
-    for(unsigned int j = 0; j != primitives.size(); j++)
-       if (primitives[j].intersectPoint(points[i], epsilon))
-        p2.push_back(std::pair<unsigned int, unsigned int>(i,j));
-  Utilities::stopTimer(t);
-        
-  cout << "DONE " << t << endl;  
-  cout << p2.size() << " pairs extracted using complete search" << endl;
+  PairCreationFunctor functor;
+  functor.ids.clear();
+  for(unsigned int i = 0; i < nbPoints; i++)
+    functor.ids.push_back(i);
+  functor.pairs.reserve(nbPoints*nbPrimitives);
   
-#ifdef DEBUG_PLOT_SEGMENT
-// The gnuplot command is:
-// set xrange [0:1]
-// set yrange [0:1]
-// plot "./detected.plot" u 1:2 w points t "detected", "./euclidean.plot" u 1:2 w points t "euclidean"
-
-#if dim != 2
-#error Gnuplot files generation is valid only in 2D
-#endif
-
-  ofstream detected, outliers, euclidean;
+  // Init Random Positions  
+  std::vector<Point> points;
   
-  detected.open ("detected.plot",  ios::out | ios::trunc);
-  euclidean.open("euclidean.plot", ios::out | ios::trunc);  
-  
-  if (detected.is_open() && euclidean.is_open()) {
-
-    // print all points selected using euclidean distance
-//    for(std::vector< std::pair<unsigned int, unsigned int> >::const_iterator it =
-//        p2.begin(); it != p2.end(); it++)
-//      euclidean << points[(*it).first].transpose() << endl;
-      
-      
-    for(unsigned int i = 0; i != nbPoints; i++){      
-      for(unsigned int j = 0; j != primitives.size(); j++){
-
-        if (primitives[j].intersectPoint(points[i], epsilon)){
-          euclidean << points[i].transpose() << endl;
-          break;
-        }
-      } 
-    }
-      
-    // print all points selected using the structure
-    for(std::vector< std::pair<unsigned int, unsigned int> >::const_iterator it =
-        functor.pairs.begin(); it != functor.pairs.end(); it++)
-      detected << points[(*it).first].transpose() << endl;
-     
-    
-    detected.close ();
-    euclidean.close();
-  }
-#endif
-}
-
-
-
-#if dim == 3
-void
-testWithInput(const vector<Point3D> &set, float epsilon, int nbPrim){
-  std::vector<EigenPoint> points;
-  std::vector<Sphere> primitives; 
-  
-  points.reserve(set.size());
-  primitives.reserve(set.size());
-  
-  BoundingBox3D<Point3D> bbox;
-  
-  // init Eigen data and primitives
-  for (int i = 0; i < set.size(); ++i) {
-    points.push_back( EigenPoint( set[i].x, set[i].y, set[i].z ));
-    bbox.extendTo(set[i]);
-  }    
-  
-  Point3D gcenter3D = bbox.getCenter();
-  EigenPoint gcenter (gcenter3D.x, gcenter3D.y, gcenter3D.z);
-  float ratio = MAX(bbox.depth(), MAX(bbox.width(), bbox.height()));
-  EigenPoint half = EigenPoint::Ones() * 0.5f;
-  
-  bbox.clear();
-  epsilon /= ratio;
-  
-  for (int i = 0; i < points.size(); ++i) {
-    points[i] -= gcenter;
-    points[i] /= ratio;
-    points[i] += half;
-    
-    if (nbPrim != 0){
-      if ( i < nbPrim)
-        primitives.push_back(Sphere(points[i], 0.0078125));
-    }else
-      primitives.push_back(Sphere(points[i], 0.0078125));
-  }
-  
-  testIntersection(points, primitives, epsilon);
-}
-#endif
-
-void
-testWithRandom(){
-    // Init input point
-  unsigned int nbPoints = 10000;
-  
-  std::vector<EigenPoint> points;
-  std::vector<Sphere> primitives; 
-  
-  EigenPoint half (EigenPoint::Ones()/2.f);
-  
-  cout << "Input points: " << endl;
+  Point half (Point::Ones()/2.f);  
   for(unsigned int i = 0; i != nbPoints; i++){
-    EigenPoint p (0.5f*EigenPoint::Random() + half);
+    Point p (0.5f*Point::Random() + half);
     points.push_back(p);   
-    
-    if(i < 30)
-    primitives.push_back(Sphere( p, 0.2));
   } 
-    
-    
-  // Compute intersection
-  float epsilon = 0.125f/4.f;//0.125f/2.f;
   
-  testIntersection(points, primitives, epsilon);
+  // Init random Spheres
+  std::vector<Primitive> primitives; 
+  for(unsigned int i = 0; i != nbPrimitives; i++){
+    Point p (0.5f*Point::Random() + half);
+
+    primitives.push_back(Primitive(p, r));
+  } 
+  
+  // Test test intersection procedure
+  // Here we compare the brute force pair extraction and the sphere to point
+  // intersection procedure
+  {
+    Primitive& sphere = primitives.front();
+    for(unsigned int i = 0; i != nbPoints; i++){
+      const Point&p = points[i];
+      VERIFY( sphere.intersectPoint(p, epsilon) == 
+              SQR((p - sphere.center()).norm()- sphere.radius()) < SQR(epsilon));
+    }  
+  }
+  
+    
+  // Test Rendering process
+  {
+    Functor IF;  
+    
+    // Extract pairs using rendering process
+    Utilities::startTimer(t);
+    IF.process(primitives, points, epsilon, 20, functor);
+    Utilities::stopTimer(t); 
+           
+     
+    // Extract pairs using brute force
+    Utilities::startTimer(t); 
+    for(unsigned int i = 0; i != nbPoints; i++)
+      for(unsigned int j = i+1; j < primitives.size(); j++)
+         if (primitives[j].intersectPoint(points[i], epsilon))
+          p2.push_back(std::pair<unsigned int, unsigned int>(i,j));
+    Utilities::stopTimer(t);
+    
+    // Check we get the same set size
+    VERIFY( functor.pairs.size() == p2.size());
+  }
 }
 
 
-//void
-//testNormalIndex() {
-//    // Init input point
-//  unsigned int nbPoints = 100000;
-
-//  Scalar epsilon = 0.125f/2.f;
-//  IndexedNormalSet<EigenPoint, dim, 7, Scalar> nset(epsilon);
-//  IndexedNormalHealSet nhset(epsilon, 4);
-//  
-//  std::vector<EigenPoint> points;
-//  std::vector<EigenPoint> normals;
-//  EigenPoint normal(1,0,0);
-//  
-//  Utilities::Timer t;
-//  
-//  EigenPoint half (EigenPoint::Ones()/2.f);
-//  
-//  float tEuclidean = 0,
-//        tAngular   = 0;
-//  // filling
-//  for(unsigned int i = 0; i != nbPoints; i++){
-//    EigenPoint p (0.5f*EigenPoint::Random() + half);
-//    EigenPoint normal (EigenPoint::Random());
-//    normal.normalize();
-//    points.push_back(p);  
-//    normals.push_back(normal); 
-//      
-//    Utilities::startTimer(t);
-//    nset.addElement(p, normal, i);
-//    Utilities::stopTimer(t);
-//    tEuclidean += t;
-//    
-//    Utilities::startTimer(t);
-//    nhset.addElement(p, normal, i);
-//    Utilities::stopTimer(t);
-//    tAngular += t;
-//  }
-//  
-//  cout << "Fill Euclidean: " << tEuclidean << endl;
-//  cout << "Fill Anguular:  " << tAngular << endl;
-//  
-//  // Query
-//  unsigned int nbTry = 100000;
-//  
-//  tEuclidean = 0;
-//  tAngular   = 0;
-//  
-//  Scalar eEuclidean = 0,
-//         eAngular   = 0;
-//  Scalar dEuclidean = 0,
-//         dAngular   = 0;
-//  unsigned int nbNeiEuclidean = 0;
-//  unsigned int nbNeiAngular   = 0;
-//  for(unsigned int i = 0; i != nbTry; i++){
-//  std::vector<unsigned int> nei;    
-//  EigenPoint query  = (0.5f*EigenPoint::Random() + half);
-//  EigenPoint queryn = normal;  
-//  
-////  cout << "epsilon = " << epsilon << endl;
-//  
-////  cout << "Start gathering neighborhood" << endl;
-//  Utilities::startTimer(t);
-//  nset.getNeighbors( query, 
-//                     queryn,
-//                     0.2,
-//                     nei);
-//  Utilities::stopTimer(t);
-//  tEuclidean += t;
-//  
-//  for (unsigned int k = 0; k != nei.size(); k++){   
-//    int id = nei[k]; 
-//    dEuclidean += (points[id] - query).norm();
-//    eEuclidean += std::abs(normals[id].dot(queryn));
-//  }   
-//  nbNeiEuclidean += nei.size();
-//  
-//  nei.clear();
-//  Utilities::startTimer(t);
-//  nhset.getNeighbors( query, 
-//                     queryn,
-//                     0.2,
-//                     nei);
-//  Utilities::stopTimer(t);
-//  tAngular += t;
-//  
-//  for (unsigned int k = 0; k != nei.size(); k++){   
-//    int id = nei[k]; 
-//    dAngular += (points[id] - query).norm();
-//    eAngular += std::abs(normals[id].dot(queryn));
-//  }  
-//  nbNeiAngular += nei.size();
-//  
-//  
-////  cout << "Done" << endl;
-////              
-////  for (unsigned int k = 0; k != nei.size(); k++){   
-////    int id = nei[k]; 
-////    cout << (points[id] - query).norm() << " " << normals[id].dot(queryn) << endl;
-////  }   
-//  }
-//  
-//  cout << "Query Euclidean: " << tEuclidean << endl;
-//  cout << "Query Angular:  " << tAngular << endl;
-//  
-//  cout << "Error Euclidean distances: " << dEuclidean / Scalar(nbNeiEuclidean) << endl;
-//  cout << "Error Angular distances:   " << dAngular / Scalar(nbNeiAngular) << endl;
-//  
-//  cout << "Error Euclidean dot: " << eEuclidean / Scalar(nbNeiEuclidean) << endl;
-//  cout << "Error Angular dot:   " << eAngular / Scalar(nbNeiAngular) << endl;
-//  
-//  cout << "Nb Points Euclidean: " << nbNeiEuclidean << endl;
-//  cout << "Nb Points Angular:   " << nbNeiAngular << endl;
-//  //for (unsigned int i = 0; i != nbPoints; i++){
-//  //  if((points[i] - query).norm() <= epsilon)
-//  //    cout << (points[i] - query).norm() << endl;  
-//  //}
-//}
-
+template<typename Scalar, 
+         int Dim, 
+         template <typename,typename,int,typename> class _Functor>
+void callSubTests()
+{
+    typedef  Eigen::Matrix<Scalar, Dim, 1> EigenPoint;
+    typedef  HyperSphere< EigenPoint, Dim, Scalar > Sphere;
+    typedef _Functor<Sphere, EigenPoint, Dim, Scalar> Functor;
+    
+    Scalar   r = 0.5; // radius of the spheres
+    Scalar eps = 0.125/8.; // epsilon value
+    
+    unsigned int nbPoint = 10000;  // size of Q point cloud
+    unsigned int nbPrim  = 500;    // number of primitive queries
+    
+    for(int i = 0; i < g_repeat; ++i)
+    {
+        CALL_SUBTEST(( testFunction<Scalar, 
+                                    EigenPoint, 
+                                    Sphere, 
+                                    Functor>(r, eps, nbPoint, nbPrim) ));
+    }
+}
 
 int main(int argc, char **argv) {
-  return true;
+    if(!init_testing(argc, argv))
+    {
+        return EXIT_FAILURE;
+    }
+    
+    cout << "Extract pairs in 2 dimensions..." << endl;
+    callSubTests<float, 2, IntersectionFunctor>();
+    callSubTests<double, 2, IntersectionFunctor>();
+    callSubTests<long double, 2, IntersectionFunctor>();
+    cout << "Ok..." << endl;
+    
+    cout << "Extract pairs in 3 dimensions..." << endl;
+    callSubTests<float, 3, IntersectionFunctor>();
+    callSubTests<double, 3, IntersectionFunctor>();
+    callSubTests<long double, 3, IntersectionFunctor>();
+    cout << "Ok..." << endl;
+    
+    cout << "Extract pairs in 4 dimensions..." << endl;
+    callSubTests<float, 4, IntersectionFunctor>();
+    callSubTests<double, 4, IntersectionFunctor>();
+    callSubTests<long double, 4, IntersectionFunctor>();
+    cout << "Ok..." << endl;
 }
