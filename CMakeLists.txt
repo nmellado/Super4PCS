@@ -43,7 +43,7 @@ endif()
 ## Dependencies
 ################################################################################
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/dep/chealpix EXCLUDE_FROM_ALL)
+add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/chealpix EXCLUDE_FROM_ALL)
 include_directories(${Chealpix_INCLUDE_DIR})
 
 # switch from C to CXX11
@@ -65,16 +65,22 @@ ENDIF(DEFINED ANN_DIR)
 
 
 ################################################################################
+## Tests
+################################################################################
+
+add_subdirectory(${PROJECT_SOURCE_DIR}/tests EXCLUDE_FROM_ALL)
+
+################################################################################
 ## Project files
 ################################################################################
 
-include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/${PROJECT_NAME})
 set(Super4PCS_SRC
-    io/io.cc
-    4pcs.cc
-    super4pcs.cc
-    accelerators/normalHealSet.cpp
-    super4pcs_test.cc
+    ${PROJECT_NAME}/io/io.cc
+    ${PROJECT_NAME}/4pcs.cc
+    ${PROJECT_NAME}/super4pcs.cc
+    ${PROJECT_NAME}/accelerators/normalHealSet.cpp
+    ${PROJECT_NAME}/super4pcs_test.cc
 )
  
 # add the executable
