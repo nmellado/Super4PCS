@@ -66,6 +66,11 @@ IF(DEFINED ANN_DIR)
   set(ANN_LIBS "${ANN_DIR}/lib/libANN.a")
 ENDIF(DEFINED ANN_DIR)
 
+add_subdirectory(${PROJECT_SOURCE_DIR}/dep/chealpix)
+include_directories(${Chealpix_INCLUDE_DIR})
+
+message ("${Chealpix_LIBS}")
+
 ################################################################################
 ## Project files
 ################################################################################
@@ -80,7 +85,10 @@ set(Super4PCS_SRC
 )
  
 # add the executable
-add_executable(Super4PCS ${Super4PCS_SRC})
+add_executable(${PROJECT_NAME} ${Super4PCS_SRC})
+
+#add_dependencies(${PROJECT_NAME} ${Chealpix_LIBS})
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OpenCV_LIBS} )
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${ANN_LIBS} )
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Chealpix_LIBS} )
