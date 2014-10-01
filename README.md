@@ -26,7 +26,7 @@ Tests are currently under active development (see [CDash](http://my.cdash.org/in
 To submit the result of the test from your computer, go into your `build` directory, and run `ctest -D Experimental`. 
 
 
-##Compilation and usage
+##Compilation
 ###Dependencies:
 * [Eigen](http://eigen.tuxfamily.org/)
 * [LibANN](http://www.cs.umd.edu/~mount/ANN/)
@@ -36,7 +36,7 @@ To submit the result of the test from your computer, go into your `build` direct
 Super4PCS also requires [Chealpix](http://healpix.jpl.nasa.gov/html/csubnode4.htm), but we included it in the source tree to ease the installation procedure.
 
 
-###Compilation
+###Compiling
 The simplest solution is to use cmake, from the source directory:
 ```
 mkdir build
@@ -65,8 +65,11 @@ cmake -DEIGEN3_INCLUDE_DIR=/your/path/to/eigen/ ..
 * Not recommended: modify one line in Eigen sources (Instructions [here](https://sourceforge.net/p/pagmo/mailman/message/30074799/)).
 
 
-###Usage
+##Usage
 A good starting point is to call the enclosed script `./run-example.sh`.
+
+More details about parameter setting will be added soon. In the meantime please contact us to get support on parameter tuning (see section below).
+
 
 ##Contact
 Please feel free to contact us if you have any question regarding this source code (see the [project page](http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/) for contact information).
