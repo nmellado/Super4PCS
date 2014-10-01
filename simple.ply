@@ -1,0 +1,13 @@
+ply
+format binary_little_endian 1.0
+element vertex 6
+property float x
+property float y
+property float z
+end_header
+0.00000 0.00000 0.00000
+3.00000 0.00000 0.00000
+0.00000 2.00000 0.00000
+3.00000 2.00000 0.00000
+0.00000 2.00000 1.00000
+3.00000 2.00000 1.00000
