@@ -807,10 +807,10 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
     const Point& p2 = pcfunctor_.points[P_pairs[i].second];
     Point  n  = (p2 - p1).normalized();
 
-    nset.addElement( p1+ invariant1 * (p2 - p1),  n, i);
-    nset.addElement( p1+ invariant1 * (p2 - p1), -n, i);
-    nset.addElement( p1+ invariant2 * (p2 - p1),  n, i);
-    nset.addElement( p1+ invariant2 * (p2 - p1), -n, i);
+    nset.addElement( p1+ invariant1       * (p2 - p1),  n, 2*i);
+    nset.addElement( p1+ (1.0-invariant1) * (p2 - p1), -n, 2*i+1);
+    //nset.addElement( p1+ invariant2 * (p2 - p1),  n, i);
+    //nset.addElement( p1+ invariant2 * (p2 - p1), -n, i);
   }
 
 
@@ -828,45 +828,47 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
 
     nei.clear();
 
-    Point   query  =  p1 + invariant1 * ( p2 - p1 );
-    Point3D queryQ = pq1 + invariant1 * (pq2 - pq1);
+    Point   query  =  p1 + invariant2 * ( p2 - p1 );
+    Point3D queryQ = pq1 + invariant2 * (pq2 - pq1);
 
     Point queryn = (p2 - p1).normalized();
 
     nset.getNeighbors( query,  queryn, alpha, nei, true);
 
-    Point3D invRes;
-    const float distance_threshold2s = distance_threshold2 * distance_threshold2;
+    Point3D invPoint;
+    //const float distance_threshold2s = distance_threshold2 * distance_threshold2;
     for (unsigned int k = 0; k != nei.size(); k++){
-      const int &id = nei[k];
+      int id = nei[k]/2;
 
       const Point3D& pp1 = Q_points[P_pairs[id].first];
       const Point3D& pp2 = Q_points[P_pairs[id].second];
 
-      invRes = pp1 + invariant2 * (pp2 - pp1);
+      invPoint = pp1 + (pp2 - pp1) * (nei[k]%2==0 ? invariant1 : (1.0-invariant1) );
+      //invPoint = pp1 + (pp2 - pp1) * invariant1;
 
        // use also distance_threshold2 for inv 1 and 2 in 4PCS
-      const Point3D x = queryQ-invRes;
-      if (norm2(x) <= distance_threshold2s){
+      if (cv::norm(queryQ-invPoint) <= distance_threshold2){
         comb.insert(std::pair<unsigned int, unsigned int>(id, i));
       }
     }
     nei.clear();
 
-    query  = p1  + invariant2 * (p2  - p1);
-    queryQ = pq1 + invariant2 * (pq2 - pq1);
+    query  = p1  + (1.0 - invariant2) * (p2  - p1);
+    queryQ = pq1 + (1.0 - invariant2) * (pq2 - pq1);
 
+    queryn = (p1 - p2).normalized();
     nset.getNeighbors(query,  queryn, alpha, nei, true);
 
     for (unsigned int k = 0; k != nei.size(); k++){
-      const int &id = nei[k];
+      int id = nei[k]/2;
 
       const Point3D& pp1 = Q_points[P_pairs[id].first];
       const Point3D& pp2 = Q_points[P_pairs[id].second];
 
-      invRes = pp1 + invariant2 * (pp2 - pp1);
+      invPoint = pp1 + (pp2 - pp1) * (nei[k]%2==0 ? invariant1 : (1.0-invariant1) );
+      //invPoint = pp1 + (pp2 - pp1) * invariant1;
 
-      if (cv::norm(queryQ-invRes) <= distance_threshold2){
+      if (cv::norm(queryQ-invPoint) <= distance_threshold2){
         comb.insert(std::pair<unsigned int, unsigned int>(id, i));
       }
     }

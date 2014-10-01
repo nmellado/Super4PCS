@@ -582,26 +582,21 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
     data_points[i * 2][0] = p1.x + invariant1 * (p2.x - p1.x);
     data_points[i * 2][1] = p1.y + invariant1 * (p2.y - p1.y);
     data_points[i * 2][2] = p1.z + invariant1 * (p2.z - p1.z);
-    data_points[i * 2 + 1][0] = p1.x + invariant2 * (p2.x - p1.x);
-    data_points[i * 2 + 1][1] = p1.y + invariant2 * (p2.y - p1.y);
-    data_points[i * 2 + 1][2] = p1.z + invariant2 * (p2.z - p1.z);
+    data_points[i * 2 + 1][0] = p1.x + (1.0-invariant1) * (p2.x - p1.x);
+    data_points[i * 2 + 1][1] = p1.y + (1.0-invariant1) * (p2.y - p1.y);
+    data_points[i * 2 + 1][2] = p1.z + (1.0-invariant1) * (p2.z - p1.z);
   }
 
   ANNkd_tree* tree = new ANNkd_tree(data_points, number_of_points, 3);
 
-    Point3D invRes;
+    //Point3D invRes;
   // Query the ANN for all the points corresponding to the invariants in Q_pair.
   for (int i = 0; i < Q_pairs.size(); ++i) {
     const Point3D& p1 = sampled_Q_3D_[Q_pairs[i].first];
     const Point3D& p2 = sampled_Q_3D_[Q_pairs[i].second];
-    query_point[0] = p1.x + invariant1 * (p2.x - p1.x);
-    query_point[1] = p1.y + invariant1 * (p2.y - p1.y);
-    query_point[2] = p1.z + invariant1 * (p2.z - p1.z);
-
-    Point3D query;
-    query.x = p1.x + invariant2 * (p2.x - p1.x);
-    query.y = p1.y + invariant2 * (p2.y - p1.y);
-    query.z = p1.z + invariant2 * (p2.z - p1.z);
+    query_point[0] = p1.x + invariant2 * (p2.x - p1.x);
+    query_point[1] = p1.y + invariant2 * (p2.y - p1.y);
+    query_point[2] = p1.z + invariant2 * (p2.z - p1.z);
     
     tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
                        near_neighbor_index, distances, 0);
@@ -613,12 +608,7 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
 
         const Point3D& pp1 = sampled_Q_3D_[P_pairs[id].first];
         const Point3D& pp2 = sampled_Q_3D_[P_pairs[id].second];         
-             
-        invRes.x = pp1.x + invariant1 * (pp2.x - pp1.x);
-        invRes.y = pp1.y + invariant1 * (pp2.y - pp1.y);
-        invRes.z = pp1.z + invariant1 * (pp2.z - pp1.z); 
-        
-        //if (cv::norm(query-invRes) <= distance_threshold2)        
+                    
         quadrilaterals->push_back(
             Quadrilateral(P_pairs[id].first, P_pairs[id].second,
                           Q_pairs[i].first, Q_pairs[i].second));
@@ -627,12 +617,10 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
     }
 
     // We test the other order as our pairs are not ordered.
-    query_point[0] = p1.x + invariant2 * (p2.x - p1.x);
-    query_point[1] = p1.y + invariant2 * (p2.y - p1.y);
-    query_point[2] = p1.z + invariant2 * (p2.z - p1.z);
-    query.x = p1.x + invariant2 * (p2.x - p1.x);
-    query.y = p1.y + invariant2 * (p2.y - p1.y);
-    query.z = p1.z + invariant2 * (p2.z - p1.z);
+    query_point[0] = p1.x + (1.0-invariant2) * (p2.x - p1.x);
+    query_point[1] = p1.y + (1.0-invariant2) * (p2.y - p1.y);
+    query_point[2] = p1.z + (1.0-invariant2) * (p2.z - p1.z);
+    
     tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
                        near_neighbor_index, distances, 0);
 
@@ -641,13 +629,8 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
         int id = near_neighbor_index[j] / 2;
 
         const Point3D& pp1 = sampled_Q_3D_[P_pairs[id].first];
-        const Point3D& pp2 = sampled_Q_3D_[P_pairs[id].second];        
-             
-        invRes.x = pp1.x + invariant2 * (pp2.x - pp1.x);
-        invRes.y = pp1.y + invariant2 * (pp2.y - pp1.y);
-        invRes.z = pp1.z + invariant2 * (pp2.z - pp1.z); 
-             
-        //if (cv::norm(query-invRes) <= distance_threshold2)
+        const Point3D& pp2 = sampled_Q_3D_[P_pairs[id].second];   
+        
         quadrilaterals->push_back(
             Quadrilateral(P_pairs[id].first, P_pairs[id].second,
                           Q_pairs[i].first, Q_pairs[i].second));
