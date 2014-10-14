@@ -57,6 +57,10 @@ class Point3D : public cv::Point3f {
  public:
   inline Point3D(double x, double y, double z) : cv::Point3f(x, y, z) {}
   inline Point3D(const cv::Point3f& other): cv::Point3f(other) {}
+  inline Point3D(const Point3D& other):
+      cv::Point3f(other),
+      normal_(other.normal_),
+      rgb_(other.rgb_) {}
   inline Point3D() : cv::Point3f(0.0f, 0.0f, 0.0f) {}
   inline const cv::Vec3f& rgb() const { return rgb_; }
   inline const cv::Point3f& normal() const { return normal_; }
