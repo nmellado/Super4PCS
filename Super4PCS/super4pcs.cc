@@ -1440,27 +1440,47 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
   sampled_P_3D_.clear();
   sampled_Q_3D_.clear();
 
-  int sample_fraction_P = 1;  // We prefer not to sample P but any number can be
-                              // placed here.
 
-  std::vector<Point3D> uniform_P;
-  std::vector<Point3D> uniform_Q;
-  DistUniformSampling(P, options_.delta, &uniform_P);
-  DistUniformSampling(Q, options_.delta, &uniform_Q);
+  // prepare P
+  if (P.size() > options_.sample_size){
+      std::vector<Point3D> uniform_P;
+      DistUniformSampling(P, options_.delta, &uniform_P);
 
-  // Sample the sets P and Q uniformly.
-  for (int i = 0; i < uniform_P.size(); ++i) {
-    if (rand() % sample_fraction_P == 0) {
-      sampled_P_3D_.push_back(uniform_P[i]);
-    }
+      int sample_fraction_P = 1;  // We prefer not to sample P but any number can be
+                                  // placed here.
+
+      // Sample the sets P and Q uniformly.
+      for (int i = 0; i < uniform_P.size(); ++i) {
+        if (rand() % sample_fraction_P == 0) {
+          sampled_P_3D_.push_back(uniform_P[i]);
+        }
+      }
+  }
+  else
+  {
+      cout << "(P) More samples requested than available: use whole cloud" << endl;
+      sampled_P_3D_ = P;
   }
 
-  int sample_fraction_Q =
-      max(1, static_cast<int>(uniform_Q.size() / options_.sample_size));
-  for (int i = 0; i < uniform_Q.size(); ++i) {
-    if (rand() % sample_fraction_Q == 0) {
-      sampled_Q_3D_.push_back(uniform_Q[i]);
-    }
+
+
+  // prepare Q
+  if (Q.size() > options_.sample_size){
+      std::vector<Point3D> uniform_Q;
+      DistUniformSampling(Q, options_.delta, &uniform_Q);
+      int sample_fraction_Q =
+          max(1, static_cast<int>(uniform_Q.size() / options_.sample_size));
+
+      for (int i = 0; i < uniform_Q.size(); ++i) {
+        if (rand() % sample_fraction_Q == 0) {
+          sampled_Q_3D_.push_back(uniform_Q[i]);
+        }
+      }
+  }
+  else
+  {
+      cout << "(Q) More samples requested than available: use whole cloud" << endl;
+      sampled_Q_3D_ = Q;
   }
 
   // Compute the centroids.
