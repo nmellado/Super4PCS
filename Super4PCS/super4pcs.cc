@@ -725,7 +725,7 @@ class MatchSuper4PCSImpl {
   // (approximate as the lines might not intersect) and returns the invariants
   // corresponding to the two selected lines. The method also updates the order
   // of the base base_3D_.
-  bool TryQuadrilateral(double* invariant1, double* invariant2);
+  bool TryQuadrilateral(double* invariant1, double* invariant2, int &base1, int &base2, int &base3, int &base4);
 
   // Finds congruent candidates in the set Q, given the invariants and threshold
   // distances. Returns true if a non empty set can be found, false otherwise.
@@ -1001,7 +1001,8 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilaterals(
 // Try the current base in P and obtain the best pairing, i.e. the one that
 // gives the smaller distance between the two closest points. The invariants
 // corresponding the the base pairing are computed.
-bool MatchSuper4PCSImpl::TryQuadrilateral(double* invariant1, double* invariant2) {
+bool MatchSuper4PCSImpl::TryQuadrilateral(double* invariant1, double* invariant2,
+                                          int& id1, int& id2, int& id3, int& id4) {
   if (invariant1 == NULL || invariant2 == NULL) return false;
 
   float min_distance = FLT_MAX;
@@ -1150,7 +1151,7 @@ bool MatchSuper4PCSImpl::SelectQuadrilateral(double* invariant1, double* invaria
       // If we have a good one we can quit.
       if (*base4 != -1) {
         base_3D_[3] = sampled_P_3D_[*base4];
-        TryQuadrilateral(invariant1, invariant2);
+        TryQuadrilateral(invariant1, invariant2, *base1, *base2, *base3, *base4);
         return true;
       }
     }
