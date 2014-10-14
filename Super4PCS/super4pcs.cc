@@ -1039,6 +1039,12 @@ bool MatchSuper4PCSImpl::TryQuadrilateral(double* invariant1, double* invariant2
   base_3D_[2] = tmp[best3];
   base_3D_[3] = tmp[best4];
 
+  std::array<int, 4> tmpId = {id1, id2, id3, id4};
+  id1 = tmpId[best1];
+  id2 = tmpId[best2];
+  id3 = tmpId[best3];
+  id4 = tmpId[best4];
+
   return true;
 }
 
