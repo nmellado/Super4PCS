@@ -147,8 +147,11 @@ inline float PointsDistance(const Point3D& p, const Point3D& q) {
 double ComputeRigidTransformation(vector<pair<Point3D, Point3D>>* pairs,
                                   cv::Mat* rotation, cv::Point3f* translation,
                                   cv::Point3f* center) {
-  if (pairs->size() == 0 || rotation == NULL || translation == NULL ||
-      center == NULL)
+  if (pairs->size() == 0 ||
+          pairs->size() % 2 != 0 ||
+          rotation == NULL ||
+          translation == NULL ||
+          center == NULL)
     return kLargeNumber;
   float kSmallNumber = 1e-6;
   *rotation = cv::Mat::eye(3, 3, CV_64F);
