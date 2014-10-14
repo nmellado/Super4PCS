@@ -1308,10 +1308,36 @@ bool MatchSuper4PCSImpl::TryOneBase() {
   int base_id1, base_id2, base_id3, base_id4;
   float distance_factor = 2.0;
 
+//#define STATIC_BASE
+
+#ifdef STATIC_BASE
+  static bool first_time = true;
+
+  if (first_time){
+      base_id1 = 0;
+      base_id2 = 3;
+      base_id3 = 1;
+      base_id4 = 4;
+
+      base_3D_[0] = sampled_P_3D_ [base_id1];
+      base_3D_[1] = sampled_P_3D_ [base_id2];
+      base_3D_[2] = sampled_P_3D_ [base_id3];
+      base_3D_[3] = sampled_P_3D_ [base_id4];
+
+      TryQuadrilateral(&invariant1, &invariant2, base_id1, base_id2, base_id3, base_id4);
+
+      first_time = false;
+  }
+  else
+      return false;
+
+#else
+
   if (!SelectQuadrilateral(&invariant1, &invariant2, &base_id1, &base_id2,
                            &base_id3, &base_id4)) {
     return false;
   }
+#endif
 
   // Computes distance between pairs.
   double distance1 = PointsDistance(base_3D_[0], base_3D_[1]);
