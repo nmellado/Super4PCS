@@ -166,23 +166,36 @@ double ComputeRigidTransformation(vector<pair<Point3D, Point3D>>* pairs,
   centroid1 *= 1.0 / static_cast<float>(pairs->size());
   centroid2 *= 1.0 / static_cast<float>(pairs->size());
 
-  // Search for the best mapping by comparing the distances of a points to the
-  // center of gravity in both sets.
-  vector<pair<Point3D, Point3D>> temp_pairs = *pairs;
-  for (int i = 0; i < pairs->size(); ++i) {
-    float distance1 = cv::norm((*pairs)[i].first - centroid1);
-    double best_distance = FLT_MAX;
-    int best_id;
-    for (int j = 0; j < pairs->size(); ++j) {
-      float distance2 = cv::norm((*pairs)[j].second - centroid2);
-      float t = fabs(distance1 - distance2);
-      if (t < best_distance) {
-        best_distance = t;
-        best_id = j;
-      }
-    }
-    (*pairs)[i].second = temp_pairs[best_id].second;
-  }
+  // We don't need to search for the best pairing, this is already found
+  // earlier during the congruent set generation
+
+//  vector<bool> used (pairs->size()/2, false);
+
+//  vector<pair<Point3D, Point3D>> temp_pairs = *pairs;
+//  for (int i = 0; i < pairs->size(); i+=2) {
+//      float distance1 = cv::norm((*pairs)[i].first - centroid1);
+//      double best_distance = FLT_MAX;
+//      int best_id;
+//      for (int j = 0; j < pairs->size(); j+=2) {
+//          if (! used[j/2]){ // we avoid to pick twice the same element
+//              float distance2 = cv::norm((*pairs)[j].second - centroid2);
+//              float t = std::abs(distance1 - distance2);
+//              if (t < best_distance) {
+//                  best_distance = t;
+//                  best_id = j;
+//                  if (t == 0.)
+//                      break; // break for perfect cases
+//              }
+//          }
+//      }
+
+//      if(best_distance == FLT_MAX)
+//          return false; // this shouldn't happens
+
+//      (*pairs)[i].second   = temp_pairs[best_id].second;
+//      (*pairs)[i+1].second = temp_pairs[best_id+1].second;
+//      used[best_id/2] = true;
+//  }
 
   // We only use the first 3 pairs. This simplifies the process considerably
   // because it is the planar case.
