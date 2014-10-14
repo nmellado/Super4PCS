@@ -797,8 +797,8 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
     std::vector<Quadrilateral>* quadrilaterals) {
 
   // Compute the angle formed by the two vectors of the basis
-  Point3D b1 = base_3D_[0] - base_3D_[1];  b1.normalize();
-  Point3D b2 = base_3D_[2] - base_3D_[3];  b2.normalize();
+  Point3D b1 = base_3D_[1] - base_3D_[0];  b1.normalize();
+  Point3D b2 = base_3D_[3] - base_3D_[2];  b2.normalize();
   double alpha = /*std::abs(*/b1.dot(b2)/*)*/;
 
   // 1. Datastructure construction
@@ -823,10 +823,13 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
     const Point& p2 = pcfunctor_.points[P_pairs[i].second];
     Point  n  = (p2 - p1).normalized();
 
-    nset.addElement( p1+ invariant1       * (p2 - p1),  n, 2*i);
-    nset.addElement( p1+ (1.0-invariant1) * (p2 - p1), -n, 2*i+1);
-    //nset.addElement( p1+ invariant2 * (p2 - p1),  n, i);
-    //nset.addElement( p1+ invariant2 * (p2 - p1), -n, i);
+//    cout << "new entry: " << endl
+//         << p1.transpose() << "(" << P_pairs[i].first  << ")" << endl
+//         << p2.transpose() << "(" << P_pairs[i].second << ")" << endl
+//         << (p1+ invariant1       * (p2 - p1)).transpose() << endl
+//         << n.transpose() << endl;
+
+    nset.addElement( p1+ invariant1 * (p2 - p1),  n, i);
   }
 
 
@@ -849,43 +852,34 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
 
     Point queryn = (p2 - p1).normalized();
 
-    nset.getNeighbors( query,  queryn, alpha, nei, true);
+//    cout << "query: " << endl
+//         << p1.transpose() << "(" << Q_pairs[i].first  << ")" << endl
+//         << p2.transpose() << "(" << Q_pairs[i].second << ")" << endl
+//         << query.transpose() << endl
+//         << queryn.transpose() << endl;
+
+    nset.getNeighbors( query,  queryn, alpha, nei, false);
+
 
     Point3D invPoint;
     //const float distance_threshold2s = distance_threshold2 * distance_threshold2;
     for (unsigned int k = 0; k != nei.size(); k++){
-      int id = nei[k]/2;
+      int id = nei[k];
 
       const Point3D& pp1 = Q_points[P_pairs[id].first];
       const Point3D& pp2 = Q_points[P_pairs[id].second];
 
-      invPoint = pp1 + (pp2 - pp1) * (nei[k]%2==0 ? invariant1 : (1.0-invariant1) );
+      invPoint = pp1 + (pp2 - pp1) * invariant1;
+//      cout << "invpoint = "
+//           << invPoint.x << " "
+//           << invPoint.y << " "
+//           << invPoint.z << endl;
       //invPoint = pp1 + (pp2 - pp1) * invariant1;
 
        // use also distance_threshold2 for inv 1 and 2 in 4PCS
       if (cv::norm(queryQ-invPoint) <= distance_threshold2){
-        comb.insert(std::pair<unsigned int, unsigned int>(id, i));
-      }
-    }
-    nei.clear();
-
-    query  = p1  + (1.0 - invariant2) * (p2  - p1);
-    queryQ = pq1 + (1.0 - invariant2) * (pq2 - pq1);
-
-    queryn = (p1 - p2).normalized();
-    nset.getNeighbors(query,  queryn, alpha, nei, true);
-
-    for (unsigned int k = 0; k != nei.size(); k++){
-      int id = nei[k]/2;
-
-      const Point3D& pp1 = Q_points[P_pairs[id].first];
-      const Point3D& pp2 = Q_points[P_pairs[id].second];
-
-      invPoint = pp1 + (pp2 - pp1) * (nei[k]%2==0 ? invariant1 : (1.0-invariant1) );
-      //invPoint = pp1 + (pp2 - pp1) * invariant1;
-
-      if (cv::norm(queryQ-invPoint) <= distance_threshold2){
-        comb.insert(std::pair<unsigned int, unsigned int>(id, i));
+//          cout << "passed " << id << " " << i << endl;
+          comb.insert(std::pair<unsigned int, unsigned int>(id, i));
       }
     }
   }
@@ -895,6 +889,9 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
        it != comb.cend(); it++){
     const unsigned int & id = (*it).first;
     const unsigned int & i  = (*it).second;
+
+//    cout << "New quad: (" << P_pairs[id].first << " " << P_pairs[id].second
+//         << ") - ("  << Q_pairs[i].first << " " << Q_pairs[i].second << ")" << endl;
     quadrilaterals->push_back(
                 Quadrilateral(P_pairs[id].first, P_pairs[id].second,
                               Q_pairs[i].first,  Q_pairs[i].second));
