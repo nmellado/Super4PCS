@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 2.6)
 project (Super4PCS)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+set(SRC_DIR ${PROJECT_SOURCE_DIR}/super4pcs)
  
 ################################################################################
 ## Configuration file 
@@ -75,17 +77,18 @@ add_subdirectory(tests EXCLUDE_FROM_ALL)
 ## Project files
 ################################################################################
 
-include_directories(${CMAKE_SOURCE_DIR}/${PROJECT_NAME})
+include_directories(${SRC_DIR})
 set(Super4PCS_SRC
-    ${PROJECT_NAME}/io/io.cc
-    ${PROJECT_NAME}/4pcs.cc
-    ${PROJECT_NAME}/super4pcs.cc
-    ${PROJECT_NAME}/accelerators/normalHealSet.cpp
-    ${PROJECT_NAME}/super4pcs_test.cc
+    ${SRC_DIR}/4pcs.cc
+    ${SRC_DIR}/super4pcs.cc
+    ${SRC_DIR}/super4pcs_test.cc
 )
+
+add_subdirectory(${SRC_DIR}/io)
+add_subdirectory(${SRC_DIR}/accelerators)
  
 # add the executable
-add_executable(${PROJECT_NAME} ${Super4PCS_SRC})
+add_executable(${PROJECT_NAME} ${Super4PCS_SRC} ${io_INCLUDE} ${io_SRC} ${accel_INCLUDE} ${accel_SRC})
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OpenCV_LIBS} )
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${ANN_LIBS} )
