@@ -3,8 +3,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-include_directories(${CMAKE_SOURCE_DIR}/${CMAKE_PROJECT_NAME})
-include_directories(${CMAKE_SOURCE_DIR}/${CMAKE_PROJECT_NAME}/accelerators)
+include_directories(${SRC_DIR})
+include_directories(${SRC_DIR}/accelerators)
 
 #############################################
 set(pair_extraction_SRCS 
