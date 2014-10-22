@@ -8,7 +8,7 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 bool 
 IOManager::ReadObject(
-           char *name, 
+           const char *name,
            vector<Point3D> &v, 
            vector<cv::Point2f> &tex_coords,
            vector<cv::Point3f> &normals, 
@@ -27,7 +27,7 @@ IOManager::ReadObject(
 }
 
 bool 
-IOManager::ReadPly(char *filename, 
+IOManager::ReadPly(const char *filename,
                    vector<Point3D> &v, 
                    vector<cv::Point3f> &normals){
   
@@ -66,7 +66,7 @@ IOManager::ReadPly(char *filename,
 }
 
 bool 
-IOManager::ReadObj(char *filename, 
+IOManager::ReadObj(const char *filename,
                    vector<Point3D> &v, 
                    vector<cv::Point2f> &tex_coords,
                    vector<cv::Point3f> &normals, 
@@ -201,7 +201,7 @@ IOManager::ReadObj(char *filename,
 ////////////////////////////////////////////////////////////////////////////////
 
 bool 
-IOManager::WriteObject(char *name, 
+IOManager::WriteObject(const char *name,
                        vector<Point3D> &v,
                        vector<cv::Point2f> &tex_coords, 
                        vector<cv::Point3f> &normals,

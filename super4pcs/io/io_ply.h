@@ -11,7 +11,7 @@ static const unsigned int MAX_COMMENT_SIZE = 256;
 
 
 unsigned int
-readHeader ( char *filename, 
+readHeader ( const char *filename,
              unsigned int & numOfVertices,
              unsigned int & numOfFaces,
              PLYFormat & format,

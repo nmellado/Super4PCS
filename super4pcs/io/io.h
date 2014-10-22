@@ -37,18 +37,18 @@ class IOManager{
 
 public:
   // Obj read/write simple functions.
-  bool ReadObject(char *name, vector<Point3D> &v, vector<cv::Point2f> &tex_coords,
+  bool ReadObject(const char *name, vector<Point3D> &v, vector<cv::Point2f> &tex_coords,
                   vector<cv::Point3f> &normals, vector<tripple> &tris,
                   vector<std::string> &mtls);
-  bool WriteObject(char *name, vector<Point3D> &v,
+  bool WriteObject(const char *name, vector<Point3D> &v,
                    vector<cv::Point2f> &tex_coords, vector<cv::Point3f> &normals,
                    vector<tripple> &tris, vector<std::string> &mtls);
 private:
   bool 
-  ReadPly(char *name, vector<Point3D> &v, vector<cv::Point3f> &normals);
+  ReadPly(const char *name, vector<Point3D> &v, vector<cv::Point3f> &normals);
   
   bool 
-  ReadObj(char *name, vector<Point3D> &v, vector<cv::Point2f> &tex_coords,
+  ReadObj(const char *name, vector<Point3D> &v, vector<cv::Point2f> &tex_coords,
           vector<cv::Point3f> &normals, vector<tripple> &tris,
           vector<std::string> &mtls);
                   
