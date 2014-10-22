@@ -5,6 +5,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 
 include_directories(${SRC_DIR})
 include_directories(${SRC_DIR}/accelerators)
+include_directories(${SRC_DIR}/io)
 
 #############################################
 ## start by downloading standford datasets, that will be used
@@ -41,6 +42,13 @@ add_test(pair_extraction pair_extraction)
 set(matching_SRCS
     matching.cc
 )
-add_executable(matching ${matching_SRCS})
+
+find_package(Boost 1.55.0 COMPONENTS system filesystem REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+
+add_executable(matching ${matching_SRCS} ${io_SRC})
 add_dependencies(buildtests matching dataset-standford-armadillo dataset-standford-bunny)
 add_test(matching matching)
+
+target_link_libraries(matching super4pcs_io super4pcs_accel super4pcs_algo)
+target_link_libraries(matching ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
