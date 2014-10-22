@@ -29,13 +29,14 @@ readHeader ( char *filename,
     numOfFaces = 0;
     haveColor = false;
 
-    string current;
+    string current, currentelement;
     in >> current;
     if (current != "ply"){
         cerr << "(PLY) not a PLY file" << endl;
         return 0;
     }
     in >> current;
+    int lid = 0;
     while (current != "end_header") {
         if (current == "format") {
             in >> current;
@@ -69,15 +70,19 @@ readHeader ( char *filename,
             }
         } else if (current == "element") {
             in >> current;
-            if (current == "vertex")
+            if (current == "vertex"){
+                currentelement = current;
                 in >> numOfVertices;
-            else if (current == "face")
-                in >> numOfFaces;
-            else{
-                cerr << "(PLY) error parsing header (element)" << endl;
-                return 0;
             }
-        } else if (current == "property") {
+            else if (current == "face"){
+                currentelement = current;
+                in >> numOfFaces;
+            }
+            else{
+                cerr << "(PLY) ignoring unknown element " << current << endl;
+                currentelement = "";
+            }
+        } else if (currentelement != "" && current == "property") {
             in >> current;
             if (current == "float") {
                 numOfVertexProperties++;
@@ -100,10 +105,12 @@ readHeader ( char *filename,
             char comment[MAX_COMMENT_SIZE];
             in.getline (comment, MAX_COMMENT_SIZE);
         } else {
-            cerr << "(PLY) error parsing header at line: " << current << endl;
-            return 0;
+            ;
+            //cerr << "(PLY) ignoring line: " << current << endl;
+            //return 0;
         }
         in >> current;
+        lid++;
     }
 
     unsigned int headerSize = in.tellg ();
