@@ -91,7 +91,8 @@ add_library(super4pcs_algo  ${Super4PCS_SRC})
 # add the executable
 add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs_test.cc)
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} super4pcs_io super4pcs_accel super4pcs_algo)
+TARGET_LINK_LIBRARIES(super4pcs_algo super4pcs_io super4pcs_accel)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} super4pcs_algo)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OpenCV_LIBS} )
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${ANN_LIBS} )
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Chealpix_LIBS} )

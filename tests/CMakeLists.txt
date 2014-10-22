@@ -52,3 +52,5 @@ add_test(matching matching)
 
 target_link_libraries(matching super4pcs_io super4pcs_accel super4pcs_algo)
 target_link_libraries(matching ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+TARGET_LINK_LIBRARIES(matching ${ANN_LIBS} )
+TARGET_LINK_LIBRARIES(matching ${Chealpix_LIBS} )
