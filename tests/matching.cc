@@ -54,11 +54,14 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/eigen.hpp>
+
+#include <boost/filesystem.hpp>
 
 #include "io/io.h"
 
@@ -69,17 +72,10 @@
 using namespace std;
 using namespace match_4pcs;
 
-// First input.
-std::string input1 = "input1.obj";
-
-// Second input.
-std::string input2 = "input2.obj";
-
-// Output. The transformed second input.
-std::string output = "output.obj";
+std::array<std::string, 1> confFiles = { "./datasets/bunny/data/bun.conf" };
 
 // Delta (see the paper).
-double delta = 5.0;
+double delta = 0.01;
 
 // Estimated overlap (see the paper).
 double overlap = 0.2;
@@ -89,17 +85,17 @@ double overlap = 0.2;
 double thr = 1.0;
 
 // Maximum norm of RGB values between corresponded points. 1e9 means don't use.
-double max_color = 150;
+double max_color = 1e9;
 
 // Number of sampled points in both files. The 4PCS allows a very aggressive
 // sampling.
-int n_points = 200;
+int n_points = 500;
 
 // Maximum angle (degrees) between corresponded normals.
 double norm_diff = 90.0;
 
 // Maximum allowed computation time.
-int max_time_seconds = 10;
+int max_time_seconds = 1e9;
 
 bool use_super4pcs = true;
 
@@ -135,60 +131,147 @@ void CleanInvalidNormals( vector<Point3D> &v,
 }
 
 
+typedef float Scalar;
+enum {Dim = 3};
+typedef Eigen::Transform<Scalar, Dim, Eigen::Affine> Transform;
+
+
+/*!
+  Read a configuration file from Standford 3D shape repository and
+  output a set of filename and eigen transformations
+  */
+inline void
+extractFilesAndTrFromStandfordConfFile(
+        const std::string &confFilePath,
+        std::vector<Transform>& transforms,
+        std::vector<string>& files
+        ){
+    using namespace boost;
+    using namespace std;
+
+    VERIFY (filesystem::exists(confFilePath) && filesystem::is_regular_file(confFilePath));
+
+    // extract the working directory for the configuration path
+    const string workingDir = filesystem::path(confFilePath).parent_path().native();
+    VERIFY (filesystem::exists(workingDir));
+
+    // read the configuration file and call the matching process
+    string line;
+    ifstream confFile;
+    confFile.open(confFilePath);
+    VERIFY (confFile.is_open());
+
+    while ( getline (confFile,line) )
+    {
+        istringstream iss (line);
+        vector<string> tokens{istream_iterator<string>{iss},
+                              istream_iterator<string>{}};
+
+        // here we know that the tokens are:
+        // [0]: keyword, must be bmesh
+        // [1]: 3D object filename
+        // [2-4]: target translation with previous object
+        // [5-8]: target quaternion with previous object
+
+        if (tokens.size() == 9){
+            if (tokens[0].compare("bmesh") == 0){
+
+                string inputfile = filesystem::path(confFilePath).parent_path().string()+string("/")+tokens[1];
+                VERIFY(filesystem::exists(inputfile) && filesystem::is_regular_file(inputfile));
+
+                // build the Eigen rotation matrix from the rotation and translation stored in the files
+                Eigen::Matrix<Scalar, Dim, 1> tr (
+                            std::atof(tokens[2].c_str()),
+                            std::atof(tokens[3].c_str()),
+                            std::atof(tokens[4].c_str()));
+
+                Eigen::Quaternion<Scalar> quat(
+                            std::atof(tokens[8].c_str()), // eigen starts by w
+                            std::atof(tokens[5].c_str()),
+                            std::atof(tokens[6].c_str()),
+                            std::atof(tokens[7].c_str()));
+
+                Transform transform (Transform::Identity());
+                transform.translate(tr);
+                transform.rotate(quat);
+
+                transforms.push_back(transform);
+                files.push_back(inputfile);
+
+
+            }
+        }
+    }
+    confFile.close();
+}
+
 int main(int argc, char **argv) {
+    using std::string;
 
-//  vector<Point3D> set1, set2;
-//  vector<cv::Point2f> tex_coords1, tex_coords2;
-//  vector<cv::Point3f> normals1, normals2;
-//  vector<tripple> tris1, tris2;
-//  vector<std::string> mtls1, mtls2;
 
-//  getArgs(argc, argv);
+    if(!init_testing(argc, argv))
+    {
+        return EXIT_FAILURE;
+    }
+
+
+    vector<Transform> transforms;
+    vector<string> files;
+
+    for (auto confIt = confFiles.cbegin(); confIt != confFiles.cend(); ++confIt){
+        extractFilesAndTrFromStandfordConfFile(*confIt, transforms, files);
+    }
+
+    VERIFY(transforms.size() == files.size());
+    const int nbTests = transforms.size()-1;
+
+
+    // In this test we assume the models are well ordered, and so we match only consecutive
+    // models
+    for (int i = 1; i <= nbTests; ++i){
+        const string input1 = files.at(i-1);
+        const string input2 = files.at(i);
+
+        vector<Point3D> set1, set2;
+        vector<cv::Point2f> tex_coords1, tex_coords2;
+        vector<cv::Point3f> normals1, normals2;
+        vector<tripple> tris1, tris2;
+        vector<std::string> mtls1, mtls2;
+
+        IOManager iomananger;
+        VERIFY(iomananger.ReadObject((char *)input1.c_str(), set1, tex_coords1, normals1, tris1, mtls1));
+        VERIFY(iomananger.ReadObject((char *)input2.c_str(), set2, tex_coords2, normals2, tris2, mtls2));
+
+        // clean only when we have pset to avoid wrong face to point indexation
+        if (tris1.size() == 0)
+            CleanInvalidNormals(set1, normals1);
+        if (tris2.size() == 0)
+            CleanInvalidNormals(set2, normals2);
+
+        // Our matcher.
+        Match4PCSOptions options;
+
+        // Set parameters.
+        cv::Mat mat = cv::Mat::eye(4, 4, CV_64F);
+        options.overlap_estimation = overlap;
+        options.sample_size = n_points;
+        options.max_normal_difference = norm_diff;
+        options.max_color_distance = max_color;
+        options.max_time_seconds = max_time_seconds;
+        options.delta = delta;
+
+        Scalar score = 0.;
   
-//  IOManager iomananger;
-
-//  // Read the inputs.
-//  if (!iomananger.ReadObject((char *)input1.c_str(), set1, tex_coords1, normals1, tris1,
-//                  mtls1)) {
-//    perror("Can't read input set1");
-//    exit(-1);
-//  }
-
-//  if (!iomananger.ReadObject((char *)input2.c_str(), set2, tex_coords2, normals2, tris2,
-//                  mtls2)) {
-//    perror("Can't read input set2");
-//    exit(-1);
-//  }
-  
-//  // clean only when we have pset to avoid wrong face to point indexation
-//  if (tris1.size() == 0)
-//    CleanInvalidNormals(set1, normals1);
-//  if (tris2.size() == 0)
-//    CleanInvalidNormals(set2, normals2);
-
-//  // Our matcher.
-//  Match4PCSOptions options;
-
-//  // Set parameters.
-//  cv::Mat mat = cv::Mat::eye(4, 4, CV_64F);
-//  options.overlap_estimation = overlap;
-//  options.sample_size = n_points;
-//  options.max_normal_difference = norm_diff;
-//  options.max_color_distance = max_color;
-//  options.max_time_seconds = max_time_seconds;
-//  options.delta = delta;
-//  // Match and return the score (estimated overlap or the LCP).
-//  float score = 0;
-  
-//  if(use_super4pcs){
-//    MatchSuper4PCS matcher(options);
-//    cout << "Use Super4PCS" << endl;
-//    score = matcher.ComputeTransformation(set1, &set2, &mat);
-//  }else{
-//    Match4PCS matcher(options);
-//    cout << "Use old 4PCS" << endl;
-//    score = matcher.ComputeTransformation(set1, &set2, &mat);
-//  }
+        if(use_super4pcs){
+            MatchSuper4PCS matcher(options);
+            cout << "Use Super4PCS" << endl;
+            score = matcher.ComputeTransformation(set1, &set2, &mat);
+        }else{
+            Match4PCS matcher(options);
+            cout << "Use old 4PCS" << endl;
+            score = matcher.ComputeTransformation(set1, &set2, &mat);
+        }
+    }
 
 //  // convert matrix to eigen matrix, and
 //  Eigen::Matrix<float,4, 4> mat_eigen;
