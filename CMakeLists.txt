@@ -81,15 +81,17 @@ include_directories(${SRC_DIR})
 set(Super4PCS_SRC
     ${SRC_DIR}/4pcs.cc
     ${SRC_DIR}/super4pcs.cc
-    ${SRC_DIR}/super4pcs_test.cc
 )
 
 add_subdirectory(${SRC_DIR}/io)
 add_subdirectory(${SRC_DIR}/accelerators)
+
+add_library(super4pcs_algo  ${Super4PCS_SRC})
  
 # add the executable
-add_executable(${PROJECT_NAME} ${Super4PCS_SRC} ${io_INCLUDE} ${io_SRC} ${accel_INCLUDE} ${accel_SRC})
+add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs_test.cc)
 
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} super4pcs_io super4pcs_accel super4pcs_algo)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OpenCV_LIBS} )
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${ANN_LIBS} )
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Chealpix_LIBS} )
