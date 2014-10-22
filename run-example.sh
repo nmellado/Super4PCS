@@ -6,6 +6,6 @@
 # -d delta, used to compute the LCP between the two models
 # -t maximum computation time in seconds
 # -n number of samples used for the matching
-time -p ./build/Super4PCS -i hippo1.obj hippo2.obj -o 0.8 -d 0.01 -t 1000 -n 300 -r super4pcs.obj
-time -p ./build/Super4PCS -i hippo1.obj hippo2.obj -o 0.8 -d 0.01 -t 1000 -n 300 -r 4pcs.obj -x
+time -p ./build/Super4PCS -i hippo1.obj hippo2.obj -o 0.8 -d 0.01 -t 1000 -n 400 -r super4pcs.obj
+time -p ./build/Super4PCS -i hippo1.obj hippo2.obj -o 0.8 -d 0.01 -t 1000 -n 400 -r 4pcs.obj -x
 
