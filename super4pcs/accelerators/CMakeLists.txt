@@ -7,8 +7,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 
 #############################################
 set(accel_SRC
-    ${accel_ROOT}/normalHealSet.cpp
-    PARENT_SCOPE)
+    ${accel_ROOT}/normalHealSet.cpp)
 set(accel_INCLUDE 
     ${accel_ROOT}/intersection.h
     ${accel_ROOT}/node.h
@@ -16,7 +15,6 @@ set(accel_INCLUDE
     ${accel_ROOT}/normalset.h
     ${accel_ROOT}/normalset.hpp
     ${accel_ROOT}/primitives.h
-    ${accel_ROOT}/utils.h 
-    PARENT_SCOPE)
+    ${accel_ROOT}/utils.h)
 
-
+add_library(super4pcs_accel ${accel_SRC} ${accel_INCLUDE})
