@@ -64,6 +64,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <utility> // pair
 
 #include "testing.h"
 
@@ -89,8 +90,8 @@ namespace Utilities{
 }
 
 struct PairCreationFunctor{
-  typedef pair<unsigned int, unsigned int>ResPair;
-  vector< ResPair >pairs;
+  typedef std::pair<unsigned int, unsigned int>ResPair;
+  std::vector< ResPair >pairs;
   
   std::vector<unsigned int> ids;
   
@@ -123,7 +124,7 @@ void testFunction( Scalar r, Scalar epsilon,
                    
   // Init required structures
   Utilities::Timer t; 
-  vector< pair<unsigned int, unsigned int> > p2;
+  std::vector< std::pair<unsigned int, unsigned int> > p2;
   p2.reserve(nbPoints*nbPrimitives);
   
   PairCreationFunctor functor;
@@ -215,6 +216,9 @@ int main(int argc, char **argv) {
     {
         return EXIT_FAILURE;
     }
+
+    using std::cout;
+    using std::endl;
     
     cout << "Extract pairs in 2 dimensions..." << endl;
     callSubTests<float, 2, IntersectionFunctor>();
