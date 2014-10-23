@@ -35,7 +35,9 @@ set(pair_extraction_SRCS
 )
 add_executable(pair_extraction ${pair_extraction_SRCS})
 add_dependencies(buildtests pair_extraction)
-add_test(pair_extraction pair_extraction)
+add_test(NAME pair_extraction
+         #CONFIGURATIONS Release
+         COMMAND pair_extraction)
 
 #############################################
 ## matching
@@ -48,7 +50,14 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 add_executable(matching ${matching_SRCS} ${io_SRC})
 add_dependencies(buildtests matching dataset-standford-armadillo dataset-standford-bunny)
-add_test(matching matching)
+
+set (matching_subtests 0 1)
+foreach(subtest_id ${matching_subtests})
+    add_test(NAME "matching_${subtest_id}"
+             #CONFIGURATIONS Release
+             COMMAND matching ${subtest_id})
+    set_tests_properties ( "matching_${subtest_id}" PROPERTIES TIMEOUT 600) # in seconds
+endforeach()
 
 target_link_libraries(matching super4pcs_io super4pcs_accel super4pcs_algo)
 target_link_libraries(matching ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})

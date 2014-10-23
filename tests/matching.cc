@@ -72,27 +72,43 @@
 using namespace std;
 using namespace match_4pcs;
 
-std::array<std::string, 1> confFiles = { "./datasets/bunny/data/bun.conf" };
+typedef double Scalar;
+enum {Dim = 3};
+typedef Eigen::Transform<Scalar, Dim, Eigen::Affine> Transform;
 
-// Delta (see the paper).
-double delta = 0.01;
+const int nbSet = 2;
 
-// Estimated overlap (see the paper).
-double overlap = 0.2;
+/*!
+  Datasets and associated parameters
+  In the current state we use a conservative configuration, better timing
+  could be achieved by tuning a bit more the parameters.
+  */
 
-// Threshold of the computed overlap for termination. 1.0 means don't terminate
-// before the end.
-double thr = 1.0;
+std::array<std::string, nbSet> confFiles = {
+    "./datasets/bunny/data/bun.conf",
+    "./datasets/armadillo/ArmadilloSide.conf"
+};
+
+std::array<Scalar, nbSet> deltas  = {
+    0.001,
+    0.001,
+};
+
+std::array<Scalar, nbSet> overlaps = {
+    0.6,
+    0.7,
+};
+
+std::array<Scalar, nbSet> n_points = {
+    800,
+    700,
+};
 
 // Maximum norm of RGB values between corresponded points. 1e9 means don't use.
 double max_color = 1e9;
 
-// Number of sampled points in both files. The 4PCS allows a very aggressive
-// sampling.
-int n_points = 500;
-
 // Maximum angle (degrees) between corresponded normals.
-double norm_diff = 90.0;
+double norm_diff = 360.0;
 
 // Maximum allowed computation time.
 int max_time_seconds = 1e9;
@@ -129,12 +145,6 @@ void CleanInvalidNormals( vector<Point3D> &v,
     }
   }
 }
-
-
-typedef float Scalar;
-enum {Dim = 3};
-typedef Eigen::Transform<Scalar, Dim, Eigen::Affine> Transform;
-
 
 /*!
   Read a configuration file from Standford 3D shape repository and
@@ -191,9 +201,11 @@ extractFilesAndTrFromStandfordConfFile(
                             std::atof(tokens[6].c_str()),
                             std::atof(tokens[7].c_str()));
 
+                quat.normalize();
+
                 Transform transform (Transform::Identity());
-                transform.translate(tr);
                 transform.rotate(quat);
+                transform.translate(-tr);
 
                 transforms.push_back(transform);
                 files.push_back(inputfile);
@@ -205,122 +217,175 @@ extractFilesAndTrFromStandfordConfFile(
     confFile.close();
 }
 
+void test_model(const vector<Transform> &transforms,
+                const vector<string> &files,
+                vector<Point3D> &mergedset,
+                int i,
+                int param_i){
+    const string input1 = files.at(i-1);
+    const string input2 = files.at(i);
+
+    vector<Point3D> set1, set2;
+    vector<cv::Point2f> tex_coords1, tex_coords2;
+    vector<cv::Point3f> normals1, normals2;
+    vector<tripple> tris1, tris2;
+    vector<std::string> mtls1, mtls2;
+
+    IOManager iomananger;
+    VERIFY(iomananger.ReadObject((char *)input1.c_str(), set1, tex_coords1, normals1, tris1, mtls1));
+    VERIFY(iomananger.ReadObject((char *)input2.c_str(), set2, tex_coords2, normals2, tris2, mtls2));
+
+    // clean only when we have pset to avoid wrong face to point indexation
+    if (tris1.size() == 0)
+        CleanInvalidNormals(set1, normals1);
+    if (tris2.size() == 0)
+        CleanInvalidNormals(set2, normals2);
+
+    // first transform the first mesh to its gt coordinates:
+    // we compare only pairwise matching, so we don't want to
+    // accumulate error during the matching process
+    // Transforms Q by the new transformation.
+    {
+        cv::Mat transformation = cv::Mat::eye(4, 4, CV_64F);
+        cv::eigen2cv(transforms[i-1].inverse().matrix(), transformation);
+        for (int i = 0; i < set1.size(); ++i) {
+            cv::Mat first(4, 1, CV_64F), transformed;
+            first.at<double>(0, 0) = set1[i].x;
+            first.at<double>(1, 0) = set1[i].y;
+            first.at<double>(2, 0) = set1[i].z;
+            first.at<double>(3, 0) = 1;
+            transformed = transformation * first;
+            set1[i].x = transformed.at<double>(0, 0);
+            set1[i].y = transformed.at<double>(1, 0);
+            set1[i].z = transformed.at<double>(2, 0);
+        }
+    }
+
+    mergedset.insert(mergedset.end(), set1.begin(), set1.end());
+
+    // Our matcher.
+    Match4PCSOptions options;
+
+    // Set parameters.
+    cv::Mat mat = cv::Mat::eye(4, 4, CV_64F);
+    options.overlap_estimation = overlaps[param_i];
+    options.sample_size = n_points[param_i];
+    options.max_normal_difference = norm_diff;
+    options.max_color_distance = max_color;
+    options.max_time_seconds = max_time_seconds;
+    options.delta = deltas[param_i];
+
+    Scalar score = 0.;
+
+    if(use_super4pcs){
+        MatchSuper4PCS matcher(options);
+        cout << "Use Super4PCS" << endl;
+        score = matcher.ComputeTransformation(mergedset, &set2, &mat);
+    }else{
+        Match4PCS matcher(options);
+        cout << "Use old 4PCS" << endl;
+        score = matcher.ComputeTransformation(mergedset, &set2, &mat);
+    }
+
+
+#ifdef WRITE_OUTPUT_FILES
+    stringstream iss;
+    iss << input2;
+    iss << "_aligned.ply";
+    iomananger.WriteObject(iss.str().c_str(),
+                           set2,
+                           tex_coords2,
+                           normals2,
+                           tris2,
+                           mtls2);
+#endif
+
+    // convert matrix to eigen matrix, and
+    Eigen::Matrix<Scalar,4, 4> mat_eigen;
+    cv::cv2eigen(mat,mat_eigen);
+
+    Transform transformEst (mat_eigen);
+
+    cout << "Reference: " << endl << transforms[i].matrix() << endl;
+    cout << "Estimation: " << endl << transformEst.matrix() << endl;
+
+    Eigen::Quaternion<Scalar>
+            q    (transformEst.rotation()),
+            qref (transforms[i].rotation());
+    cout << " " << q.x()
+         << " " << q.y()
+         << " " << q.z()
+         << " " << q.w()  << endl;
+    cout << " " << qref.x()
+         << " " << qref.y()
+         << " " << qref.z()
+         << " " << qref.w()  << endl;
+
+    Scalar rotDiff = std::abs( ( q.vec().array().abs() - ( qref.vec().array().abs() ) ).abs().sum()) + std::abs(std::abs(q.w()) - std::abs(qref.w()));
+    Scalar trDiff  = std::abs(transformEst.translation().dot(transforms[i].translation()));
+
+    cout << "rotDiff = " << rotDiff << endl;
+    cout << "trDiff = " << trDiff << endl;
+
+    // use different tests, just to get more verbose output
+    VERIFY(rotDiff <= 0.2);
+    VERIFY(trDiff <= 0.1);
+    VERIFY(rotDiff + trDiff <= 0.2);
+
+#ifdef WRITE_OUTPUT_FILES
+    stringstream iss2;
+    iss2 << input1;
+    iss2 << "_merged.ply";
+    iomananger.WriteObject(iss2.str().c_str(),
+                           mergedset,
+                           vector<cv::Point2f>(),
+                           vector<cv::Point3f>(),
+                           vector<tripple>(),
+                           vector<std::string>());
+#endif
+}
+
 int main(int argc, char **argv) {
     using std::string;
 
+    char* custom_argv [1] = {"matching"};
 
-    if(!init_testing(argc, argv))
+    if(!init_testing(1, custom_argv))
+    {
+        return EXIT_FAILURE;
+    }
+
+    if(argc < 2) // we accept only 1 argument: the test id
     {
         return EXIT_FAILURE;
     }
 
 
+    int i = std::atoi(argv[1]);
+    if (i > confFiles.size()) return EXIT_FAILURE;
+
+    cout << "Starting to process test " << i << endl;
+
     vector<Transform> transforms;
     vector<string> files;
-
-    for (auto confIt = confFiles.cbegin(); confIt != confFiles.cend(); ++confIt){
-        extractFilesAndTrFromStandfordConfFile(*confIt, transforms, files);
-    }
+    extractFilesAndTrFromStandfordConfFile(confFiles.at(i), transforms, files);
 
     VERIFY(transforms.size() == files.size());
     const int nbTests = transforms.size()-1;
 
 
-    // In this test we assume the models are well ordered, and so we match only consecutive
-    // models
-    for (int i = 1; i <= nbTests; ++i){
-        const string input1 = files.at(i-1);
-        const string input2 = files.at(i);
+    // In this test we match each frame to the union of the previously matched
+    // frames.
+    // In practice we can't use the output of Super4PCS directly, it would require
+    // a local ICP to avoid error accumulation. So we sum-up the GT transformations,
+    // and check our Super4PCS is working well by comparing the estimated transformation
+    // matrix and the GT.
+    vector<Point3D> mergedset;
 
-        vector<Point3D> set1, set2;
-        vector<cv::Point2f> tex_coords1, tex_coords2;
-        vector<cv::Point3f> normals1, normals2;
-        vector<tripple> tris1, tris2;
-        vector<std::string> mtls1, mtls2;
 
-        IOManager iomananger;
-        VERIFY(iomananger.ReadObject((char *)input1.c_str(), set1, tex_coords1, normals1, tris1, mtls1));
-        VERIFY(iomananger.ReadObject((char *)input2.c_str(), set2, tex_coords2, normals2, tris2, mtls2));
-
-        // clean only when we have pset to avoid wrong face to point indexation
-        if (tris1.size() == 0)
-            CleanInvalidNormals(set1, normals1);
-        if (tris2.size() == 0)
-            CleanInvalidNormals(set2, normals2);
-
-        // Our matcher.
-        Match4PCSOptions options;
-
-        // Set parameters.
-        cv::Mat mat = cv::Mat::eye(4, 4, CV_64F);
-        options.overlap_estimation = overlap;
-        options.sample_size = n_points;
-        options.max_normal_difference = norm_diff;
-        options.max_color_distance = max_color;
-        options.max_time_seconds = max_time_seconds;
-        options.delta = delta;
-
-        Scalar score = 0.;
-  
-        if(use_super4pcs){
-            MatchSuper4PCS matcher(options);
-            cout << "Use Super4PCS" << endl;
-            score = matcher.ComputeTransformation(set1, &set2, &mat);
-        }else{
-            Match4PCS matcher(options);
-            cout << "Use old 4PCS" << endl;
-            score = matcher.ComputeTransformation(set1, &set2, &mat);
-        }
+    for (int j = 1; j <= nbTests; ++j){
+        CALL_SUBTEST(( test_model(transforms, files, mergedset, j, i) ));
     }
 
-//  // convert matrix to eigen matrix, and
-//  Eigen::Matrix<float,4, 4> mat_eigen;
-//  cv::cv2eigen(mat,mat_eigen);
-
-//  Eigen::Transform<float, 3, Eigen::Affine> transform (mat_eigen);
-
-
-//  // load reference matrix from file
-//  Eigen::Transform<float, 3, Eigen::Affine> ref_transform;
-
-//  // todo: add epsilon value according to object bounding box
-//  VERIFY( transform.isApprox(ref_transform) );
-
-
-//  cout << "Score: " << score << endl;
-//  cerr <<  score << endl;
-//  printf("(Homogeneous) Transformation from %s to %s:\n", input2.c_str(),
-//         input1.c_str());
-//  printf(
-//      "\n\n%25.3f %25.3f %25.3f %25.3f\n%25.3f %25.3f %25.3f %25.3f\n%25.3f "
-//      "%25.3f %25.3f %25.3f\n%25.3f %25.3f %25.3f %25.3f\n\n",
-//      mat.at<double>(0, 0), mat.at<double>(0, 1), mat.at<double>(0, 2),
-//      mat.at<double>(0, 3), mat.at<double>(1, 0), mat.at<double>(1, 1),
-//      mat.at<double>(1, 2), mat.at<double>(1, 3), mat.at<double>(2, 0),
-//      mat.at<double>(2, 1), mat.at<double>(2, 2), mat.at<double>(2, 3),
-//      mat.at<double>(3, 0), mat.at<double>(3, 1), mat.at<double>(3, 2),
-//      mat.at<double>(3, 3));
-
-//  // If the default images are the input then we need to test the result.
-//  if (input1 == "input1.obj" && input2 == "input2.obj") {  // test!
-//    float gt_mat[16] = {0.977,  -0.180,  -0.114, 91.641, 0.070, 0.778,
-//                        -0.624, 410.029, 0.201,  0.602,  0.773, 110.810,
-//                        0.000,  0.000,   0.000,  1.000};
-//    float norm_val = 0.0;
-//    for (int i = 0; i < 4; ++i) {
-//      for (int j = 0; j < 4; ++j) {
-//        norm_val += sqr(mat.at<double>(i, j) - gt_mat[i * 4 + j]);
-//      }
-//    }
-//    assert(norm_val > 9.46881e-10);
-//  }
-  
-//  iomananger.WriteObject((char *)output.c_str(),
-//                         set2,
-//                         tex_coords2,
-//                         normals2,
-//                         tris2,
-//	                       mtls2);
-
-//  return 0;
+    //return EXIT_SUCCESS;
 }
