@@ -454,7 +454,7 @@ public:
     points.clear();
     primitives.clear();
 
-    BoundingBox3D<Point3D> bbox;
+    AABB3D<Scalar> bbox;
 
     unsigned int nSamples = Q_.size();
 
@@ -464,20 +464,18 @@ public:
     // Compute bounding box on fine data to be SURE to have all points in the
     // unit bounding box
     for (int i = 0; i < nSamples; ++i) {
-      points.push_back( PairCreationFunctor::Point( Q_[i].x,
-                                                    Q_[i].y,
-                                                    Q_[i].z ));
-      bbox.extendTo(Q_[i]);
+        PairCreationFunctor::Point q ( Q_[i].x,
+                                       Q_[i].y,
+                                       Q_[i].z );
+      points.push_back(q);
+      bbox.extendTo(q);
     }
 
-    Point3D gcenter3D = bbox.getCenter();
-    _gcenter << gcenter3D.x, gcenter3D.y, gcenter3D.z;
+    _gcenter = bbox.center();
     // add a delta to avoid to have elements with coordinate = 1
     _ratio = MAX(bbox.depth() + 0.001,
              MAX(bbox.width() + 0.001,
                  bbox.height()+ 0.001));
-
-    bbox.clear();
 
     // update point cloud (worldToUnit use the ratio and gravity center
     // previously computed)
