@@ -40,9 +40,9 @@ public:
   bool ReadObject(const char *name, vector<Point3D> &v, vector<cv::Point2f> &tex_coords,
                   vector<cv::Point3f> &normals, vector<tripple> &tris,
                   vector<std::string> &mtls);
-  bool WriteObject(const char *name, vector<Point3D> &v,
-                   vector<cv::Point2f> &tex_coords, vector<cv::Point3f> &normals,
-                   vector<tripple> &tris, vector<std::string> &mtls);
+  bool WriteObject(const char *name, const vector<Point3D> &v,
+                   const vector<cv::Point2f> &tex_coords, const vector<cv::Point3f> &normals,
+                   const vector<tripple> &tris, const vector<string> &mtls);
 private:
   bool 
   ReadPly(const char *name, vector<Point3D> &v, vector<cv::Point3f> &normals);
@@ -53,12 +53,12 @@ private:
           vector<std::string> &mtls);
                   
   bool
-  WritePly(string name, vector<Point3D> &v, vector<cv::Point3f> &normals);
+  WritePly(string name, const vector<Point3D> &v, const vector<cv::Point3f> &normals);
 
   bool 
-  WriteObj(string name, vector<Point3D> &v,
-           vector<cv::Point2f> &tex_coords, vector<cv::Point3f> &normals,
-           vector<tripple> &tris, vector<std::string> &mtls);
+  WriteObj(string name, const vector<Point3D> &v,
+           const vector<cv::Point2f> &tex_coords, const vector<cv::Point3f> &normals,
+           const vector<tripple> &tris, const vector<string> &mtls);
 }; // class IOMananger
 
 #endif // IO_H

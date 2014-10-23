@@ -202,11 +202,11 @@ IOManager::ReadObj(const char *filename,
 
 bool 
 IOManager::WriteObject(const char *name,
-                       vector<Point3D> &v,
-                       vector<cv::Point2f> &tex_coords, 
-                       vector<cv::Point3f> &normals,
-                       vector<tripple> &tris, 
-                       vector<std::string> &mtls) {
+                       const vector<Point3D> &v,
+                       const vector<cv::Point2f> &tex_coords,
+                       const vector<cv::Point3f> &normals,
+                       const vector<tripple> &tris,
+                       const vector<std::string> &mtls) {
   string filename (name);
   string ext = filename.substr(filename.size()-3);
   
@@ -231,9 +231,9 @@ IOManager::WriteObject(const char *name,
                  
 }
 bool
-IOManager::WritePly(string filename, 
-                    vector<Point3D> &v, 
-                    vector<cv::Point3f> &normals)
+IOManager::WritePly(string filename,
+                    const vector<Point3D> &v,
+                    const vector<cv::Point3f> &normals)
 {
   std::ofstream plyFile;
   plyFile.open (filename.c_str(), std::ios::out |  std::ios::trunc | std::ios::binary);
@@ -280,23 +280,23 @@ IOManager::WritePly(string filename,
   // Read all elements in data, correct their depth and print them in the file  
   char tmpColor;
   for (unsigned int i = 0; i!=v.size(); i++){
-    plyFile.write(reinterpret_cast<char*>(&v[i].x),sizeof(float));
-    plyFile.write(reinterpret_cast<char*>(&v[i].y),sizeof(float));
-    plyFile.write(reinterpret_cast<char*>(&v[i].z),sizeof(float));
+    plyFile.write(reinterpret_cast<const char*>(&v[i].x),sizeof(float));
+    plyFile.write(reinterpret_cast<const char*>(&v[i].y),sizeof(float));
+    plyFile.write(reinterpret_cast<const char*>(&v[i].z),sizeof(float));
 
     if (useNormals){
-      plyFile.write(reinterpret_cast<char*>(&normals[i].x),sizeof(float));
-      plyFile.write(reinterpret_cast<char*>(&normals[i].y),sizeof(float));
-      plyFile.write(reinterpret_cast<char*>(&normals[i].z),sizeof(float));
+      plyFile.write(reinterpret_cast<const char*>(&normals[i].x),sizeof(float));
+      plyFile.write(reinterpret_cast<const char*>(&normals[i].y),sizeof(float));
+      plyFile.write(reinterpret_cast<const char*>(&normals[i].z),sizeof(float));
     }
 
     if (useColors){
       tmpColor = v[i].rgb()[0];
-      plyFile.write(reinterpret_cast<char*>(&tmpColor),sizeof(char));
+      plyFile.write(reinterpret_cast<const char*>(&tmpColor),sizeof(char));
       tmpColor = v[i].rgb()[1];
-      plyFile.write(reinterpret_cast<char*>(&tmpColor),sizeof(char));
+      plyFile.write(reinterpret_cast<const char*>(&tmpColor),sizeof(char));
       tmpColor = v[i].rgb()[2];
-      plyFile.write(reinterpret_cast<char*>(&tmpColor),sizeof(char));
+      plyFile.write(reinterpret_cast<const char*>(&tmpColor),sizeof(char));
     }
   }
     
@@ -307,16 +307,16 @@ IOManager::WritePly(string filename,
 }
 
 bool 
-IOManager::WriteObj(string filename, vector<Point3D> &v,
-                    vector<cv::Point2f> &tex_coords, 
-                    vector<cv::Point3f> &normals,
-                    vector<tripple> &tris, 
-                    vector<std::string> &mtls) {
+IOManager::WriteObj(string filename, const vector<Point3D> &v,
+                    const vector<cv::Point2f> &tex_coords,
+                    const vector<cv::Point3f> &normals,
+                    const vector<tripple> &tris,
+                    const vector<std::string> &mtls) {
   fstream f(filename.c_str(), ios::out);
   if (!f || f.fail()) return false;
   int i;
 
-  normals.clear();
+  //normals.clear();
 
   for (i = 0; i < mtls.size(); ++i) {
     f << "mtllib " << mtls[i] << endl;
