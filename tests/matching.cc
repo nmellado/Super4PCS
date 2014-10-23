@@ -95,7 +95,7 @@ std::array<Scalar, nbSet> deltas  = {
 };
 
 std::array<Scalar, nbSet> overlaps = {
-    0.6,
+    0.5,
     0.7,
 };
 
@@ -224,6 +224,8 @@ void test_model(const vector<Transform> &transforms,
                 int param_i){
     const string input1 = files.at(i-1);
     const string input2 = files.at(i);
+
+    cout << "Matching " << input2.c_str() << endl;
 
     vector<Point3D> set1, set2;
     vector<cv::Point2f> tex_coords1, tex_coords2;
