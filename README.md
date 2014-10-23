@@ -25,6 +25,10 @@ Tests are currently under active development (see [CDash](http://my.cdash.org/in
 
 To submit the result of the test from your computer, go into your `build` directory, and run `ctest -D Experimental`. 
 
+Tests currently available:
+* pair_extraction: generate random point clouds in 2, 3 and 4D, and query the pair generation structure with various radius.
+* matching: test the whole Super4PCS pipeline by registering range maps of the standford repository. You need an internet connection to build this test, since the datasets are downloaded at this time.
+
 
 ##Compilation
 ###Dependencies:
@@ -43,9 +47,10 @@ mkdir build
 cd build
 cmake -DANN_DIR=/your/path/to/ann_1.1.2/ ..
 ```
-For now ANN doesn't come with a cmake package, so you need to set its path by hand (this will be fixed later). Chealpix sources are now part of the Super4PCS repository and are compiled automatically.
+Note: For now Super4PCS has been tested on Linux plateforms (Ubuntu, Debian).
 
-Not recommended: you can also edit and use the included Makefile to compile using GCC with C++11 support enabled.
+Chealpix sources are now part of the Super4PCS repository and are compiled automatically.
+However, ANN doesn't come with a cmake package, so you need to set its path by hand (this will be fixed later).
 
 ###Compilation error
 You may encounter compilation issues when compiling with old versions of Eigen and C++11:
