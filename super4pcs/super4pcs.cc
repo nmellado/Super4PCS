@@ -1168,7 +1168,8 @@ double MatchSuper4PCSImpl::MeanDistance() {
   Super4PCS::KdTree<Scalar>::VectorType query_point;
 
   int number_of_samples = 0;
-  float distance = 0.0;
+  Scalar distance = 0.0;
+
   for (int i = 0; i < sampled_P_3D_.size(); ++i) {
     query_point << sampled_P_3D_[i].x, sampled_P_3D_[i].y, sampled_P_3D_[i].z;
 
