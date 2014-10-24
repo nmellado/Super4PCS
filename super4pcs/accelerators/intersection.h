@@ -50,6 +50,7 @@
 
 #include "node.h"
 #include <list>
+#include <iostream>
 
 //! Intersect a Primitive and a set of point using rasterization
 template <class Primitive, class Point, int dim, typename Scalar>
