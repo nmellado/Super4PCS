@@ -67,6 +67,47 @@
 #define MAX(a,b) a<b?a:b
 #endif
 
+//#define TEST_GLOBAL_TIMINGS
+
+typedef std::vector<std::pair<int, int>> PairsVector;
+typedef double Scalar;
+
+#ifdef TEST_GLOBAL_TIMINGS
+#include <chrono> //timers
+
+
+class Timer {
+public:
+    typedef std::chrono::high_resolution_clock clock;
+    typedef std::chrono::nanoseconds timestep;
+
+    explicit inline Timer(bool run = false)
+    {
+        if (run) reset();
+    }
+    void reset()
+    {
+        _start = clock::now();
+    }
+    inline timestep elapsed() const
+    {
+        return std::chrono::duration_cast<timestep>(clock::now() - _start);
+    }
+    template <typename T, typename Traits>
+    friend std::basic_ostream<T, Traits>& operator<<(std::basic_ostream<T, Traits>& out, const Timer& timer)
+    {
+        return out << timer.elapsed().count();
+    }
+private:
+    clock::time_point _start;
+};
+
+Scalar totalTime;
+Scalar kdTreeTime;
+Scalar verifyTime;
+
+#endif
+
 namespace match_4pcs {
 
 using namespace std;
@@ -396,8 +437,6 @@ struct Quadrilateral {
   }
 };
 
-typedef vector<pair<int, int>> PairsVector;
-typedef double Scalar;
 
 struct PairCreationFunctor{
 
@@ -1455,6 +1494,12 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
   sampled_P_3D_.clear();
   sampled_Q_3D_.clear();
 
+#ifdef TEST_GLOBAL_TIMINGS
+    kdTreeTime = 0;
+    totalTime  = 0;
+    verifyTime = 0;
+#endif
+
 
   // prepare P
   if (P.size() > options_.sample_size){
@@ -1604,6 +1649,10 @@ bool MatchSuper4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
                                     std::vector<Point3D>* Q) {
   if (transformation == NULL || Q == NULL) return false;
 
+#ifdef TEST_GLOBAL_TIMINGS
+    Timer t (true);
+#endif
+
   float last_best_LCP = best_LCP_;
   bool ok;
   int64 t0 = clock();
@@ -1662,6 +1711,9 @@ bool MatchSuper4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
       (*Q)[i].z = transformed.at<double>(2, 0);
     }
   }
+#ifdef TEST_GLOBAL_TIMINGS
+    totalTime += Scalar(t.elapsed().count()) / Scalar(1000000.);
+#endif
 
   return ok || current_trial_ >= number_of_trials_;
 }
@@ -1674,10 +1726,17 @@ float MatchSuper4PCSImpl::ComputeTransformation(const std::vector<Point3D>& P,
 
   if (Q == nullptr || transformation == nullptr) return kLargeNumber;
   Initialize(P, *Q);
-  
+
   *transformation = cv::Mat(4, 4, CV_64F, cv::Scalar(0.0));
   for (int i = 0; i < 4; ++i) transformation->at<double>(i, i) = 1.0;
   Perform_N_steps(number_of_trials_, transformation, Q);
+
+#ifdef TEST_GLOBAL_TIMINGS
+  cout << "----------- Timings (msec) -------------"           << endl;
+  cout << " Total computation time  : " << totalTime           << endl;
+  cout << " Total verify time       : " << verifyTime          << endl;
+  cout << "    Kdtree query         : " << kdTreeTime          << endl;
+#endif
 
   return best_LCP_;
 }
