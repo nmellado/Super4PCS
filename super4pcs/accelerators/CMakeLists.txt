@@ -9,6 +9,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 set(accel_SRC
     ${accel_ROOT}/normalHealSet.cpp)
 set(accel_INCLUDE 
+    ${accel_ROOT}/kdtree.h
     ${accel_ROOT}/intersection.h
     ${accel_ROOT}/node.h
     ${accel_ROOT}/normalHealSet.h
