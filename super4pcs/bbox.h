@@ -62,8 +62,8 @@ public:
              _max.setConstant(-std::numeric_limits<Scalar>::max() / 2); }
     AABB(const VectorType& min, const VectorType& max) : _min(min), _max(max) {}
     AABB(const AABB& bb) : _min(bb._min), _max(bb._max) {}
-    template <typename Container>
-    AABB(const Container& positions) { extendTo(positions); }
+    template <class InputIt>
+    AABB(InputIt first, InputIt last) { extendTo(first, last); }
 
     inline AABB<Scalar, Dim>& operator=(const AABB<Scalar, Dim>& bb)
     { _min = bb._min; _max = bb._max; return (*this); }
@@ -85,7 +85,13 @@ public:
     { return (_max - _min).norm(); }
 
     inline VectorType center() const
-    { return _min + (_max - _min) / Scalar(2.); }
+    { return _min + ((_max - _min) / Scalar(2.)); }
+
+    inline const VectorType& min() const
+    { return _min; }
+
+    inline const VectorType& max() const
+    { return _max; }
 
     inline Scalar depth() const
     { return (_max - _min)(2); }
