@@ -1596,9 +1596,6 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
     base_[i] = 0;
     current_congruent_[i] = 0;
   }
-  cv::Mat rotation = cv::Mat::eye(3, 3, CV_64F);
-  cv::Vec3f translate(0, 0, 0);
-  cv::Vec3f center(0, 0, 0);
 }
 
 // Performs N RANSAC iterations and compute the best transformation. Also,
