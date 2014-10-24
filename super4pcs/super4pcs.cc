@@ -46,7 +46,6 @@
 
 #include "4pcs.h"
 
-#include "ANN/ANN.h"
 #include <opencv2/highgui/highgui.hpp>
 
 #include "Eigen/Core"
@@ -54,6 +53,7 @@
 #include "accelerators/primitives.h"
 #include "accelerators/normalset.h"
 #include "accelerators/normalHealSet.h"
+#include "accelerators/kdtree.h"
 
 #include "bbox.h"
 
@@ -575,8 +575,6 @@ class MatchSuper4PCSImpl {
   explicit MatchSuper4PCSImpl(const Match4PCSOptions& options)
       : number_of_trials_(0),
         max_base_diameter_(-1),
-        ann_tree_(0),
-        data_points_(),
         P_mean_distance_(1.0),
         best_LCP_(0.0F),
         options_(options),
@@ -585,16 +583,10 @@ class MatchSuper4PCSImpl {
   }
 
   ~MatchSuper4PCSImpl() {
-    // Release the ANN data structure and points.
     Clear();
   }
 
   void Clear() {
-    delete ann_tree_;
-    ann_tree_ = NULL;
-    if (data_points_) annDeallocPts(data_points_);
-    data_points_ = NULL;
-    annClose();
   }
   // Computes an approximation of the best LCP (directional) from Q to P
   // and the rigid transformation that realizes it. The input sets may or may
@@ -626,10 +618,8 @@ class MatchSuper4PCSImpl {
   float max_base_diameter_;
   // The diameter of P.
   float P_diameter_;
-  // ANN structure allows to query arbitrary point for range searching.
-  ANNkd_tree* ann_tree_;
-  // Holds the ANN data points.
-  ANNpointArray data_points_;
+  // KdTree used to compute the LCP
+  Super4PCS::KdTree<Scalar> kd_tree_;
   // Mean distance between points and their nearest neighbor in the set P.
   // Used to normalize the "delta" which is given in terms of this distance.
   float P_mean_distance_;
@@ -901,96 +891,103 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
 // Finds congruent candidates in the set Q, given the invariants and threshold
 // distances.
 bool MatchSuper4PCSImpl::FindCongruentQuadrilaterals(
-    double invariant1, double invariant2, double distance_threshold1,
-    double distance_threshold2, const std::vector<std::pair<int, int>>& P_pairs,
-    const std::vector<std::pair<int, int>>& Q_pairs,
-    const std::vector<Point3D>& Q_points,
-    std::vector<Quadrilateral>* quadrilaterals) {
-  if (quadrilaterals == NULL) return false;
+    double /*invariant1*/,
+    double /*invariant2*/,
+    double /*distance_threshold1*/,
+    double /*distance_threshold2*/,
+    const std::vector<std::pair<int, int>>& /*P_pairs*/,
+    const std::vector<std::pair<int, int>>& /*Q_pairs*/,
+    const std::vector<Point3D>& /*Q_points*/,
+    std::vector<Quadrilateral>* /*quadrilaterals*/) {
 
-  int number_of_points = 2 * P_pairs.size();
+    cerr << "What the hell are you doing here ?? " << __FILE__ << ":" << __LINE__ << endl;
+    exit(-1);
 
-  // We need a temporary ANN tree to store the new points corresponding to
-  // invariants in the P_pairs and then query them (for range search) for all
-  // the new points corresponding to the invariants in Q_pairs.
-  ANNpointArray data_points = annAllocPts(number_of_points, 3);
-  ANNpoint query_point = annAllocPt(3);
-  ANNidxArray near_neighbor_index = new ANNidx[number_of_points];
-  ANNdistArray distances = new ANNdist[number_of_points];
+//  if (quadrilaterals == NULL) return false;
 
-  quadrilaterals->clear();
+//  int number_of_points = 2 * P_pairs.size();
 
-  // Build the ANN tree using the invariants on P_pairs.
-  for (int i = 0; i < P_pairs.size(); ++i) {
-    const Point3D& p1 = Q_points[P_pairs[i].first];
-    const Point3D& p2 = Q_points[P_pairs[i].second];
+//  // We need a temporary ANN tree to store the new points corresponding to
+//  // invariants in the P_pairs and then query them (for range search) for all
+//  // the new points corresponding to the invariants in Q_pairs.
+//  ANNpointArray data_points = annAllocPts(number_of_points, 3);
+//  ANNpoint query_point = annAllocPt(3);
+//  ANNidxArray near_neighbor_index = new ANNidx[number_of_points];
+//  ANNdistArray distances = new ANNdist[number_of_points];
 
-    // Init KdTree buffer
-    data_points[i * 2][0] = p1.x + invariant1 * (p2.x - p1.x);
-    data_points[i * 2][1] = p1.y + invariant1 * (p2.y - p1.y);
-    data_points[i * 2][2] = p1.z + invariant1 * (p2.z - p1.z);
-    data_points[i * 2 + 1][0] = p1.x + invariant2 * (p2.x - p1.x);
-    data_points[i * 2 + 1][1] = p1.y + invariant2 * (p2.y - p1.y);
-    data_points[i * 2 + 1][2] = p1.z + invariant2 * (p2.z - p1.z);
-  }
+//  quadrilaterals->clear();
 
-  ANNkd_tree* tree = new ANNkd_tree(data_points, number_of_points, 3);
+//  // Build the ANN tree using the invariants on P_pairs.
+//  for (int i = 0; i < P_pairs.size(); ++i) {
+//    const Point3D& p1 = Q_points[P_pairs[i].first];
+//    const Point3D& p2 = Q_points[P_pairs[i].second];
 
-  // Compute the angle formed by the two vectors of the basis
-  Point3D b1 = base_3D_[0] - base_3D_[1];  b1.normalize();
-  Point3D b2 = base_3D_[2] - base_3D_[3];  b2.normalize();
-  double alpha = b1.dot(b2);
+//    // Init KdTree buffer
+//    data_points[i * 2][0] = p1.x + invariant1 * (p2.x - p1.x);
+//    data_points[i * 2][1] = p1.y + invariant1 * (p2.y - p1.y);
+//    data_points[i * 2][2] = p1.z + invariant1 * (p2.z - p1.z);
+//    data_points[i * 2 + 1][0] = p1.x + invariant2 * (p2.x - p1.x);
+//    data_points[i * 2 + 1][1] = p1.y + invariant2 * (p2.y - p1.y);
+//    data_points[i * 2 + 1][2] = p1.z + invariant2 * (p2.z - p1.z);
+//  }
 
-  // Query the ANN for all the points corresponding to the invariants in Q_pair.
-  for (int i = 0; i < Q_pairs.size(); ++i) {
-    const Point3D& p1 = Q_points[Q_pairs[i].first];
-    const Point3D& p2 = Q_points[Q_pairs[i].second];
+//  ANNkd_tree* tree = new ANNkd_tree(data_points, number_of_points, 3);
 
-    query_point[0] = p1.x + invariant1 * (p2.x - p1.x);
-    query_point[1] = p1.y + invariant1 * (p2.y - p1.y);
-    query_point[2] = p1.z + invariant1 * (p2.z - p1.z);
-    tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
-                       near_neighbor_index, distances, 0);
+//  // Compute the angle formed by the two vectors of the basis
+//  Point3D b1 = base_3D_[0] - base_3D_[1];  b1.normalize();
+//  Point3D b2 = base_3D_[2] - base_3D_[3];  b2.normalize();
+//  double alpha = b1.dot(b2);
 
-    // This is a new candidate of a quadrilateral.
-    for (int j = 0; j < number_of_points; ++j) {
-      if (distances[j] != ANN_DIST_INF) {
-        int id = near_neighbor_index[j] / 2;
+//  // Query the ANN for all the points corresponding to the invariants in Q_pair.
+//  for (int i = 0; i < Q_pairs.size(); ++i) {
+//    const Point3D& p1 = Q_points[Q_pairs[i].first];
+//    const Point3D& p2 = Q_points[Q_pairs[i].second];
 
-          quadrilaterals->push_back(
-              Quadrilateral(P_pairs[id].first, P_pairs[id].second,
-                            Q_pairs[i].first, Q_pairs[i].second));
-      } else
-        break;
-    }
+//    query_point[0] = p1.x + invariant1 * (p2.x - p1.x);
+//    query_point[1] = p1.y + invariant1 * (p2.y - p1.y);
+//    query_point[2] = p1.z + invariant1 * (p2.z - p1.z);
+//    tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
+//                       near_neighbor_index, distances, 0);
+
+//    // This is a new candidate of a quadrilateral.
+//    for (int j = 0; j < number_of_points; ++j) {
+//      if (distances[j] != ANN_DIST_INF) {
+//        int id = near_neighbor_index[j] / 2;
+
+//          quadrilaterals->push_back(
+//              Quadrilateral(P_pairs[id].first, P_pairs[id].second,
+//                            Q_pairs[i].first, Q_pairs[i].second));
+//      } else
+//        break;
+//    }
 
 
 
-    // We test the other order as our pairs are not ordered.
-    query_point[0] = p1.x + invariant2 * (p2.x - p1.x);
-    query_point[1] = p1.y + invariant2 * (p2.y - p1.y);
-    query_point[2] = p1.z + invariant2 * (p2.z - p1.z);
-    tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
-                       near_neighbor_index, distances, 0);
+//    // We test the other order as our pairs are not ordered.
+//    query_point[0] = p1.x + invariant2 * (p2.x - p1.x);
+//    query_point[1] = p1.y + invariant2 * (p2.y - p1.y);
+//    query_point[2] = p1.z + invariant2 * (p2.z - p1.z);
+//    tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
+//                       near_neighbor_index, distances, 0);
 
-    for (int j = 0; j < number_of_points; ++j) {
-      if (distances[j] != ANN_DIST_INF) {
-        int id = near_neighbor_index[j] / 2;
-          quadrilaterals->push_back(
-              Quadrilateral(P_pairs[id].first, P_pairs[id].second,
-                            Q_pairs[i].first, Q_pairs[i].second));
-      } else
-        break;
-    }
-  }
+//    for (int j = 0; j < number_of_points; ++j) {
+//      if (distances[j] != ANN_DIST_INF) {
+//        int id = near_neighbor_index[j] / 2;
+//          quadrilaterals->push_back(
+//              Quadrilateral(P_pairs[id].first, P_pairs[id].second,
+//                            Q_pairs[i].first, Q_pairs[i].second));
+//      } else
+//        break;
+//    }
+//  }
 
-  annDeallocPt(query_point);
-  annDeallocPts(data_points);
-  delete[] near_neighbor_index;
-  delete[] distances;
-  delete tree;
+//  annDeallocPt(query_point);
+//  annDeallocPts(data_points);
+//  delete[] near_neighbor_index;
+//  delete[] distances;
+//  delete tree;
 
-  return quadrilaterals->size() != 0;
+//  return quadrilaterals->size() != 0;
 }
 
 // Try the current base in P and obtain the best pairing, i.e. the one that
@@ -1168,31 +1165,21 @@ bool MatchSuper4PCSImpl::SelectQuadrilateral(double* invariant1, double* invaria
 // "scale" of the set.
 double MatchSuper4PCSImpl::MeanDistance() {
   const float kDiameterFraction = 0.2;
-  ANNpoint query_point;
-  ANNidxArray near_neighbor_index;
-  ANNdistArray distances;
-
-  query_point = annAllocPt(3);
-  near_neighbor_index = new ANNidx[2];
-  distances = new ANNdist[2];
+  Super4PCS::KdTree<Scalar>::VectorType query_point;
 
   int number_of_samples = 0;
   float distance = 0.0;
   for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-    query_point[0] = sampled_P_3D_[i].x;
-    query_point[1] = sampled_P_3D_[i].y;
-    query_point[2] = sampled_P_3D_[i].z;
-    ann_tree_->annkSearch(query_point, 2, near_neighbor_index, distances, 0);
-    // We prune out pairs that have too large distance.
-    if (distances[1] < P_diameter_ * kDiameterFraction) {
-      distance += distances[1];
+    query_point << sampled_P_3D_[i].x, sampled_P_3D_[i].y, sampled_P_3D_[i].z;
+
+    typename Super4PCS::KdTree<Scalar>::Index resId =
+    kd_tree_.doQueryRestrictedClosest(query_point, P_diameter_ * kDiameterFraction, i);
+
+    if (resId != Super4PCS::KdTree<Scalar>::invalidIndex()) {
+      distance += cv::norm(sampled_P_3D_[i] - sampled_P_3D_[resId]);
       number_of_samples++;
     }
   }
-
-  annDeallocPt(query_point);
-  delete[] near_neighbor_index;
-  delete[] distances;
 
   return distance / number_of_samples;
 }
@@ -1204,56 +1191,62 @@ double MatchSuper4PCSImpl::MeanDistance() {
 double MatchSuper4PCSImpl::Verify(const cv::Mat& rotation, const cv::Point3f& center,
                              const cv::Point3f& translate) {
 
+#ifdef TEST_GLOBAL_TIMINGS
+    Timer t_verify (true);
+#endif
+
   // We allow factor 2 scaling in the normalization.
   float epsilon = options_.delta;
   int good_points = 0;
   int number_of_points = sampled_Q_3D_.size();
   int terminate_value = best_LCP_ * number_of_points;
 
-  ANNpoint query_point;
-  ANNidxArray near_neighbor_index;
-  ANNdistArray distances;
-  query_point = annAllocPt(3);
-  near_neighbor_index = new ANNidx[1];
-  distances = new ANNdist[1];
+  Super4PCS::KdTree<Scalar>::VectorType query_point;
 
-  const float cos_dist =
-      options_.max_normal_difference > 90
-          ? 0
-          : cos(min(90.0, options_.max_normal_difference) * M_PI / 180.0);
+  Scalar sq_eps = epsilon*epsilon;
 
   for (int i = 0; i < number_of_points; ++i) {
     Point3D p = sampled_Q_3D_[i];
     Transform(rotation, center, translate, &p);
 
-    query_point[0] = p.x;
-    query_point[1] = p.y;
-    query_point[2] = p.z;
-    // Use the ANN tree to get the nearest neighbor (we use the exact version).
-    ann_tree_->annkSearch(query_point, 1, near_neighbor_index, distances, 0);
-    if (sqrt(distances[0]) < epsilon) {
-      Point3D& q = sampled_P_3D_[near_neighbor_index[0]];
-      bool rgb_good =
-          (p.rgb()[0] >= 0 && q.rgb()[0] >= 0)
-              ? cv::norm(p.rgb() - q.rgb()) < options_.max_color_distance
-              : true;
-      bool norm_good = norm(p.normal()) > 0 && norm(q.normal()) > 0
-                           ? fabs(p.normal().ddot(q.normal())) >= cos_dist
-                           : true;
-      if (rgb_good && norm_good) {
+    query_point << p.x, p.y, p.z;
+
+
+    // Use the kdtree to get the nearest neighbor
+#ifdef TEST_GLOBAL_TIMINGS
+    Timer t (true);
+#endif
+    typename Super4PCS::KdTree<Scalar>::Index resId =
+    kd_tree_.doQueryRestrictedClosest(query_point, sq_eps);
+
+#ifdef TEST_GLOBAL_TIMINGS
+    kdTreeTime += Scalar(t.elapsed().count()) / Scalar(1000000.);
+#endif
+
+    if ( resId != Super4PCS::KdTree<Scalar>::invalidIndex() ) {
+//      Point3D& q = sampled_P_3D_[near_neighbor_index[0]];
+//      bool rgb_good =
+//          (p.rgb()[0] >= 0 && q.rgb()[0] >= 0)
+//              ? cv::norm(p.rgb() - q.rgb()) < options_.max_color_distance
+//              : true;
+//      bool norm_good = norm(p.normal()) > 0 && norm(q.normal()) > 0
+//                           ? fabs(p.normal().ddot(q.normal())) >= cos_dist
+//                           : true;
+//      if (rgb_good && norm_good) {
         good_points++;
-      }
+//      }
     }
+
     // We can terminate if there is no longer chance to get better than the
     // current best LCP.
     if (number_of_points - i + good_points < terminate_value) {
       break;
     }
   }
-  annDeallocPt(query_point);
-  delete[] near_neighbor_index;
-  delete[] distances;
 
+#ifdef TEST_GLOBAL_TIMINGS
+  verifyTime += Scalar(t_verify.elapsed().count()) / Scalar(1000000.);
+#endif
   return static_cast<float>(good_points) / number_of_points;
 }
 
@@ -1537,20 +1530,20 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
     sampled_Q_3D_[i].z -= centroid_Q_.z;
   }
 
-  // Build the ANN tree.
   int number_of_points = sampled_P_3D_.size();
-  if (data_points_) {
-    annDeallocPts(data_points_);
-  }
-  if (ann_tree_) delete ann_tree_;
 
-  data_points_ = annAllocPts(number_of_points, 3);
-  for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-    data_points_[i][0] = sampled_P_3D_[i].x;
-    data_points_[i][1] = sampled_P_3D_[i].y;
-    data_points_[i][2] = sampled_P_3D_[i].z;
+  // Build the kdtree.
+  kd_tree_ = Super4PCS::KdTree<Scalar>(number_of_points);
+
+  Super4PCS::KdTree<Scalar>::VectorType p;
+  for (int i = 0; i < number_of_points; ++i) {
+      p << sampled_P_3D_[i].x,
+           sampled_P_3D_[i].y,
+           sampled_P_3D_[i].z;
+
+      kd_tree_.add(p);
   }
-  ann_tree_ = new ANNkd_tree(data_points_, number_of_points, 3);
+  kd_tree_.finalize();
 
   pcfunctor_.synch3DContent();
 
@@ -1572,7 +1565,8 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
 
   // Mean distance and a bit more... We increase the estimation to allow for
   // noise, wrong estimation and non-uniform sampling.
-  P_mean_distance_ = MeanDistance();
+  // can be used to automatically select delta
+  //P_mean_distance_ = MeanDistance();
 
   // Normalize the delta (See the paper) and the maximum base distance.
   // delta = P_mean_distance_ * delta;
