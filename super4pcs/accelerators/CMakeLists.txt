@@ -16,6 +16,7 @@ set(accel_INCLUDE
     ${accel_ROOT}/normalset.h
     ${accel_ROOT}/normalset.hpp
     ${accel_ROOT}/primitives.h
+    ${accel_ROOT}/bbox.h
     ${accel_ROOT}/utils.h)
 
 add_library(super4pcs_accel ${accel_SRC} ${accel_INCLUDE})

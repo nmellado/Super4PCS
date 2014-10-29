@@ -82,11 +82,15 @@ set(Super4PCS_SRC
     ${SRC_DIR}/4pcs.cc
     ${SRC_DIR}/super4pcs.cc
 )
+set(Super4PCS_INCLUDE
+    ${SRC_DIR}/shared4pcs.h
+    ${SRC_DIR}/4pcs.h
+)
 
 add_subdirectory(${SRC_DIR}/io)
 add_subdirectory(${SRC_DIR}/accelerators)
 
-add_library(super4pcs_algo  ${Super4PCS_SRC})
+add_library(super4pcs_algo  ${Super4PCS_SRC} ${Super4PCS_INCLUDE})
  
 # add the executable
 add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs_test.cc)

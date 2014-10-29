@@ -54,8 +54,7 @@
 #include "accelerators/normalset.h"
 #include "accelerators/normalHealSet.h"
 #include "accelerators/kdtree.h"
-
-#include "bbox.h"
+#include "accelerators/bbox.h"
 
 #include <hash_map>
 #include <fstream>
