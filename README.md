@@ -6,6 +6,11 @@ Copyright 2014 Nicolas Mellado
 Authors: Nicolas Mellado, Dror Aiger
 
 
+##Related pages
+[Paper project page](http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS)
+[Github project page](https://github.com/nmellado/Super4PCS)
+[Wiki](https://github.com/nmellado/Super4PCS/wiki)
+
 ##Overview
 An implementation of the Super 4-points Congruent Sets (Super 4PCS) 
 algorithm presented in:
