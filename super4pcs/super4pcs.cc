@@ -46,9 +46,13 @@
 
 #include "4pcs.h"
 
-#include <opencv2/highgui/highgui.hpp>
-
 #include "Eigen/Core"
+#include "Eigen/Geometry"                 // MatrixBase.homogeneous()
+#include "Eigen/SVD"                      // Transform.computeRotationScaling()
+
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core/eigen.hpp>
+
 #include "accelerators/intersection.h"
 #include "accelerators/primitives.h"
 #include "accelerators/normalset.h"
@@ -172,177 +176,6 @@ void DistUniformSampling(const std::vector<Point3D>& set, float delta,
 
 inline float PointsDistance(const Point3D& p, const Point3D& q) {
   return cv::norm(p - q);
-}
-
-// Computes the best rigid transformation between three corresponding pairs.
-// The transformation is characterized by rotation matrix, translation vector
-// and a center about which we rotate. The set of pairs is potentially being
-// updated by the best permutation of the second set. Returns the RMS of the
-// fit. The method is being called with 4 points but it applies the fit for
-// only 3 after the best permutation is selected in the second set (see
-// bellow). This is done because the solution for planar points is much
-// simpler.
-// The method is the closed-form solution by Horn:
-// people.csail.mit.edu/bkph/papers/Absolute_Orientation.pdf‎
-double ComputeRigidTransformation(vector<pair<Point3D, Point3D>>* pairs,
-                                  cv::Mat* rotation, cv::Point3f* translation,
-                                  cv::Point3f* center) {
-  if (pairs->size() == 0 ||
-          pairs->size() % 2 != 0 ||
-          rotation == NULL ||
-          translation == NULL ||
-          center == NULL)
-    return kLargeNumber;
-  float kSmallNumber = 1e-6;
-  *rotation = cv::Mat::eye(3, 3, CV_64F);
-
-  // Compute the centroid of the sets.
-  cv::Point3f centroid1(0, 0, 0);
-  cv::Point3f centroid2(0, 0, 0);
-  for (int i = 0; i < pairs->size(); ++i) {
-    centroid1 += (*pairs)[i].first;
-    centroid2 += (*pairs)[i].second;
-  }
-  centroid1 *= 1.0 / static_cast<float>(pairs->size());
-  centroid2 *= 1.0 / static_cast<float>(pairs->size());
-
-  // We don't need to search for the best pairing, this is already found
-  // earlier during the congruent set generation
-
-//  vector<bool> used (pairs->size()/2, false);
-
-//  vector<pair<Point3D, Point3D>> temp_pairs = *pairs;
-//  for (int i = 0; i < pairs->size(); i+=2) {
-//      float distance1 = cv::norm((*pairs)[i].first - centroid1);
-//      double best_distance = FLT_MAX;
-//      int best_id;
-//      for (int j = 0; j < pairs->size(); j+=2) {
-//          if (! used[j/2]){ // we avoid to pick twice the same element
-//              float distance2 = cv::norm((*pairs)[j].second - centroid2);
-//              float t = std::abs(distance1 - distance2);
-//              if (t < best_distance) {
-//                  best_distance = t;
-//                  best_id = j;
-//                  if (t == 0.)
-//                      break; // break for perfect cases
-//              }
-//          }
-//      }
-
-//      if(best_distance == FLT_MAX)
-//          return false; // this shouldn't happens
-
-//      (*pairs)[i].second   = temp_pairs[best_id].second;
-//      (*pairs)[i+1].second = temp_pairs[best_id+1].second;
-//      used[best_id/2] = true;
-//  }
-
-  // We only use the first 3 pairs. This simplifies the process considerably
-  // because it is the planar case.
-
-  const cv::Point3f& p0 = (*pairs)[0].first;
-  const cv::Point3f& p1 = (*pairs)[1].first;
-  const cv::Point3f& p2 = (*pairs)[2].first;
-  const cv::Point3f& q0 = (*pairs)[0].second;
-  const cv::Point3f& q1 = (*pairs)[1].second;
-  const cv::Point3f& q2 = (*pairs)[2].second;
-
-  centroid1 = p0 + p1 + p2;
-  centroid1 *= 1.0 / 3.0;
-  centroid2 = q0 + q1 + q2;
-  centroid2 *= 1.0 / 3.0;
-
-  cv::Point3f vector_p1 = p1 - p0;
-  if (cv::norm(vector_p1) == 0) return kLargeNumber;
-  vector_p1 = vector_p1 * (1.0 / cv::norm(vector_p1));
-  cv::Point3f vector_p2 = (p2 - p0) - ((p2 - p0).dot(vector_p1)) * vector_p1;
-  if (cv::norm(vector_p2) == 0) return kLargeNumber;
-  vector_p2 = vector_p2 * (1.0 / cv::norm(vector_p2));
-  cv::Point3f vector_p3 = vector_p1.cross(vector_p2);
-
-  cv::Point3f vector_q1 = q1 - q0;
-  if (cv::norm(vector_q1) == 0) return kLargeNumber;
-  vector_q1 = vector_q1 * (1.0 / cv::norm(vector_q1));
-  cv::Point3f vector_q2 = (q2 - q0) - ((q2 - q0).dot(vector_q1)) * vector_q1;
-  if (cv::norm(vector_q2) == 0) return kLargeNumber;
-  vector_q2 = vector_q2 * (1.0 / cv::norm(vector_q2));
-  cv::Point3f vector_q3 = vector_q1.cross(vector_q2);
-
-  cv::Mat rotate_p(3, 3, CV_64F);
-  rotate_p.at<double>(0, 0) = vector_p1.x;
-  rotate_p.at<double>(0, 1) = vector_p1.y;
-  rotate_p.at<double>(0, 2) = vector_p1.z;
-  rotate_p.at<double>(1, 0) = vector_p2.x;
-  rotate_p.at<double>(1, 1) = vector_p2.y;
-  rotate_p.at<double>(1, 2) = vector_p2.z;
-  rotate_p.at<double>(2, 0) = vector_p3.x;
-  rotate_p.at<double>(2, 1) = vector_p3.y;
-  rotate_p.at<double>(2, 2) = vector_p3.z;
-
-  cv::Mat rotate_q(3, 3, CV_64F);
-  rotate_q.at<double>(0, 0) = vector_q1.x;
-  rotate_q.at<double>(0, 1) = vector_q1.y;
-  rotate_q.at<double>(0, 2) = vector_q1.z;
-  rotate_q.at<double>(1, 0) = vector_q2.x;
-  rotate_q.at<double>(1, 1) = vector_q2.y;
-  rotate_q.at<double>(1, 2) = vector_q2.z;
-  rotate_q.at<double>(2, 0) = vector_q3.x;
-  rotate_q.at<double>(2, 1) = vector_q3.y;
-  rotate_q.at<double>(2, 2) = vector_q3.z;
-
-  *rotation = rotate_p.t() * rotate_q;
-
-  // Discard singular solutions. The rotation should be orthogonal.
-  cv::Mat unit = *rotation * rotation->t();
-  if (fabs(unit.at<double>(0, 0) - 1.0) > kSmallNumber ||
-      fabs(unit.at<double>(1, 1) - 1.0) > kSmallNumber ||
-      fabs(unit.at<double>(2, 2) - 1.0) > kSmallNumber)
-    return kLargeNumber;
-
-  *center = centroid2;
-  *translation = centroid1 - centroid2;
-
-  cv::Mat first(3, 1, CV_64F), transformed;
-  // Compute rms and return it.
-  double rms = 0.0;
-  for (int i = 0; i < 3; ++i) {
-    first.at<double>(0, 0) = (*pairs)[i].second.x - centroid2.x;
-    first.at<double>(1, 0) = (*pairs)[i].second.y - centroid2.y;
-    first.at<double>(2, 0) = (*pairs)[i].second.z - centroid2.z;
-    transformed = *rotation * first;
-    rms += sqrt(Square(transformed.at<double>(0, 0) -
-                       ((*pairs)[i].first.x - centroid1.x)) +
-                Square(transformed.at<double>(1, 0) -
-                       ((*pairs)[i].first.y - centroid1.y)) +
-                Square(transformed.at<double>(2, 0) -
-                       ((*pairs)[i].first.z - centroid1.z)));
-  }
-
-  return rms / pairs->size();
-}
-
-// Transforms a point by a given transformation.
-void Transform(const cv::Mat& rotation, const cv::Point3f& center,
-               const cv::Point3f& translate, Point3D* point) {
-  if (point == NULL) return;
-  cv::Mat first(3, 1, CV_64F), transformed;
-  first.at<double>(0, 0) = (point->x - center.x);
-  first.at<double>(1, 0) = (point->y - center.y);
-  first.at<double>(2, 0) = (point->z - center.z);
-  transformed = rotation * first;
-  point->x = transformed.at<double>(0, 0) + center.x + translate.x;
-  point->y = transformed.at<double>(1, 0) + center.y + translate.y;
-  point->z = transformed.at<double>(2, 0) + center.z + translate.z;
-
-  first.at<double>(0, 0) = (point->normal().x);
-  first.at<double>(1, 0) = (point->normal().y);
-  first.at<double>(2, 0) = (point->normal().z);
-  transformed = rotation * first;
-  cv::Point3f normal;
-  normal.x = transformed.at<double>(0, 0);
-  normal.y = transformed.at<double>(1, 0);
-  normal.z = transformed.at<double>(2, 0);
-  point->set_normal(normal);
 }
 
 // Compute the closest points between two 3D line segments and obtain the two
@@ -661,15 +494,13 @@ class MatchSuper4PCSImpl {
   // Mean distance between points and their nearest neighbor in the set P.
   // Used to normalize the "delta" which is given in terms of this distance.
   float P_mean_distance_;
-  // The centroid about which we rotate a congruent set in Q to match the base
-  // in P. It is used temporarily and makes the transformations more robust to
+  // The transformation matrix by wich we transform Q to P
+  Eigen::Matrix<Scalar, 4, 4> transform_;
+  // Quad centroids in first and second clouds
+  // They are used temporarily and makes the transformations more robust to
   // noise. At the end, the direct transformation applied as a 4x4 matrix on
   // every points in Q is computed and returned.
-  cv::Point3f centroid_;
-  // The translation vector by which we move Q to match P.
-  cv::Point3f translate_;
-  // The rotation matrix by which we rotate Q to match P.
-  cv::Mat rotate_;
+  Eigen::Matrix<Scalar, 3, 1> qcentroid1_, qcentroid2_;
   // The points in the base (indices to P). It is being updated in every
   // RANSAC iteration.
   int base_[4];
@@ -728,9 +559,8 @@ class MatchSuper4PCSImpl {
   // For each randomly picked base, verifies the computed transformation by
   // computing the number of points that this transformation brings near points
   // in Q. Returns the current LCP. R is the rotation matrix, (tx,ty,tz) is
-  // the translation vector and (cx,cy,cz) is the center of transformation.
-  double Verify(const cv::Mat& rotation, const cv::Point3f& center,
-                const cv::Point3f& translate);
+  // the translation vector and (cx,cy,cz) is the center of transformation.template <class MatrixDerived>
+  Scalar Verify(const Eigen::Matrix<Scalar, 4, 4>& mat);
 
   // Computes the mean distance between point in Q and its nearest neighbor.
   double MeanDistance();
@@ -798,6 +628,24 @@ class MatchSuper4PCSImpl {
                                        const PairsVector& Q_pairs,
                                        const std::vector<Point3D>& Q_points,
                                        std::vector<Quadrilateral>* quadrilaterals);
+
+  // Computes the best rigid transformation between three corresponding pairs.
+  // The transformation is characterized by rotation matrix, translation vector
+  // and a center about which we rotate. The set of pairs is potentially being
+  // updated by the best permutation of the second set. Returns the RMS of the
+  // fit. The method is being called with 4 points but it applies the fit for
+  // only 3 after the best permutation is selected in the second set (see
+  // bellow). This is done because the solution for planar points is much
+  // simpler.
+  // The method is the closed-form solution by Horn:
+  // people.csail.mit.edu/bkph/papers/Absolute_Orientation.pdf‎
+  bool ComputeRigidTransformation(const vector< pair<Point3D, Point3D> >& pairs,
+                                  const Eigen::Matrix<Scalar, 3, 1>& centroid1,
+                                  const Eigen::Matrix<Scalar, 3, 1>& centroid2,
+                                  Scalar max_angle,
+                                  Eigen::Matrix<Scalar, 4, 4> &transform,
+                                  Scalar& rms_,
+                                  bool computeScale );
 
   // Initializes the data structures and needed values before the match
   // computation.
@@ -896,15 +744,9 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
       const Point3D& pp2 = Q_points[P_pairs[id].second];
 
       invPoint = pp1 + (pp2 - pp1) * invariant1;
-//      cout << "invpoint = "
-//           << invPoint.x << " "
-//           << invPoint.y << " "
-//           << invPoint.z << endl;
-      //invPoint = pp1 + (pp2 - pp1) * invariant1;
 
        // use also distance_threshold2 for inv 1 and 2 in 4PCS
       if (cv::norm(queryQ-invPoint) <= distance_threshold2){
-//          cout << "passed " << id << " " << i << endl;
           comb.insert(std::pair<unsigned int, unsigned int>(id, i));
       }
     }
@@ -916,8 +758,6 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
     const unsigned int & id = (*it).first;
     const unsigned int & i  = (*it).second;
 
-//    cout << "New quad: (" << P_pairs[id].first << " " << P_pairs[id].second
-//         << ") - ("  << Q_pairs[i].first << " " << Q_pairs[i].second << ")" << endl;
     quadrilaterals->push_back(
                 Quadrilateral(P_pairs[id].first, P_pairs[id].second,
                               Q_pairs[i].first,  Q_pairs[i].second));
@@ -1227,8 +1067,7 @@ double MatchSuper4PCSImpl::MeanDistance() {
 // distance at most (normalized) delta from some point in Q. In the paper
 // we describe randomized verification. We apply deterministic one here with
 // early termination. It was found to be fast in practice.
-double MatchSuper4PCSImpl::Verify(const cv::Mat& rotation, const cv::Point3f& center,
-                             const cv::Point3f& translate) {
+Scalar MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
 
 #ifdef TEST_GLOBAL_TIMINGS
     Timer t_verify (true);
@@ -1240,15 +1079,19 @@ double MatchSuper4PCSImpl::Verify(const cv::Mat& rotation, const cv::Point3f& ce
   int number_of_points = sampled_Q_3D_.size();
   int terminate_value = best_LCP_ * number_of_points;
 
-  Super4PCS::KdTree<Scalar>::VectorType query_point;
+  Eigen::Matrix<Scalar, 4, 1> query_point;
 
   Scalar sq_eps = epsilon*epsilon;
 
   for (int i = 0; i < number_of_points; ++i) {
     Point3D p = sampled_Q_3D_[i];
-    Transform(rotation, center, translate, &p);
+    //Transform(rotation, center, translate, &p);
 
-    query_point << p.x, p.y, p.z;
+    query_point << p.x,
+                   p.y,
+                   p.z,
+                   Scalar(1);
+    query_point = (mat * query_point).eval();
 
 
     // Use the kdtree to get the nearest neighbor
@@ -1256,7 +1099,7 @@ double MatchSuper4PCSImpl::Verify(const cv::Mat& rotation, const cv::Point3f& ce
     Timer t (true);
 #endif
     typename Super4PCS::KdTree<Scalar>::Index resId =
-    kd_tree_.doQueryRestrictedClosest(query_point, sq_eps);
+    kd_tree_.doQueryRestrictedClosest(query_point.head<3>(), sq_eps);
 
 #ifdef TEST_GLOBAL_TIMINGS
     kdTreeTime += Scalar(t.elapsed().count()) / Scalar(1000000.);
@@ -1400,47 +1243,76 @@ bool MatchSuper4PCSImpl::TryOneBase() {
     return false;
   }
 
-  cv::Mat rotation(3, 3, CV_64F);
+  // get references to the basis coordinates
+  const Point3D& b1 = sampled_P_3D_[base_id1];
+  const Point3D& b2 = sampled_P_3D_[base_id2];
+  const Point3D& b3 = sampled_P_3D_[base_id3];
+  const Point3D& b4 = sampled_P_3D_[base_id4];
+
+
+  // Centroid of the basis, computed once and using only the three first points
+  Eigen::Matrix<Scalar, 3, 1> centroid1;
+  // Must be improved when running without opencv
+  centroid1 << (b1.x + b2.x + b3.x) / Scalar(3.),
+               (b1.y + b2.y + b3.y) / Scalar(3.),
+               (b1.z + b2.z + b3.z) / Scalar(3.);
+
+  // Centroid of the sets, computed in the loop using only the three first points
+  Eigen::Matrix<Scalar, 3, 1> centroid2;
+
+  // set the basis coordinates in the congruent quad array
+  congruent_points.resize(4);
+  congruent_points[0].first = b1;
+  congruent_points[1].first = b2;
+  congruent_points[2].first = b3;
+  congruent_points[3].first = b4;
+
+  Eigen::Matrix<Scalar, 4, 4> transform;
   for (int i = 0; i < congruent_quads.size(); ++i) {
-    congruent_points.resize(4);
     int a = congruent_quads[i].vertices[0];
     int b = congruent_quads[i].vertices[1];
     int c = congruent_quads[i].vertices[2];
     int d = congruent_quads[i].vertices[3];
-    congruent_points[0].first = sampled_P_3D_[base_id1];
     congruent_points[0].second = sampled_Q_3D_[a];
-    congruent_points[1].first = sampled_P_3D_[base_id2];
     congruent_points[1].second = sampled_Q_3D_[b];
-    congruent_points[2].first = sampled_P_3D_[base_id3];
     congruent_points[2].second = sampled_Q_3D_[c];
-    congruent_points[3].first = sampled_P_3D_[base_id4];
     congruent_points[3].second = sampled_Q_3D_[d];
 
+#ifdef STATIC_BASE
+    std::cout << "Ids:" << std::endl;
+    std::cout << base_id1 << "\t"
+              << base_id2 << "\t"
+              << base_id3 << "\t"
+              << base_id4 << std::endl;
+    std::cout << a << "\t"
+              << b << "\t"
+              << c << "\t"
+              << d << std::endl;
+#endif
 
-    cv::Point3f center;
-    cv::Point3f translate;
-    double f = ComputeRigidTransformation(&congruent_points, &rotation,
-                                          &translate, &center);
+    centroid2 << (congruent_points[0].second.x + congruent_points[1].second.x + congruent_points[2].second.x) / Scalar(3.),
+                 (congruent_points[0].second.y + congruent_points[1].second.y + congruent_points[2].second.y) / Scalar(3.),
+                 (congruent_points[0].second.z + congruent_points[1].second.z + congruent_points[2].second.z) / Scalar(3.);
 
-    float theta_x =
-        fabs(atan2(rotation.at<double>(2, 1), rotation.at<double>(2, 2)));
-    float theta_y = fabs(atan2(-rotation.at<double>(2, 0),
-                               sqrt(Square(rotation.at<double>(2, 1)) +
-                                    Square(rotation.at<double>(2, 2)))));
-    float theta_z =
-        fabs(atan2(rotation.at<double>(1, 0), rotation.at<double>(0, 0)));
+    Scalar rms = -1;
+    bool ok =
+    ComputeRigidTransformation(congruent_points,   // input congruent quads
+                               centroid1,          // input: basis centroid
+                               centroid2,          // input: candidate quad centroid
+                               options_.max_angle * M_PI / 180.0, // maximum per-dimension angle, check return value to detect invalid cases
+                               transform,          // output: transformation
+                               rms,                // output: rms error of the transformation between the basis and the congruent quad
+                               false);             // state: compute scale ratio ?
 
-    // Check angle limitation.
-    if (theta_x <= options_.max_angle * M_PI / 180.0 &&
-        theta_y <= options_.max_angle * M_PI / 180.0 &&
-        theta_z <= options_.max_angle * M_PI / 180.0) {
-
+    if (ok) {
 
       // We give more tolerantz in computing the best rigid transformation.
-      if (f < distance_factor * options_.delta) {
+      if (rms < distance_factor * options_.delta) {
+        // The transformation is computed from the point-clouds centered inn [0,0,0]
+
         // Verify the rest of the points in Q against P.
-        f = Verify(rotation, center, translate);
-        if (f > best_LCP_) {
+        Scalar lcp = Verify(transform);
+        if (lcp > best_LCP_) {
           // Retain the best LCP and transformation.
           base_[0] = base_id1;
           base_[1] = base_id2;
@@ -1452,10 +1324,10 @@ bool MatchSuper4PCSImpl::TryOneBase() {
           current_congruent_[2] = c;
           current_congruent_[3] = d;
 
-          best_LCP_ = f;
-          rotate_ = rotation.clone();
-          centroid_ = center;
-          translate_ = translate;
+          best_LCP_    = lcp;
+          transform_   = transform;
+          qcentroid1_  = centroid1;
+          qcentroid2_  = centroid2;
         }
         // Terminate if we have the desired LCP already.
         if (best_LCP_ > options_.terminate_threshold){
@@ -1642,6 +1514,136 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
   }
 }
 
+bool MatchSuper4PCSImpl::ComputeRigidTransformation(const vector< pair<Point3D, Point3D> >& pairs,
+                                                    const Eigen::Matrix<Scalar, 3, 1>& centroid1,
+                                                    const Eigen::Matrix<Scalar, 3, 1>& centroid2,
+                                                    Scalar max_angle,
+                                                    Eigen::Matrix<Scalar, 4, 4> &transform,
+                                                    Scalar& rms_,
+                                                    bool computeScale ) {
+
+  rms_ = kLargeNumber;
+
+  if (pairs.size() == 0 || pairs.size() % 2 != 0)
+      return false;
+
+
+  Scalar kSmallNumber = 1e-6;
+  cv::Mat rotation = cv::Mat::eye(3, 3, CV_64F);
+
+  // We only use the first 3 pairs. This simplifies the process considerably
+  // because it is the planar case.
+
+  const cv::Point3f& p0 = pairs[0].first;
+  const cv::Point3f& p1 = pairs[1].first;
+  const cv::Point3f& p2 = pairs[2].first;
+  const cv::Point3f& q0 = pairs[0].second;
+  const cv::Point3f& q1 = pairs[1].second;
+  const cv::Point3f& q2 = pairs[2].second;
+
+  cv::Point3f vector_p1 = p1 - p0;
+  if (cv::norm(vector_p1) == 0) return kLargeNumber;
+  vector_p1 = vector_p1 * (1.0 / cv::norm(vector_p1));
+  cv::Point3f vector_p2 = (p2 - p0) - ((p2 - p0).dot(vector_p1)) * vector_p1;
+  if (cv::norm(vector_p2) == 0) return kLargeNumber;
+  vector_p2 = vector_p2 * (1.0 / cv::norm(vector_p2));
+  cv::Point3f vector_p3 = vector_p1.cross(vector_p2);
+
+  cv::Point3f vector_q1 = q1 - q0;
+  if (cv::norm(vector_q1) == 0) return kLargeNumber;
+  vector_q1 = vector_q1 * (1.0 / cv::norm(vector_q1));
+  cv::Point3f vector_q2 = (q2 - q0) - ((q2 - q0).dot(vector_q1)) * vector_q1;
+  if (cv::norm(vector_q2) == 0) return kLargeNumber;
+  vector_q2 = vector_q2 * (1.0 / cv::norm(vector_q2));
+  cv::Point3f vector_q3 = vector_q1.cross(vector_q2);
+
+  cv::Mat rotate_p(3, 3, CV_64F);
+  rotate_p.at<double>(0, 0) = vector_p1.x;
+  rotate_p.at<double>(0, 1) = vector_p1.y;
+  rotate_p.at<double>(0, 2) = vector_p1.z;
+  rotate_p.at<double>(1, 0) = vector_p2.x;
+  rotate_p.at<double>(1, 1) = vector_p2.y;
+  rotate_p.at<double>(1, 2) = vector_p2.z;
+  rotate_p.at<double>(2, 0) = vector_p3.x;
+  rotate_p.at<double>(2, 1) = vector_p3.y;
+  rotate_p.at<double>(2, 2) = vector_p3.z;
+
+  cv::Mat rotate_q(3, 3, CV_64F);
+  rotate_q.at<double>(0, 0) = vector_q1.x;
+  rotate_q.at<double>(0, 1) = vector_q1.y;
+  rotate_q.at<double>(0, 2) = vector_q1.z;
+  rotate_q.at<double>(1, 0) = vector_q2.x;
+  rotate_q.at<double>(1, 1) = vector_q2.y;
+  rotate_q.at<double>(1, 2) = vector_q2.z;
+  rotate_q.at<double>(2, 0) = vector_q3.x;
+  rotate_q.at<double>(2, 1) = vector_q3.y;
+  rotate_q.at<double>(2, 2) = vector_q3.z;
+
+  rotation = rotate_p.t() * rotate_q;
+
+  // Discard singular solutions. The rotation should be orthogonal.
+  cv::Mat unit = rotation * rotation.t();
+  if (std::abs(unit.at<double>(0, 0) - 1.0) > kSmallNumber ||
+      std::abs(unit.at<double>(1, 1) - 1.0) > kSmallNumber ||
+      std::abs(unit.at<double>(2, 2) - 1.0) > kSmallNumber){
+      return false;
+  }
+
+  // Discard too large solutions (todo: lazy evaluation during boolean computation
+  float theta_x = std::abs(atan2(rotation.at<double>(2, 1), rotation.at<double>(2, 2)));
+  float theta_y = std::abs(atan2(-rotation.at<double>(2, 0),
+                             sqrt(Square(rotation.at<double>(2, 1)) +
+                                  Square(rotation.at<double>(2, 2)))));
+  float theta_z = std::abs(atan2(rotation.at<double>(1, 0), rotation.at<double>(0, 0)));
+  if (theta_x > max_angle ||
+      theta_y > max_angle ||
+      theta_z > max_angle)
+      return false;
+
+
+  // Compute rms and return it.
+  rms_ = Scalar(0.0);
+  {
+      cv::Mat first(3, 1, CV_64F), transformed;
+      for (int i = 0; i < 3; ++i) {
+          first.at<double>(0, 0) = pairs[i].second.x - centroid2(0);
+          first.at<double>(1, 0) = pairs[i].second.y - centroid2(1);
+          first.at<double>(2, 0) = pairs[i].second.z - centroid2(2);
+          transformed = rotation * first;
+          rms_ += sqrt(Square(transformed.at<double>(0, 0) -
+                              (pairs[i].first.x - centroid1(0))) +
+                       Square(transformed.at<double>(1, 0) -
+                              (pairs[i].first.y - centroid1(1))) +
+                       Square(transformed.at<double>(2, 0) -
+                              (pairs[i].first.z - centroid1(2))));
+      }
+  }
+
+  rms_ /= Scalar(pairs.size());
+
+  Eigen::Transform<Scalar, 3, Eigen::Affine> etrans (Eigen::Transform<Scalar, 3, Eigen::Affine>::Identity());
+
+  // Compute scale factor if needed
+  if (computeScale){
+      std::cerr << __FILE__ << ":" << __LINE__ << " Scale computation not supported yet" << std::endl;
+  }
+
+  // compute rotation and translation
+  {
+      Eigen::Matrix<Scalar, 3, 3> rot;
+      cv::cv2eigen(rotation, rot);
+
+      etrans.translate(centroid1);  // translation between quads
+      etrans.rotate(rot);           // rotate to align frames
+      etrans.translate(-centroid2); // move to congruent quad frame
+
+      transform = etrans.matrix();
+  }
+
+  return true;
+}
+
+
 // Performs N RANSAC iterations and compute the best transformation. Also,
 // transforms the set Q by this optimal transformation.
 bool MatchSuper4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
@@ -1672,30 +1674,28 @@ bool MatchSuper4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
 
   current_trial_ += n;
   if (best_LCP_ > last_best_LCP) {
-    // We are better than the last LCP. Update the matrix and transform Q.
-    Point3D p(centroid_.x + centroid_Q_.x, centroid_.y + centroid_Q_.y,
-              centroid_.z + centroid_Q_.z);
-    Transform(rotate_, cv::Point3f(0, 0, 0), cv::Point3f(0, 0, 0), &p);
     *Q = Q_copy_;
-    transformation->at<double>(0, 0) = rotate_.at<double>(0, 0);
-    transformation->at<double>(0, 1) = rotate_.at<double>(0, 1);
-    transformation->at<double>(0, 2) = rotate_.at<double>(0, 2);
-    transformation->at<double>(0, 3) =
-        centroid_.x - p.x + translate_.x + centroid_P_.x;
-    transformation->at<double>(1, 0) = rotate_.at<double>(1, 0);
-    transformation->at<double>(1, 1) = rotate_.at<double>(1, 1);
-    transformation->at<double>(1, 2) = rotate_.at<double>(1, 2);
-    transformation->at<double>(1, 3) =
-        centroid_.y - p.y + translate_.y + centroid_P_.y;
-    transformation->at<double>(2, 0) = rotate_.at<double>(2, 0);
-    transformation->at<double>(2, 1) = rotate_.at<double>(2, 1);
-    transformation->at<double>(2, 2) = rotate_.at<double>(2, 2);
-    transformation->at<double>(2, 3) =
-        centroid_.z - p.z + translate_.z + centroid_P_.z;
-    transformation->at<double>(3, 0) = 0;
-    transformation->at<double>(3, 1) = 0;
-    transformation->at<double>(3, 2) = 0;
-    transformation->at<double>(3, 3) = 1;
+
+      // The transformation has been computed between the two point clouds centered
+    // at the origin, we need to recompute the translation to apply it to the original clouds
+    {
+        Eigen::Matrix<Scalar, 3,1> centroid_P,centroid_Q;
+        cv::Mat first(3, 1, CV_64F);
+        first.at<double>(0, 0) = centroid_P_.x;
+        first.at<double>(1, 0) = centroid_P_.y;
+        first.at<double>(2, 0) = centroid_P_.z;
+        cv::cv2eigen(first, centroid_P);
+        first.at<double>(0, 0) = centroid_Q_.x;
+        first.at<double>(1, 0) = centroid_Q_.y;
+        first.at<double>(2, 0) = centroid_Q_.z;
+        cv::cv2eigen(first, centroid_Q);
+
+        Eigen::Matrix<Scalar, 3, 3> rot, scale;
+        Eigen::Transform<Scalar, 3, Eigen::Affine> (transform_).computeRotationScaling(&rot, &scale);
+        transform_.col(3) = (qcentroid1_ + centroid_P - ( rot * (qcentroid2_ + centroid_Q))).homogeneous();
+    }
+
+    cv::eigen2cv( transform_, *transformation );
 
     // Transforms Q by the new transformation.
     for (int i = 0; i < Q->size(); ++i) {
