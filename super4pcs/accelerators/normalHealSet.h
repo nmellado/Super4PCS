@@ -62,7 +62,18 @@ class IndexedNormalHealSet{
 public:
   typedef Eigen::Vector3d Point;
   typedef std::vector<std::vector<unsigned int>> ChealMap;
-  
+
+#ifdef DEBUG
+#define VALIDATE_INDICES true
+#pragma message "Index validation is enabled in debug mode"
+#else
+#define VALIDATE_INDICES false
+#endif
+
+  //! \brief State of the index validation, disabled when compiled in release mode
+  enum{ INDEX_VALIDATION_ENABLED = VALIDATE_INDICES };
+
+#undef VALIDATE_INDICES
   
 private:
   double _epsilon;
@@ -70,27 +81,26 @@ private:
   int _egSize;    //! <\brief Size of the euclidean grid for each dimension
   long _ngLength;  //! ,\brief Length of the normal map from healpix
   std::vector<ChealMap*> _grid;
-  
-  // Get the index corresponding to position p \warning Bounds are not tested
+
+  //! \brief Return the index corresponding to position p
   inline int indexPos   ( const Point& p) const{
-    return UnrollIndexLoop( coordinatesPos(p),  2/*dim-1*/,  _egSize );  
+    return Utils::UnrollIndexLoop<INDEX_VALIDATION_ENABLED>( coordinatesPos(p),  2,  _egSize );
   }
   
-  // Get the index corresponding to normal n   \warning Bounds are not tested
+  //! \brief Return the index corresponding to normal n  \warning Bounds are not tested
   inline int indexNormal( const Point& n) const {
     long id;
     vec2pix_ring(_resolution, n.data(), &id);
     return id;
   }
   
-  // Get the coordinates corresponding to position p \warning Bounds are not tested
+  //! \brief Return the coordinates corresponding to position p
   inline Point coordinatesPos   ( const Point& p) const
   { return p/_epsilon;  }
-  // Get the index corresponding to normal n   \warning Bounds are not tested
   
-  // Get the coordinates corresponding to position p \warning Bounds are not tested
+  //! \brief Return the coordinates corresponding to position p
   inline int indexCoordinatesPos   ( const Point& pCoord) const{  
-    return UnrollIndexLoop( pCoord,  2/*dim-1*/,  _egSize );  
+    return Utils::UnrollIndexLoop<INDEX_VALIDATION_ENABLED>( pCoord,  2,  _egSize );
   }
   
   
