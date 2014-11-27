@@ -51,22 +51,95 @@
 
 namespace Super4PCS{
 namespace Utils{
-//! Compile time pow
-template<typename base_t, typename expo_t>
-constexpr base_t POW(base_t base, expo_t expo)
+
+//! \brief Compile time pow
+template<typename baseT, typename expoT>
+constexpr baseT POW(baseT base, expoT expo)
 {
     return (expo != 0 )? base * POW(base, expo -1) : 1;
 }
 
 
+namespace internal{
 
-template<class Point>
-constexpr inline int
-UnrollIndexLoop(const Point& coord, int cdim, int gsize){            
-  return (cdim != 0) 
-    ? ( int(std::floor(coord[cdim]))*POW(gsize, cdim) + 
-        UnrollIndexLoop(coord, cdim-1, gsize) )
-    : int(std::floor(coord[cdim]));
+/*!
+ * \brief Helper structure used to (conditionnaly) validate indices.
+ * The template parameter enable allows to control the validation, without
+ * overload when the validation is disabled.
+ *
+ * Throw std::out_of_range exception when the validation is enabled and an
+ * invalid case is detected
+ */
+template <bool enable>
+struct IndexValidator{
+    /*!
+     * \brief Check if n is within [0:gsize] if enable=true
+     * \throw std::out_of_range
+     */
+    template <class IndexT, class SizeT>
+    static inline
+    constexpr IndexT validate(const IndexT& n,
+                              const SizeT& gsize);
+
+    /*!
+     * \brief Test used internally to validate the input index
+     */
+    template <class IndexT, class SizeT>
+    static inline
+    constexpr bool _test(const IndexT& n, const SizeT& gsize){
+        return n < gsize;
+    }
+};
+
+template <>
+template <class IndexT, class SizeT>
+IndexT
+IndexValidator<true>::validate(const IndexT& n,
+                               const SizeT&  gsize)
+{
+    return IndexValidator<true>::_test(n, gsize) ?
+                n :
+                throw std::out_of_range(
+                    std::string("[IndexValidator] ") +
+                    std::to_string(n)                +
+                    std::string(" bigger than ")     +
+                    std::to_string(gsize) );
+}
+
+template <>
+template <class IndexT, class SizeT>
+IndexT
+IndexValidator<false>::validate(const IndexT& n,
+                                const SizeT& /*gsize*/)
+{
+    return n;
+}
+} // namespace Super4PCS::Utils::internal
+
+/*!
+ * \brief Convert a normalized n-d vector to a linear index in a uniform regular grid
+ * This function is recursive, and unrolled at compile time (loop over n).
+ *
+ * \param coord Input coordinates defined in the normalized n-hypercube.
+ * \param cdim  Working dimension, must be called with n.
+ * \param gsize Dimension of the grid, must be consistent in all dimensions
+ *
+ * \tparam validate Enable or disable the range validation
+ * \tparam PointT Type of the input points (deduced)
+ * \tparam IndexT Index type (deduced)
+ * \tparam IndexT Size type (deduced)
+ *
+ * \see internal::IndexValidator for the validation procedure
+ */
+template<bool validate, class PointT, class IndexT, class SizeT>
+constexpr inline IndexT
+UnrollIndexLoop(const PointT& coord,
+                IndexT        cdim,
+                SizeT         gsize){
+  return (cdim != 0)
+    ? ( internal::IndexValidator<validate>::validate(IndexT(std::floor(coord[cdim])), gsize)*POW(gsize, cdim) +
+        UnrollIndexLoop<validate>(coord, cdim-1, gsize) )
+    : internal::IndexValidator<validate>::validate(IndexT(std::floor(coord[cdim])), gsize);
 }
 
 } //namespace Super4PCS::Utils
