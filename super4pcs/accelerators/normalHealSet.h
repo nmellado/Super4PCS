@@ -51,6 +51,8 @@
 #include "utils.h"
 #include "chealpix.h"
 
+namespace Super4PCS{
+
 /*!
   Work only in 3D, based on healpix.
   Scalar are constrained to be double
@@ -133,6 +135,8 @@ public:
                      double alpha,
                      std::vector<unsigned int>&nei,
                      bool tryReverse = false);
-};
+
+}; // class IndexedNormalHealSet
+} // namespace Super4PCS
 
 #endif // _INDEXED_NORMAL_SET_H_

@@ -52,6 +52,8 @@
 #include <set>
 #include <Eigen/Geometry>
 
+namespace Super4PCS{
+
 template <class Point, int dim, int _ngSize, typename Scalar>
 constexpr Scalar 
 IndexedNormalSet<Point, dim, _ngSize, Scalar>::_nepsilon;
@@ -210,6 +212,8 @@ IndexedNormalSet<Point, dim, _ngSize, Scalar>::getNeighbors(
     nei.insert( nei.end(), lnei.begin(), lnei.end() );
   }
 }
+
+} // namespace Super4CS
 
 
 #endif // _INDEXED_NORMAL_SET_HPP_

@@ -48,6 +48,9 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+
+namespace Super4PCS{
+namespace Utils{
 //! Compile time pow
 template<typename base_t, typename expo_t>
 constexpr base_t POW(base_t base, expo_t expo)
@@ -66,5 +69,7 @@ UnrollIndexLoop(const Point& coord, int cdim, int gsize){
     : int(std::floor(coord[cdim]));
 }
 
+} //namespace Super4PCS::Utils
+} //namespace Super4PCS
 
 #endif

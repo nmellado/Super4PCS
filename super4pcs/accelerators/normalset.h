@@ -50,6 +50,8 @@
 
 #include "utils.h"
 
+namespace Super4PCS{
+
 /*!
   Normal set indexed by a position in euclidean space.
   The size used to hash euclidean coordinates is defined at runtime.
@@ -67,7 +69,7 @@ template <
   >
 struct IndexedNormalSet{
   typedef std::array< std::vector<unsigned int>, 
-                      POW(_ngSize, dim)> AngularGrid;
+                      Utils::POW(_ngSize, dim)> AngularGrid;
                       
   enum MOVE_DIR { POSITIVE, NEGATIVE };
   
@@ -138,6 +140,8 @@ public:
                             std::vector<unsigned int>&nei,
                             bool tryReverse = false);
 };
+
+} // namespace Super4PCS
 
 #include "normalset.hpp"
 

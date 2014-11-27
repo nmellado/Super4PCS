@@ -52,6 +52,8 @@
 #include <list>
 #include <iostream>
 
+namespace Super4PCS{
+
 //! Intersect a Primitive and a set of point using rasterization
 template <class Primitive, class Point, int dim, typename Scalar>
 struct IntersectionFunctor{
@@ -214,6 +216,8 @@ IntersectionFunctor<Primitive, Point, dim, Scalar>::process(
     }
   } 
 }    
+
+} // namespace Super4PCS
     
 #endif
 

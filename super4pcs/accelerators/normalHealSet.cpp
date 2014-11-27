@@ -54,6 +54,8 @@
 
 using namespace std;
 
+namespace Super4PCS{
+
 IndexedNormalHealSet::~IndexedNormalHealSet(){
   for(unsigned int i = 0; i != _grid.size(); i++)
     delete(_grid[i]);
@@ -159,3 +161,4 @@ IndexedNormalHealSet::getNeighbors(
   }
 }
 
+} // namespace Super4PCS

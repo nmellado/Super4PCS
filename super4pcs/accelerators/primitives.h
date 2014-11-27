@@ -52,6 +52,8 @@
 #define SQR(a)		((a)*(a))
 #endif
 
+namespace Super4PCS{
+
 //! \brief UnaryExpr to apply floor with arbitrary quantification step e
 template <typename Scalar>
 struct CustomFloorExpr{
@@ -189,6 +191,7 @@ public:
   inline Scalar& radius() { return _radius; }
 };
 
+} // namespace Super4PCS
 
 #endif
 

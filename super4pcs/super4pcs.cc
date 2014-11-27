@@ -290,7 +290,7 @@ public:
 
   // Internal data
   typedef Eigen::Matrix<Scalar, 3, 1> Point;
-  typedef HyperSphere< PairCreationFunctor::Point, 3, Scalar> Primitive;
+  typedef Super4PCS::HyperSphere< PairCreationFunctor::Point, 3, Scalar> Primitive;
 
   std::vector< /*Eigen::Map<*/PairCreationFunctor::Point/*>*/ > points;
   std::vector< Primitive > primitives;
@@ -325,7 +325,7 @@ public:
     points.clear();
     primitives.clear();
 
-    AABB3D<Scalar> bbox;
+    Super4PCS::AABB3D<Scalar> bbox;
 
     unsigned int nSamples = Q_.size();
 
@@ -679,7 +679,7 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
   typedef PairCreationFunctor::Point Point;
   const Scalar eps = pcfunctor_.getNormalizedEpsilon(
     std::min(distance_threshold1, distance_threshold2));
-  typedef IndexedNormalHealSet IndexedNormalSet3D;
+  typedef Super4PCS::IndexedNormalHealSet IndexedNormalSet3D;
   
   // Use the following definition to get ride of Healpix
 //  typedef  IndexedNormalSet
@@ -1156,7 +1156,7 @@ MatchSuper4PCSImpl::BruteForcePairs(double pair_distance,
   pcfunctor_.setRadius(pair_distance);
   pcfunctor_.setBase(base_point1, base_point2, base_3D_);
   
-  IntersectionFunctor
+  Super4PCS::IntersectionFunctor
   <PairCreationFunctor::Primitive,
    PairCreationFunctor::Point, 3, Scalar> interFunctor;
 

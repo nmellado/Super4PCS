@@ -49,6 +49,8 @@
 
 #include <limits>
 
+namespace Super4PCS{
+
 template <typename _Scalar, int _Dim>
 class AABB
 {
@@ -111,6 +113,8 @@ private:
 
 template <typename _Scalar>
 using AABB3D = AABB< _Scalar, 3 >;
+
+} // namespace Super4PCS
 
 #endif // BBOX_H
 
