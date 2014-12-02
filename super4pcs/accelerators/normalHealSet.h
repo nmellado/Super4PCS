@@ -83,9 +83,13 @@ private:
   long _ngLength;  //! ,\brief Length of the normal map from healpix
   std::vector<ChealMap*> _grid;
 
+  //! \brief Return the coordinates corresponding to index coord
+  inline int indexCoordinates( const Index3D& coord) const
+  { return Utils::UnrollIndexLoop<INDEX_VALIDATION_ENABLED>( coord,  2,  _egSize ); }
+
   //! \brief Return the index corresponding to position p
   inline int indexPos   ( const Point& p) const{
-    return Utils::UnrollIndexLoop<INDEX_VALIDATION_ENABLED>( coordinatesPos(p),  2,  _egSize );
+    return indexCoordinates( coordinatesPos(p) );
   }
   
   //! \brief Return the index corresponding to normal n  \warning Bounds are not tested
