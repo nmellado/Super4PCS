@@ -192,6 +192,8 @@ template<typename Scalar,
          template <typename,typename,int,typename> class _Functor>
 void callSubTests()
 {
+    using namespace Super4PCS;
+
     typedef  Eigen::Matrix<Scalar, Dim, 1> EigenPoint;
     typedef  HyperSphere< EigenPoint, Dim, Scalar > Sphere;
     typedef _Functor<Sphere, EigenPoint, Dim, Scalar> Functor;
@@ -219,6 +221,7 @@ int main(int argc, char **argv) {
 
     using std::cout;
     using std::endl;
+    using namespace Super4PCS;
     
     cout << "Extract pairs in 2 dimensions..." << endl;
     callSubTests<float, 2, IntersectionFunctor>();
