@@ -99,11 +99,6 @@ private:
   inline Index3D coordinatesPos   ( const Point& p) const
   { return Index3D((p/_epsilon).unaryExpr(std::ptr_fun<Point::Scalar,Point::Scalar>(std::floor))); }
   
-  //! \brief Return the coordinates corresponding to position p
-  inline int indexCoordinatesPos   ( const Point& pCoord) const{  
-    return Utils::UnrollIndexLoop<INDEX_VALIDATION_ENABLED>( pCoord,  2,  _egSize );
-  }
-  
   
 public:
   inline IndexedNormalHealSet(double epsilon, int resolution = 4)
