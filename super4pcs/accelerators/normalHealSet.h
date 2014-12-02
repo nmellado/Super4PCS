@@ -60,7 +60,8 @@ namespace Super4PCS{
  */
 class IndexedNormalHealSet{
 public:
-  typedef Eigen::Vector3d Point;
+    typedef Eigen::Vector3d Point;
+    typedef Eigen::Vector3i Index3D;
   typedef std::vector<std::vector<unsigned int>> ChealMap;
 
 #ifdef DEBUG
@@ -95,8 +96,8 @@ private:
   }
   
   //! \brief Return the coordinates corresponding to position p
-  inline Point coordinatesPos   ( const Point& p) const
-  { return p/_epsilon;  }
+  inline Index3D coordinatesPos   ( const Point& p) const
+  { return Index3D((p/_epsilon).unaryExpr(std::ptr_fun<Point::Scalar,Point::Scalar>(std::floor))); }
   
   //! \brief Return the coordinates corresponding to position p
   inline int indexCoordinatesPos   ( const Point& pCoord) const{  

@@ -131,15 +131,16 @@ IndexValidator<false>::validate(const IndexT& n,
  *
  * \see internal::IndexValidator for the validation procedure
  */
-template<bool validate, class PointT, class IndexT, class SizeT>
+template<bool validate, class ndIndexT, class IndexT, class SizeT>
 constexpr inline IndexT
-UnrollIndexLoop(const PointT& coord,
+UnrollIndexLoop(const ndIndexT& coord,
                 IndexT        cdim,
                 SizeT         gsize){
   return (cdim != 0)
-    ? ( internal::IndexValidator<validate>::validate(IndexT(std::floor(coord[cdim])), gsize)*POW(gsize, cdim) +
+    ? ( internal::IndexValidator<validate>::validate(IndexT(coord[cdim]), gsize)*POW(gsize, cdim) +
         UnrollIndexLoop<validate>(coord, cdim-1, gsize) )
-    : internal::IndexValidator<validate>::validate(IndexT(std::floor(coord[cdim])), gsize);
+    : internal::IndexValidator<validate>::validate(IndexT(coord[cdim]), gsize);
+}
 }
 
 } //namespace Super4PCS::Utils
