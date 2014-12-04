@@ -115,14 +115,14 @@ IndexedNormalHealSet::getNeighbors(
   const Point& p, 
   const Point& n,
   double cosAlpha,
-  std::vector<unsigned int>&nei,
-  bool tryReverse)
+  std::vector<unsigned int>&nei)
 {
-  ChealMap* grid = getMap(p);
-  if ( grid == NULL ) return;
+  //ChealMap* grid = getMap(p);
+  std::vector<ChealMap*> grids = getEpsilonMaps(p);
+  if ( grids.empty() ) return;
   
   const double alpha          = std::acos(cosAlpha);
-  const double perimeter      = double(2) * M_PI * std::atan(alpha);
+  //const double perimeter      = double(2) * M_PI * std::atan(alpha);
   const unsigned int nbSample = pow(2,_resolution+1);
   const double angleStep      = double(2) * M_PI / double(nbSample);
 
@@ -132,7 +132,12 @@ IndexedNormalHealSet::getNeighbors(
   Eigen::Quaternion<double> q;
   q.setFromTwoVectors(Point(0.,0.,1.), n);
   
-  std::set<unsigned int> colored;
+  // store a pair with
+  // first  = grid id in grids
+  // second = normal id in grids[first]
+  typedef std::pair<unsigned int,unsigned int> PairId;
+  std::set< PairId > colored;
+  const int nbgrid = grids.size();
   
   // Do the rendering independently of the content
   for(unsigned int a = 0; a != nbSample; a++){
@@ -142,21 +147,17 @@ IndexedNormalHealSet::getNeighbors(
                               cosAlpha ) ).normalized();
     int id = indexNormal( dir );      
 
-    if(grid->at(id).size() != 0){
-      colored.insert(id);
+    for (int i = 0; i != nbgrid; ++i){
+        if(grids[i]->at(id).size() != 0){
+          colored.insert(PairId(i,id));
+        }
     }
-    
-    if (tryReverse){
-      id = indexNormal( -dir );
-      if(grid->at(id).size() != 0){
-        colored.insert(id);
-      }    
-    }
+
   }
   
-  for( std::set<unsigned int>::const_iterator it = colored.cbegin();
+  for( std::set<PairId>::const_iterator it = colored.cbegin();
        it != colored.cend(); it++){
-    const std::vector<unsigned int>& lnei = grid->at(*it);
+    const std::vector<unsigned int>& lnei = grids[it->first]->at(it->second);
     nei.insert( nei.end(), lnei.begin(), lnei.end() );
   }
 }

@@ -177,11 +177,10 @@ public:
                      const Point& n,
                      std::vector<unsigned int>&nei);
   //! Get closest poitns in euclidean an normal space with angular deviation
-  void getNeighbors( const Point& p, 
+  void getNeighbors( const Point& p,
                      const Point& n,
                      double alpha,
-                     std::vector<unsigned int>&nei,
-                     bool tryReverse = false);
+                     std::vector<unsigned int>&nei);
 
 }; // class IndexedNormalHealSet
 } // namespace Super4PCS

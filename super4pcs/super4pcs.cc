@@ -732,7 +732,7 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
 //         << query.transpose() << endl
 //         << queryn.transpose() << endl;
 
-    nset.getNeighbors( query,  queryn, alpha, nei, false);
+    nset.getNeighbors( query,  queryn, alpha, nei);
 
 
     Point3D invPoint;
