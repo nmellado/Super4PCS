@@ -141,9 +141,34 @@ UnrollIndexLoop(const ndIndexT& coord,
         UnrollIndexLoop<validate>(coord, cdim-1, gsize) )
     : internal::IndexValidator<validate>::validate(IndexT(coord[cdim]), gsize);
 }
+
+
+/*!
+ * \brief Convert a normalized n-d vector to a linear index in a uniform regular
+ * grid, moved by moved by an offset defined as a integer move in the n-d grid.
+ * This function is recursive, and unrolled at compile time (loop over n). In
+ * addition, it allows to offset the input coordinates.
+ *
+ * \param coord Input coordinates defined in the normalized n-hypercube.
+ * \param cdim  Working dimension, must be called with n.
+ * \param gsize Dimension of the grid, must be consistent in all dimensions
+ *
+ * \see UnrollIndexLoop<class PointT>
+ */
+template<bool validate, class ndIndexT, class IndexT, class SizeT>
+constexpr inline IndexT
+UnrollIndexLoop(const ndIndexT& coord,
+                const ndIndexT& offset,
+                IndexT          cdim,
+                SizeT           gsize){
+  return (cdim != 0)
+    ? ( internal::IndexValidator<validate>::validate(IndexT(offset[cdim]+std::floor(coord[cdim])), gsize)*POW(gsize, cdim) +
+        UnrollIndexLoop<validate>(coord, offset, cdim-1, gsize) )
+    : internal::IndexValidator<validate>::validate(IndexT(offset[cdim]+std::floor(coord[cdim])), gsize);
 }
 
 } //namespace Super4PCS::Utils
 } //namespace Super4PCS
+
 
 #endif
