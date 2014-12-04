@@ -1234,8 +1234,8 @@ bool MatchSuper4PCSImpl::TryOneBase() {
   else if (sampled_Q_3D_.size() >=500) factor = 1.5;
   else factor = 3.5 - (sampled_Q_3D_.size() - 200) * (3.5 - 1.5) / (500.0 - 200.0);
   if (!FindCongruentQuadrilateralsFast(invariant1, invariant2,
-                                   distance_factor * factor * options_.delta,
-                                   distance_factor * factor * options_.delta,
+                                   distance_factor /** factor*/ * options_.delta,
+                                   distance_factor /** factor*/ * options_.delta,
                                    pairs1,
                                    pairs2,
                                    sampled_Q_3D_,
