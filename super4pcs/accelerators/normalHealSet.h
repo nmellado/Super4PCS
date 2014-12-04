@@ -135,6 +135,39 @@ public:
     return _grid[pId]; 
   }
 
+  //! \return a vector of maps containing points that can be close to p (according to input epsilon)
+  inline std::vector<ChealMap*> getEpsilonMaps(const Point& p){
+     const Index3D pId3 = coordinatesPos(p);
+     const int pId = indexCoordinates(pId3);
+     std::vector<ChealMap*> result;
+
+     if (pId == -1) return result;
+
+
+     // Here we extract the 8-neighorhood of the map in pId
+     // We use three umbricated for loops, need to check how loop unrolling
+     // is performed.
+     // The following is really ugly, metaprog would be better
+     // \FIXME
+     const int lastId = _egSize-1;
+     int imin = pId3[0] == 0 ? 0 : -1;
+     int jmin = pId3[1] == 0 ? 0 : -1;
+     int kmin = pId3[2] == 0 ? 0 : -1;
+     int imax = pId3[0] == lastId ? 1 : 2;
+     int jmax = pId3[1] == lastId ? 1 : 2;
+     int kmax = pId3[2] == lastId ? 1 : 2;
+
+     for (int i = imin; i < imax; ++i) // x axis
+         for (int j = jmin; j < jmax; ++j) // y axis
+             for (int k = kmin; k < kmax; ++k) // z axis
+             {
+                 const int id = indexCoordinates(pId3 + Index3D(i,j,k));
+                 ChealMap* g = _grid[id];
+                 if (g != nullptr)
+                     result.push_back(g);
+             }
+  }
+
   
   //! Get closest points in euclidean space
   void getNeighbors( const Point& p, 
