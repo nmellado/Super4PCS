@@ -1506,7 +1506,10 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
 
   printf("norm_max_dist: %f\n", options_.delta);
   current_trial_ = 0;
-  best_LCP_ = 0.0;
+  transform_ = Eigen::Matrix<Scalar, 4, 4>::Identity();
+  best_LCP_ = Verify(transform_);
+  printf("Initial LCP: %f\n", best_LCP_);
+
   Q_copy_ = Q;
   for (int i = 0; i < 4; ++i) {
     base_[i] = 0;
