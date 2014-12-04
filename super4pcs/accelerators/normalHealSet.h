@@ -98,10 +98,14 @@ private:
     vec2pix_ring(_resolution, n.data(), &id);
     return id;
   }
-  
+
   //! \brief Return the coordinates corresponding to position p
   inline Index3D coordinatesPos   ( const Point& p) const
-  { return Index3D((p/_epsilon).unaryExpr(std::ptr_fun<Point::Scalar,Point::Scalar>(std::floor))); }
+  {
+    return (p/_epsilon)
+            .unaryExpr(std::ptr_fun<Point::Scalar,Point::Scalar>(std::floor))
+            .cast<typename Index3D::Scalar>();
+  }
   
   
 public:
