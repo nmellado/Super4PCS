@@ -53,8 +53,14 @@
 #include <iostream>
 
 namespace Super4PCS{
+namespace Accelerators{
+namespace PairExtraction{
 
-//! Intersect a Primitive and a set of point using rasterization
+//! \brief Extract pairs of points by rasterizing primitives and collect points
+/*!
+ * Acceleration technique used in Super4PCS
+ * \see
+ */
 template <class Primitive, class Point, int dim, typename Scalar>
 struct IntersectionFunctor{
 
@@ -215,8 +221,10 @@ IntersectionFunctor<Primitive, Point, dim, Scalar>::process(
       }
     }
   } 
-}    
+}
 
+} // namespace PairExtraction
+} // namespace Accelerators
 } // namespace Super4PCS
     
 #endif

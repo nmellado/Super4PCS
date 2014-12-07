@@ -49,9 +49,11 @@
 #define _INTERSECTION_NODE_H_
 
 #include <list>
-#include "utils.h"
+#include "accelerators/utils.h"
 
 namespace Super4PCS{
+namespace Accelerators{
+namespace PairExtraction{
 
 /*!
   \brief Multidimensional node used for intersection query
@@ -246,6 +248,8 @@ NdNode< Point, _dim, Scalar, _PointContainer, _IdContainer>::split(
   }
 }
 
+} // namespace Accelerators
+} // namespace PairExtraction
 } // namespace Super4PCS
 
 #endif

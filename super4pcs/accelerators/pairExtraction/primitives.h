@@ -52,25 +52,29 @@
 #define SQR(a)		((a)*(a))
 #endif
 
-namespace Super4PCS{
+#include "Eigen/Core"
 
-//! \brief UnaryExpr to apply floor with arbitrary quantification step e
-template <typename Scalar>
-struct CustomFloorExpr{
-  inline CustomFloorExpr(Scalar e) : m_e(e) {}
-  inline const Scalar operator()(const Scalar &x) const
-  {
-    return std::round(x/m_e) * m_e;
-  }
-  
-  Scalar m_e;
-};
+namespace Super4PCS{
+namespace Accelerators{
+namespace PairExtraction{
 
 template <class Point, int _dim, typename Scalar>
 class HyperSphere{
 private:
   const Point _center;
   Scalar _radius;
+
+
+  //! \brief UnaryExpr to apply floor with arbitrary quantification step e
+  struct CustomFloorExpr{
+    inline CustomFloorExpr(Scalar e) : m_e(e) {}
+    inline const Scalar operator()(const Scalar &x) const
+    {
+      return std::round(x/m_e) * m_e;
+    }
+
+    Scalar m_e;
+  };
   
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -82,13 +86,15 @@ public:
   inline HyperSphere(const HyperSphere<Point, _dim, Scalar>& other)
     : _center(other._center), _radius(other._radius) { }
     
+  //! \brief Construct a copy of the instance with a quantified radius and pos
   inline HyperSphere<Point, _dim, Scalar> quantified ( Scalar eps ) const 
   {
-    CustomFloorExpr<Scalar> expr (eps);
+    CustomFloorExpr expr (eps);
     return HyperSphere<Point, _dim, Scalar>(_center.unaryExpr(expr), 
                                             expr(_radius));
   }
   
+  //! \brief Comparison operator comparing first the radius then the position
   inline bool operator<(const HyperSphere<Point, _dim, Scalar>& other) const{
     if (_radius != other._radius)
       return _radius < other._radius;
@@ -101,13 +107,15 @@ public:
   }
   
   
-  // \implements Arvo, James, 
-  // A Simple Method for Box-Sphere Intersection Testing, 
-  // Graphics Gems, p. 335-339, code: p. 730-732, BoxSphere.c.
-  inline bool intersect( const Point& nodeCenter, Scalar threshold) const
+  /*!
+   * \implements Arvo, James,
+   *             A Simple Method for Box-Sphere Intersection Testing,
+   *             Graphics Gems, p. 335-339, code: p. 730-732, BoxSphere.c.
+   */
+  inline bool intersect( const Point& nodeCenter, Scalar halfEdgeLength) const
   {  
-    const Point min = nodeCenter.array() - threshold;
-    const Point max = nodeCenter.array() + threshold;
+    const Point min = nodeCenter.array() - halfEdgeLength;
+    const Point max = nodeCenter.array() + halfEdgeLength;
     const Point sqmin = (_center.array() - min.array()).square();
     const Point sqmax = (_center.array() - max.array()).square();    
 
@@ -127,52 +135,18 @@ public:
              _radius*_radius < sqmin.cwiseMax(sqmax).sum() );
   }
   
-  
-  inline bool intersectFast( const Point& nodeCenter, Scalar threshold) const
+  /*!
+   * \brief intersectFast Fast but inacurate intersection test
+   * \param nodeCenter
+   * \param halfEdgeLength
+   * \return
+   *
+   * Check if the node center is inside the Hypersphere (radius grown by
+   * halfEdgeLength.
+   */
+  inline bool intersectFast( const Point& nodeCenter, Scalar halfEdgeLength) const
   {  
-    return SQR((nodeCenter-_center).norm()-threshold) <= _radius;
-    const Point min = nodeCenter.array() - threshold;
-    const Point max = nodeCenter.array() + threshold;
-    const Point sqmin = (_center.array() - min.array()).square();
-    const Point sqmax = (_center.array() - max.array()).square();    
-
-    // The computation of dmin below is equivalent to:
-    //for( int i = 0; i < Dim; i++ ) {      
-      //if( _center[i] < min[i] ) dmin += sqmin[i]; else
-      //if( _center[i] > max[i] ) dmin += sqmax[i];
-    //}
-    
-    Scalar dmin = (_center.array() < min.array())
-           .select(
-              sqmin, 
-              (_center.array() > max.array()).select(sqmax,Point::Zero())
-           ).sum();
-    
-    return ( dmin < _radius*_radius && 
-             _radius*_radius < sqmin.cwiseMax(sqmax).sum() );
-  }
-  
-  static inline bool intersect(const Point& nodeCenter, Scalar threshold,
-                               const Point& center, const Scalar &radius){
-                               const Point min = nodeCenter.array() - threshold;
-    const Point max = nodeCenter.array() + threshold;
-    const Point sqmin = (center.array() - min.array()).square();
-    const Point sqmax = (center.array() - max.array()).square();    
-
-    // The computation of dmin below is equivalent to:
-    //for( int i = 0; i < Dim; i++ ) {      
-      //if( center[i] < min[i] ) dmin += sqmin[i]; else
-      //if( center[i] > max[i] ) dmin += sqmax[i];
-    //}
-    
-    Scalar dmin = (center.array() < min.array())
-           .select(
-              sqmin, 
-              (center.array() > max.array()).select(sqmax,Point::Zero())
-           ).sum();
-    
-    return ( dmin < radius*radius && 
-             radius*radius < sqmin.cwiseMax(sqmax).sum() );
+    return SQR((nodeCenter-_center).norm()-halfEdgeLength) <= _radius;
   }
     
   inline bool intersectPoint( const Point& pos, Scalar epsilon ) const
@@ -191,6 +165,8 @@ public:
   inline Scalar& radius() { return _radius; }
 };
 
+} // namespace Accelerators
+} // namespace PairExtraction
 } // namespace Super4PCS
 
 #endif

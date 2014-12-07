@@ -53,8 +53,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/eigen.hpp>
 
-#include "accelerators/intersection.h"
-#include "accelerators/primitives.h"
+#include "accelerators/pairExtraction/intersection.h"
+#include "accelerators/pairExtraction/primitives.h"
 #include "accelerators/normalset.h"
 #include "accelerators/normalHealSet.h"
 #include "accelerators/kdtree.h"
@@ -290,7 +290,8 @@ public:
 
   // Internal data
   typedef Eigen::Matrix<Scalar, 3, 1> Point;
-  typedef Super4PCS::HyperSphere< PairCreationFunctor::Point, 3, Scalar> Primitive;
+  typedef Super4PCS::Accelerators::PairExtraction::HyperSphere
+  < PairCreationFunctor::Point, 3, Scalar> Primitive;
 
   std::vector< /*Eigen::Map<*/PairCreationFunctor::Point/*>*/ > points;
   std::vector< Primitive > primitives;
@@ -1142,6 +1143,8 @@ MatchSuper4PCSImpl::BruteForcePairs(double pair_distance,
                                     int base_point1, int base_point2,
                                     PairsVector* pairs) {
 
+  using namespace Super4PCS::Accelerators::PairExtraction;
+
   pcfunctor_.pairs = pairs;
 
   pairs->clear();
@@ -1156,7 +1159,7 @@ MatchSuper4PCSImpl::BruteForcePairs(double pair_distance,
   pcfunctor_.setRadius(pair_distance);
   pcfunctor_.setBase(base_point1, base_point2, base_3D_);
   
-  Super4PCS::IntersectionFunctor
+  IntersectionFunctor
   <PairCreationFunctor::Primitive,
    PairCreationFunctor::Point, 3, Scalar> interFunctor;
 

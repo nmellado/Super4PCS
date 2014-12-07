@@ -10,12 +10,12 @@ set(accel_SRC
     ${accel_ROOT}/normalHealSet.cpp)
 set(accel_INCLUDE 
     ${accel_ROOT}/kdtree.h
-    ${accel_ROOT}/intersection.h
-    ${accel_ROOT}/node.h
+    ${accel_ROOT}/pairExtraction/intersection.h
+    ${accel_ROOT}/pairExtraction/node.h
+    ${accel_ROOT}/pairExtraction/primitives.h
     ${accel_ROOT}/normalHealSet.h
     ${accel_ROOT}/normalset.h
     ${accel_ROOT}/normalset.hpp
-    ${accel_ROOT}/primitives.h
     ${accel_ROOT}/bbox.h
     ${accel_ROOT}/utils.h)
 
