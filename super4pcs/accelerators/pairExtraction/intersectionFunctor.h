@@ -48,7 +48,7 @@
 #ifndef _INTERSECTION_H_
 #define _INTERSECTION_H_
 
-#include "node.h"
+#include "intersectionNode.h"
 #include <list>
 #include <iostream>
 
@@ -59,7 +59,8 @@ namespace PairExtraction{
 //! \brief Extract pairs of points by rasterizing primitives and collect points
 /*!
  * Acceleration technique used in Super4PCS
- * \see
+ * \todo Use Traits to allow custom parameters but similar API between variants
+ * \see BruteForceFunctor
  */
 template <class Primitive, class Point, int dim, typename Scalar>
 struct IntersectionFunctor{

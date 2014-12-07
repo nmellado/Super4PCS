@@ -105,7 +105,9 @@ public:
     }
     return false;
   }
-  
+
+  //! Implicit conversion operator to Eigen vectors
+  inline operator Point() const { return _center; }
   
   /*!
    * \implements Arvo, James,

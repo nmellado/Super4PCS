@@ -53,8 +53,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/eigen.hpp>
 
-#include "accelerators/pairExtraction/intersection.h"
-#include "accelerators/pairExtraction/primitives.h"
+#include "accelerators/pairExtraction/intersectionFunctor.h"
+#include "accelerators/pairExtraction/intersectionPrimitive.h"
 #include "accelerators/normalset.h"
 #include "accelerators/normalHealSet.h"
 #include "accelerators/kdtree.h"
