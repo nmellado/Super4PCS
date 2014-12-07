@@ -10,6 +10,7 @@ set(accel_SRC
     ${accel_ROOT}/normalHealSet.cpp)
 set(accel_INCLUDE 
     ${accel_ROOT}/kdtree.h
+    ${accel_ROOT}/pairExtraction/bruteForceFunctor.h
     ${accel_ROOT}/pairExtraction/intersectionFunctor.h
     ${accel_ROOT}/pairExtraction/intersectionNode.h
     ${accel_ROOT}/pairExtraction/intersectionPrimitive.h
