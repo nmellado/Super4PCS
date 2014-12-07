@@ -553,7 +553,7 @@ class MatchSuper4PCSImpl {
   // @param [out] pairs A set of pairs in Q that match the pair in P with
   // respect to distance and normals, up to the given tolerance.
   void
-  BruteForcePairs(double pair_distance, double pair_normals_angle,
+  ExtractPairs(double pair_distance, double pair_normals_angle,
                        double pair_distance_epsilon, int base_point1,
                        int base_point2,
                        PairsVector* pairs);
@@ -1138,7 +1138,7 @@ Scalar MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
 // in P, by having the same distance (up to some tolerantz) and optionally the
 // same angle between normals and same color.
 void
-MatchSuper4PCSImpl::BruteForcePairs(double pair_distance,
+MatchSuper4PCSImpl::ExtractPairs(double pair_distance,
                                     double pair_normals_angle,
                                     double pair_distance_epsilon,
                                     int base_point1, int base_point2,
@@ -1224,9 +1224,9 @@ bool MatchSuper4PCSImpl::TryOneBase() {
   double normal_angle1 = cv::norm(base_3D_[0].normal() - base_3D_[1].normal());
   double normal_angle2 = cv::norm(base_3D_[2].normal() - base_3D_[3].normal());
 
-  BruteForcePairs(distance1, normal_angle1, distance_factor * options_.delta, 0,
+  ExtractPairs(distance1, normal_angle1, distance_factor * options_.delta, 0,
                   1, &pairs1);
-  BruteForcePairs(distance2, normal_angle2, distance_factor * options_.delta, 2,
+  ExtractPairs(distance2, normal_angle2, distance_factor * options_.delta, 2,
                   3, &pairs2);
 
   if (pairs1.size() == 0 || pairs2.size() == 0) {
