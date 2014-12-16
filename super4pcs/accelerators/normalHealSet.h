@@ -166,6 +166,7 @@ public:
                  if (g != nullptr)
                      result.push_back(g);
              }
+     return result;
   }
 
   
