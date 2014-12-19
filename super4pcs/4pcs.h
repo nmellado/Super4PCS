@@ -95,8 +95,18 @@ class Point3D : public cv::Point3f {
       rgb_ = rgb;
       internal::RGB2HSV(rgb_[0]/255.f,rgb_[1]/255.f,rgb_[2]/255.f, hsv_[0],hsv_[1],hsv_[2]);
   }
-  inline void set_normal(const cv::Point3d& normal) { normal_ = normal; }
-  inline void set_normal(const cv::Point3f& normal) { normal_ = normal; }
+  inline void set_normal(const cv::Point3d& normal) {
+      double norm = cv::norm(normal);
+      normal_.x = normal.x / norm;
+      normal_.y = normal.y / norm;
+      normal_.z = normal.z / norm;
+  }
+  inline void set_normal(const cv::Point3f& normal) {
+      float norm = cv::norm(normal);
+      normal_.x = normal.x / norm;
+      normal_.y = normal.y / norm;
+      normal_.z = normal.z / norm;
+  }
   inline void normalize() { 
     double n = cv::norm(*this);
     x /= n;
