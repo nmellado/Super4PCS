@@ -643,7 +643,7 @@ class MatchSuper4PCSImpl {
   // people.csail.mit.edu/bkph/papers/Absolute_Orientation.pdf‎
   bool ComputeRigidTransformation(const vector< pair<Point3D, Point3D> >& pairs,
                                   const Eigen::Matrix<Scalar, 3, 1>& centroid1,
-                                  const Eigen::Matrix<Scalar, 3, 1>& centroid2,
+                                  Eigen::Matrix<Scalar, 3, 1> centroid2,
                                   Scalar max_angle,
                                   Eigen::Matrix<Scalar, 4, 4> &transform,
                                   Scalar& rms_,
@@ -1523,7 +1523,7 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
 
 bool MatchSuper4PCSImpl::ComputeRigidTransformation(const vector< pair<Point3D, Point3D> >& pairs,
                                                     const Eigen::Matrix<Scalar, 3, 1>& centroid1,
-                                                    const Eigen::Matrix<Scalar, 3, 1>& centroid2,
+                                                    Eigen::Matrix<Scalar, 3, 1> centroid2,
                                                     Scalar max_angle,
                                                     Eigen::Matrix<Scalar, 4, 4> &transform,
                                                     Scalar& rms_,
@@ -1544,9 +1544,39 @@ bool MatchSuper4PCSImpl::ComputeRigidTransformation(const vector< pair<Point3D, 
   const cv::Point3f& p0 = pairs[0].first;
   const cv::Point3f& p1 = pairs[1].first;
   const cv::Point3f& p2 = pairs[2].first;
-  const cv::Point3f& q0 = pairs[0].second;
-  const cv::Point3f& q1 = pairs[1].second;
-  const cv::Point3f& q2 = pairs[2].second;
+        cv::Point3f  q0 = pairs[0].second;
+        cv::Point3f  q1 = pairs[1].second;
+        cv::Point3f  q2 = pairs[2].second;
+
+  Scalar scaleEst (1.);
+
+  // Compute scale factor if needed
+  if (computeScale){
+      const cv::Point3f& p3 = pairs[3].first;
+      const cv::Point3f& q3 = pairs[3].second;
+
+      Scalar ratio1 = cv::norm(p1 - p0) / cv::norm(q1 - q0);
+      Scalar ratio2 = cv::norm(p3 - p2) / cv::norm(q3 - q2);
+
+      Scalar ratioDev  = std::abs(ratio1/ratio2 - Scalar(1.));  // deviation between the two
+      Scalar ratioMean = (ratio1+ratio2)/Scalar(2.);            // mean of the two
+
+      if ( ratioDev > Scalar(0.1) )
+          return kLargeNumber;
+
+//      std::cout << ratio1 << " "
+//                << ratio2 << " "
+//                << ratioDev << " "
+//                << ratioMean << std::endl;
+
+      scaleEst = ratioMean;
+
+      // apply scale factor to q
+      q0 = q0*scaleEst;
+      q1 = q1*scaleEst;
+      q2 = q2*scaleEst;
+      centroid2 *= scaleEst;
+  }
 
   cv::Point3f vector_p1 = p1 - p0;
   if (cv::norm(vector_p1) == 0) return kLargeNumber;
@@ -1613,9 +1643,9 @@ bool MatchSuper4PCSImpl::ComputeRigidTransformation(const vector< pair<Point3D, 
   {
       cv::Mat first(3, 1, CV_64F), transformed;
       for (int i = 0; i < 3; ++i) {
-          first.at<double>(0, 0) = pairs[i].second.x - centroid2(0);
-          first.at<double>(1, 0) = pairs[i].second.y - centroid2(1);
-          first.at<double>(2, 0) = pairs[i].second.z - centroid2(2);
+          first.at<double>(0, 0) = scaleEst*pairs[i].second.x - centroid2(0);
+          first.at<double>(1, 0) = scaleEst*pairs[i].second.y - centroid2(1);
+          first.at<double>(2, 0) = scaleEst*pairs[i].second.z - centroid2(2);
           transformed = rotation * first;
           rms_ += sqrt(Square(transformed.at<double>(0, 0) -
                               (pairs[i].first.x - centroid1(0))) +
@@ -1630,16 +1660,14 @@ bool MatchSuper4PCSImpl::ComputeRigidTransformation(const vector< pair<Point3D, 
 
   Eigen::Transform<Scalar, 3, Eigen::Affine> etrans (Eigen::Transform<Scalar, 3, Eigen::Affine>::Identity());
 
-  // Compute scale factor if needed
-  if (computeScale){
-      std::cerr << __FILE__ << ":" << __LINE__ << " Scale computation not supported yet" << std::endl;
-  }
-
   // compute rotation and translation
   {
       Eigen::Matrix<Scalar, 3, 3> rot;
       cv::cv2eigen(rotation, rot);
 
+      //std::cout << scaleEst << endl;
+
+      etrans.scale(scaleEst);       // apply scale factor
       etrans.translate(centroid1);  // translation between quads
       etrans.rotate(rot);           // rotate to align frames
       etrans.translate(-centroid2); // move to congruent quad frame
@@ -1699,7 +1727,7 @@ bool MatchSuper4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
 
         Eigen::Matrix<Scalar, 3, 3> rot, scale;
         Eigen::Transform<Scalar, 3, Eigen::Affine> (transform_).computeRotationScaling(&rot, &scale);
-        transform_.col(3) = (qcentroid1_ + centroid_P - ( rot * (qcentroid2_ + centroid_Q))).homogeneous();
+        transform_.col(3) = (qcentroid1_ + centroid_P - ( rot * scale * (qcentroid2_ + centroid_Q))).homogeneous();
     }
 
     cv::eigen2cv( transform_, *transformation );
