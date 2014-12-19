@@ -62,8 +62,11 @@ namespace PairExtraction{
  * \see
  * \todo Use Traits to allow custom parameters but similar API between variants
  */
-template <class Point, int dim, typename Scalar>
+template <class _Point, int _dim, typename _Scalar>
 struct BruteForceFunctor{
+  typedef _Point Point;
+  typedef _Scalar Scalar;
+  enum { dim = _dim };
 
   template <class PointContainer1,
             class PointContainer2,

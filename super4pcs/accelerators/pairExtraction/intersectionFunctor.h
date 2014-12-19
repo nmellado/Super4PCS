@@ -62,8 +62,12 @@ namespace PairExtraction{
  * \todo Use Traits to allow custom parameters but similar API between variants
  * \see BruteForceFunctor
  */
-template <class Primitive, class Point, int dim, typename Scalar>
+template <class _Primitive, class _Point, int _dim, typename _Scalar>
 struct IntersectionFunctor{
+  typedef _Point Point;
+  typedef _Primitive Primitive;
+  typedef _Scalar Scalar;
+  enum { dim = _dim };
 
   template <class PrimitiveContainer, 
             class PointContainer,
