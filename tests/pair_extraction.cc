@@ -206,9 +206,9 @@ void callSubTests()
     
     for(int i = 0; i < g_repeat; ++i)
     {
-        CALL_SUBTEST(( testFunction<Scalar, 
-                                    EigenPoint, 
-                                    Sphere, 
+        CALL_SUBTEST(( testFunction<Scalar,
+                                    EigenPoint,
+                                    Sphere,
                                     Functor>(r, eps, nbPoint, nbPrim) ));
     }
 }
@@ -228,13 +228,13 @@ int main(int argc, char **argv) {
     callSubTests<double, 2, IntersectionFunctor>();
     callSubTests<long double, 2, IntersectionFunctor>();
     cout << "Ok..." << endl;
-    
+
     cout << "Extract pairs in 3 dimensions..." << endl;
     callSubTests<float, 3, IntersectionFunctor>();
     callSubTests<double, 3, IntersectionFunctor>();
     callSubTests<long double, 3, IntersectionFunctor>();
     cout << "Ok..." << endl;
-    
+
     cout << "Extract pairs in 4 dimensions..." << endl;
     callSubTests<float, 4, IntersectionFunctor>();
     callSubTests<double, 4, IntersectionFunctor>();
