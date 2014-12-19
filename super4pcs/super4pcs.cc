@@ -72,7 +72,7 @@
 #endif
 
 //#define TEST_GLOBAL_TIMINGS
-#define MULTISCALE
+//#define MULTISCALE
 
 typedef std::vector<std::pair<int, int>> PairsVector;
 typedef double Scalar;
