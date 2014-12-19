@@ -72,6 +72,7 @@
 #endif
 
 //#define TEST_GLOBAL_TIMINGS
+#define MULTISCALE
 
 typedef std::vector<std::pair<int, int>> PairsVector;
 typedef double Scalar;
@@ -394,8 +395,10 @@ public:
       const Point3D& p = Q_[j];
       const Point3D& q = Q_[i];
 
+#ifndef MULTISCALE
       const float distance = cv::norm(q - p);
       if (fabs(distance - pair_distance) > pair_distance_epsilon) return;
+#endif
       const bool use_normals = norm(q.normal()) > 0 && norm(p.normal()) > 0;
       bool normals_good = true;
       if (use_normals) {
@@ -1159,10 +1162,16 @@ MatchSuper4PCSImpl::ExtractPairs(double pair_distance,
 
   pcfunctor_.setRadius(pair_distance);
   pcfunctor_.setBase(base_point1, base_point2, base_3D_);
-  
+
+
+#ifdef MULTISCALE
+  BruteForceFunctor
+  <PairCreationFunctor::Point, 3, Scalar> interFunctor;
+#else
   IntersectionFunctor
-  <PairCreationFunctor::Primitive,
-   PairCreationFunctor::Point, 3, Scalar> interFunctor;
+          <PairCreationFunctor::Primitive,
+          PairCreationFunctor::Point, 3, Scalar> interFunctor;
+#endif
 
   Scalar eps = pcfunctor_.getNormalizedEpsilon(pair_distance_epsilon);
 
@@ -1299,6 +1308,7 @@ bool MatchSuper4PCSImpl::TryOneBase() {
                  (congruent_points[0].second.z + congruent_points[1].second.z + congruent_points[2].second.z) / Scalar(3.);
 
     Scalar rms = -1;
+
     bool ok =
     ComputeRigidTransformation(congruent_points,   // input congruent quads
                                centroid1,          // input: basis centroid
@@ -1306,9 +1316,14 @@ bool MatchSuper4PCSImpl::TryOneBase() {
                                options_.max_angle * M_PI / 180.0, // maximum per-dimension angle, check return value to detect invalid cases
                                transform,          // output: transformation
                                rms,                // output: rms error of the transformation between the basis and the congruent quad
-                               false);             // state: compute scale ratio ?
+                           #ifdef MULTISCALE
+                               true
+                           #else
+                               false
+                           #endif
+                               );             // state: compute scale ratio ?
 
-    if (ok) {
+    if (ok && rms >= Scalar(0.)) {
 
       // We give more tolerantz in computing the best rigid transformation.
       if (rms < distance_factor * options_.delta) {
