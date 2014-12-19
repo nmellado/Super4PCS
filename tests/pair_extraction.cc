@@ -57,8 +57,8 @@
 #include <string>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/eigen.hpp>
-#include "intersection.h"
-#include "primitives.h"
+#include "accelerators/pairExtraction/intersectionFunctor.h"
+#include "accelerators/pairExtraction/intersectionPrimitive.h"
 #include "bbox.h"
 
 #include <sys/time.h>
@@ -192,7 +192,7 @@ template<typename Scalar,
          template <typename,typename,int,typename> class _Functor>
 void callSubTests()
 {
-    using namespace Super4PCS;
+    using namespace Super4PCS::Accelerators::PairExtraction;
 
     typedef  Eigen::Matrix<Scalar, Dim, 1> EigenPoint;
     typedef  HyperSphere< EigenPoint, Dim, Scalar > Sphere;
@@ -221,8 +221,8 @@ int main(int argc, char **argv) {
 
     using std::cout;
     using std::endl;
-    using namespace Super4PCS;
-    
+    using namespace Super4PCS::Accelerators::PairExtraction;
+
     cout << "Extract pairs in 2 dimensions..." << endl;
     callSubTests<float, 2, IntersectionFunctor>();
     callSubTests<double, 2, IntersectionFunctor>();
