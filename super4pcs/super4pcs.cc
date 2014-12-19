@@ -1719,7 +1719,7 @@ bool MatchSuper4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
            static_cast<int>(fraction * 100), '%', best_LCP_);
     fflush(stdout);
     // ok means that we already have the desired LCP.
-    if (ok || i > number_of_trials_ || fraction > 0.99) break;
+    if (ok || i > number_of_trials_ || fraction >= 0.99 || best_LCP_ == 1.0) break;
   }
 
   current_trial_ += n;
