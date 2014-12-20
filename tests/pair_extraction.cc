@@ -240,4 +240,6 @@ int main(int argc, char **argv) {
     callSubTests<double, 4, IntersectionFunctor>();
     callSubTests<long double, 4, IntersectionFunctor>();
     cout << "Ok..." << endl;
+
+    return EXIT_SUCCESS;
 }

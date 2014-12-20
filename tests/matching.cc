@@ -389,5 +389,5 @@ int main(int argc, char **argv) {
         CALL_SUBTEST(( test_model(transforms, files, mergedset, j, i) ));
     }
 
-    //return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
