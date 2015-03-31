@@ -213,7 +213,7 @@ void callSubTests()
     }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, const char **argv) {
     if(!init_testing(argc, argv))
     {
         return EXIT_FAILURE;

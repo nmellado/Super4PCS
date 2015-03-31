@@ -109,7 +109,7 @@ inline void set_seed_from_string(const char *str)
   g_has_set_seed = true;
 }
 
-static bool init_testing(int argc, char *argv[])
+static bool init_testing(int argc, const char *argv[])
 {
   g_has_set_repeat = false;
   g_has_set_seed   = false;

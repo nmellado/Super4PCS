@@ -347,10 +347,10 @@ void test_model(const vector<Transform> &transforms,
 #endif
 }
 
-int main(int argc, char **argv) {
+int main(int argc, const char **argv) {
     using std::string;
 
-    char* custom_argv [1] = {"matching"};
+    const char* custom_argv [1] = {"matching"};
 
     if(!init_testing(1, custom_argv))
     {
