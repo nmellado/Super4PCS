@@ -71,45 +71,20 @@
 #define MAX(a,b) a<b?a:b
 #endif
 
-//#define TEST_GLOBAL_TIMINGS
 //#define MULTISCALE
 
 typedef std::vector<std::pair<int, int>> PairsVector;
 typedef double Scalar;
 
 #ifdef TEST_GLOBAL_TIMINGS
-#include <chrono> //timers
 
-
-class Timer {
-public:
-    typedef std::chrono::high_resolution_clock clock;
-    typedef std::chrono::nanoseconds timestep;
-
-    explicit inline Timer(bool run = false)
-    {
-        if (run) reset();
-    }
-    void reset()
-    {
-        _start = clock::now();
-    }
-    inline timestep elapsed() const
-    {
-        return std::chrono::duration_cast<timestep>(clock::now() - _start);
-    }
-    template <typename T, typename Traits>
-    friend std::basic_ostream<T, Traits>& operator<<(std::basic_ostream<T, Traits>& out, const Timer& timer)
-    {
-        return out << timer.elapsed().count();
-    }
-private:
-    clock::time_point _start;
-};
+#   include "utils/timer.h"
 
 Scalar totalTime;
 Scalar kdTreeTime;
 Scalar verifyTime;
+
+using Super4PCS::Utils::Timer;
 
 #endif
 
@@ -119,6 +94,10 @@ using namespace std;
 
 namespace {
 
+/*!
+ * \brief Class used to subsample a point cloud using hashing functions
+ * \todo Extract to Utilities namespace
+ */
 class HashTable {
  private:
   const uint64 MAGIC1 = 100000007;
