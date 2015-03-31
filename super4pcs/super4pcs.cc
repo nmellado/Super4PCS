@@ -603,29 +603,6 @@ class MatchSuper4PCSImpl {
   // @param [in] Q_pointsSecond Point coordinates for the pairs second id
   // @param [out] quadrilaterals The set of congruent quadrilateral. In fact,
   // it's a super set from which we extract the real congruent set.
-  bool FindCongruentQuadrilaterals(double invariant1, double invariant2,
-                                   double distance_threshold1,
-                                   double distance_threshold2,
-                                   const PairsVector& P_pairs,
-                                   const PairsVector& Q_pairs,
-                                   const std::vector<Point3D>& Q_points,
-                                   std::vector<Quadrilateral>* quadrilaterals);
-
-  // Finds congruent candidates in the set Q, given the invariants and threshold
-  // distances. Returns true if a non empty set can be found, false otherwise.
-  // @param invariant1 [in] The first invariant corresponding to the set P_pairs
-  // of pairs, previously extracted from Q.
-  // @param invariant2 [in] The second invariant corresponding to the set
-  // Q_pairs of pairs, previously extracted from Q.
-  // @param [in] distance_threshold1 The distance for verification.
-  // @param [in] distance_threshold2 The distance for matching middle points due
-  // to the invariants (See the paper for e1, e2).
-  // @param [in] P_pairs The first set of pairs.
-  // @param [in] Q_pairs The second set of pairs.
-  // @param [in] Q_pointsFirst Point coordinates for the pairs first id
-  // @param [in] Q_pointsSecond Point coordinates for the pairs second id
-  // @param [out] quadrilaterals The set of congruent quadrilateral. In fact,
-  // it's a super set from which we extract the real congruent set.
   bool FindCongruentQuadrilateralsFast(double invariant1, double invariant2,
                                        double distance_threshold1,
                                        double distance_threshold2,
@@ -769,108 +746,6 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
   }
 
   return quadrilaterals->size() != 0;
-}
-
-// Finds congruent candidates in the set Q, given the invariants and threshold
-// distances.
-bool MatchSuper4PCSImpl::FindCongruentQuadrilaterals(
-    double /*invariant1*/,
-    double /*invariant2*/,
-    double /*distance_threshold1*/,
-    double /*distance_threshold2*/,
-    const std::vector<std::pair<int, int>>& /*P_pairs*/,
-    const std::vector<std::pair<int, int>>& /*Q_pairs*/,
-    const std::vector<Point3D>& /*Q_points*/,
-    std::vector<Quadrilateral>* /*quadrilaterals*/) {
-
-    cerr << "What the hell are you doing here ?? " << __FILE__ << ":" << __LINE__ << endl;
-    exit(-1);
-
-//  if (quadrilaterals == NULL) return false;
-
-//  int number_of_points = 2 * P_pairs.size();
-
-//  // We need a temporary ANN tree to store the new points corresponding to
-//  // invariants in the P_pairs and then query them (for range search) for all
-//  // the new points corresponding to the invariants in Q_pairs.
-//  ANNpointArray data_points = annAllocPts(number_of_points, 3);
-//  ANNpoint query_point = annAllocPt(3);
-//  ANNidxArray near_neighbor_index = new ANNidx[number_of_points];
-//  ANNdistArray distances = new ANNdist[number_of_points];
-
-//  quadrilaterals->clear();
-
-//  // Build the ANN tree using the invariants on P_pairs.
-//  for (int i = 0; i < P_pairs.size(); ++i) {
-//    const Point3D& p1 = Q_points[P_pairs[i].first];
-//    const Point3D& p2 = Q_points[P_pairs[i].second];
-
-//    // Init KdTree buffer
-//    data_points[i * 2][0] = p1.x + invariant1 * (p2.x - p1.x);
-//    data_points[i * 2][1] = p1.y + invariant1 * (p2.y - p1.y);
-//    data_points[i * 2][2] = p1.z + invariant1 * (p2.z - p1.z);
-//    data_points[i * 2 + 1][0] = p1.x + invariant2 * (p2.x - p1.x);
-//    data_points[i * 2 + 1][1] = p1.y + invariant2 * (p2.y - p1.y);
-//    data_points[i * 2 + 1][2] = p1.z + invariant2 * (p2.z - p1.z);
-//  }
-
-//  ANNkd_tree* tree = new ANNkd_tree(data_points, number_of_points, 3);
-
-//  // Compute the angle formed by the two vectors of the basis
-//  Point3D b1 = base_3D_[0] - base_3D_[1];  b1.normalize();
-//  Point3D b2 = base_3D_[2] - base_3D_[3];  b2.normalize();
-//  double alpha = b1.dot(b2);
-
-//  // Query the ANN for all the points corresponding to the invariants in Q_pair.
-//  for (int i = 0; i < Q_pairs.size(); ++i) {
-//    const Point3D& p1 = Q_points[Q_pairs[i].first];
-//    const Point3D& p2 = Q_points[Q_pairs[i].second];
-
-//    query_point[0] = p1.x + invariant1 * (p2.x - p1.x);
-//    query_point[1] = p1.y + invariant1 * (p2.y - p1.y);
-//    query_point[2] = p1.z + invariant1 * (p2.z - p1.z);
-//    tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
-//                       near_neighbor_index, distances, 0);
-
-//    // This is a new candidate of a quadrilateral.
-//    for (int j = 0; j < number_of_points; ++j) {
-//      if (distances[j] != ANN_DIST_INF) {
-//        int id = near_neighbor_index[j] / 2;
-
-//          quadrilaterals->push_back(
-//              Quadrilateral(P_pairs[id].first, P_pairs[id].second,
-//                            Q_pairs[i].first, Q_pairs[i].second));
-//      } else
-//        break;
-//    }
-
-
-
-//    // We test the other order as our pairs are not ordered.
-//    query_point[0] = p1.x + invariant2 * (p2.x - p1.x);
-//    query_point[1] = p1.y + invariant2 * (p2.y - p1.y);
-//    query_point[2] = p1.z + invariant2 * (p2.z - p1.z);
-//    tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
-//                       near_neighbor_index, distances, 0);
-
-//    for (int j = 0; j < number_of_points; ++j) {
-//      if (distances[j] != ANN_DIST_INF) {
-//        int id = near_neighbor_index[j] / 2;
-//          quadrilaterals->push_back(
-//              Quadrilateral(P_pairs[id].first, P_pairs[id].second,
-//                            Q_pairs[i].first, Q_pairs[i].second));
-//      } else
-//        break;
-//    }
-//  }
-
-//  annDeallocPt(query_point);
-//  annDeallocPts(data_points);
-//  delete[] near_neighbor_index;
-//  delete[] distances;
-//  delete tree;
-
-//  return quadrilaterals->size() != 0;
 }
 
 // Try the current base in P and obtain the best pairing, i.e. the one that
