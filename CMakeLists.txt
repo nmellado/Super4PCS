@@ -17,6 +17,9 @@ set (Super4PCS_VERSION_MINOR 1)
 #  "${PROJECT_SOURCE_DIR}/super4pcs_test.cc"
 #  )
 
+# Set option to enable timing recording
+set (ENABLE_TIMING 0)
+
  
 # add the binary tree to the search path for include files
 include_directories("${PROJECT_BINARY_DIR}")
@@ -47,6 +50,17 @@ endif()
 if( NOT cmake_build_type_tolower STREQUAL "release" )
   add_definitions(-DDEBUG)
 endif()
+
+
+################################################################################
+## Apply user-defined configuration
+################################################################################
+if (${ENABLE_TIMING})
+    ADD_DEFINITIONS( -DTEST_GLOBAL_TIMINGS )
+    message ("OPT: Enable timing recording")
+endif (${ENABLE_TIMING})
+
+
 
 ################################################################################
 ## Dependencies
