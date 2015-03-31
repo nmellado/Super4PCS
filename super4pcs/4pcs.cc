@@ -557,11 +557,6 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
     std::vector<Quadrilateral>* quadrilaterals) {
   if (quadrilaterals == NULL) return false;
 
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::Timer globalTimingsTimer;
-  Utilities::startTimer(globalTimingsTimer);
-#endif
-
   int number_of_points = 2 * P_pairs.size();
 
   // We need a temporary ANN tree to store the new points corresponding to
@@ -643,13 +638,6 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
   delete[] near_neighbor_index;
   delete[] distances;
   delete tree;
-  
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.FindCongruentQuadrilaterals += globalTimingsTimer;
-  globalTimings_.FindCongruentQuadrilateralsNb ++;
-#endif
-  //cout << "quadrilaterals->size() = " << quadrilaterals->size() << endl;
 
   return quadrilaterals->size() != 0;
 }
@@ -659,10 +647,6 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
 // corresponding the the base pairing are computed.
 bool Match4PCSImpl::TryQuadrilateral(double* invariant1, double* invariant2) {
   if (invariant1 == NULL || invariant2 == NULL) return false;
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::Timer globalTimingsTimer;
-  Utilities::startTimer(globalTimingsTimer);
-#endif
 
   float min_distance = FLT_MAX;
   int best1, best2, best3, best4;
@@ -697,11 +681,6 @@ bool Match4PCSImpl::TryQuadrilateral(double* invariant1, double* invariant2) {
   base_3D_[1] = tmp[best2];
   base_3D_[2] = tmp[best3];
   base_3D_[3] = tmp[best4];
-  
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.TryQuadrilateral += globalTimingsTimer;
-#endif
 
   return true;
 }
@@ -715,10 +694,6 @@ bool Match4PCSImpl::TryQuadrilateral(double* invariant1, double* invariant2) {
 // probability of having all points in the inliers small so we try to trade-off.
 bool Match4PCSImpl::SelectRandomTriangle(int* base1, int* base2, int* base3) {
   if (base1 == NULL || base2 == NULL || base3 == NULL) return false;
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::Timer globalTimingsTimer;
-  Utilities::startTimer(globalTimingsTimer);
-#endif
   int number_of_points = sampled_P_3D_.size();
   *base1 = *base2 = *base3 = -1;
 
@@ -744,10 +719,6 @@ bool Match4PCSImpl::SelectRandomTriangle(int* base1, int* base2, int* base3) {
     }
   }
   
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.SelectRandomTriangle += globalTimingsTimer;
-#endif
   if (*base1 == -1 || *base2 == -1 || *base3 == -1)
     return false;
   else
@@ -763,24 +734,13 @@ bool Match4PCSImpl::SelectQuadrilateral(double* invariant1, double* invariant2,
       base2 == NULL || base3 == NULL || base4 == NULL)
     return false;
 
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::Timer globalTimingsTimer;
-  Utilities::startTimer(globalTimingsTimer);
-#endif
-
   const float kBaseTooSmall = 0.2;
   int current_trial = 0;
 
   // Try fix number of times.
   while (current_trial < kNumberOfDiameterTrials) {
     // Select a triangle if possible. otherwise fail.
-    if (!SelectRandomTriangle(base1, base2, base3)){    
-  
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.SelectQuadrilateral += globalTimingsTimer;
-#endif
-
+    if (!SelectRandomTriangle(base1, base2, base3)){
       return false;
     }
 
@@ -836,20 +796,11 @@ bool Match4PCSImpl::SelectQuadrilateral(double* invariant1, double* invariant2,
         base_3D_[3] = sampled_P_3D_[*base4];
         TryQuadrilateral(invariant1, invariant2);
         
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.SelectQuadrilateral += globalTimingsTimer;
-#endif
-        
         return true;
       }
     }
     current_trial++;
   }
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.SelectQuadrilateral += globalTimingsTimer;
-#endif
   // We failed to find good enough base..
   return false;
 }
@@ -894,12 +845,6 @@ double Match4PCSImpl::MeanDistance() {
 // early termination. It was found to be fast in practice.
 double Match4PCSImpl::Verify(const cv::Mat& rotation, const cv::Point3f& center,
                              const cv::Point3f& translate) {
-
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::Timer globalTimingsTimer;
-  Utilities::startTimer(globalTimingsTimer);
-#endif
-
 
   // We allow factor 2 scaling in the normalization.
   float epsilon = options_.delta;
@@ -951,12 +896,6 @@ double Match4PCSImpl::Verify(const cv::Mat& rotation, const cv::Point3f& center,
   annDeallocPt(query_point);
   delete[] near_neighbor_index;
   delete[] distances;
-  
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.Verify += globalTimingsTimer;
-  globalTimings_.VerifyNb += 1;
-#endif  
 
   return static_cast<float>(good_points) / number_of_points;
 }
@@ -970,11 +909,6 @@ void Match4PCSImpl::BruteForcePairs(double pair_distance,
                                     int base_point1, int base_point2,
                                     vector<pair<int, int>>* pairs) {
   if (pairs == NULL) return;
-
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::Timer globalTimingsTimer;
-  Utilities::startTimer(globalTimingsTimer);
-#endif
 
   pairs->clear();
   pairs->reserve(2 * sampled_Q_3D_.size());
@@ -1041,11 +975,6 @@ void Match4PCSImpl::BruteForcePairs(double pair_distance,
       }
     }
   }
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.BruteForcePairs += globalTimingsTimer;
-  globalTimings_.BruteForcePairsNb ++;
-#endif
 }
 
 // Pick one base, finds congruent 4-points in Q, verifies for all
@@ -1056,20 +985,9 @@ bool Match4PCSImpl::TryOneBase() {
   double invariant1, invariant2;
   int base_id1, base_id2, base_id3, base_id4;
   float distance_factor = 2.0;
-  
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::Timer globalTimingsTimer;
-  Utilities::startTimer(globalTimingsTimer);
-#endif
 
   if (!SelectQuadrilateral(&invariant1, &invariant2, &base_id1, &base_id2,
                            &base_id3, &base_id4)) {
-  
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.TryOneBase += globalTimingsTimer;
-  globalTimings_.TryOneBaseNb ++;
-#endif
     return false;
   }
 
@@ -1088,19 +1006,7 @@ bool Match4PCSImpl::TryOneBase() {
                   1, &pairs1);
   BruteForcePairs(distance2, normal_angle2, distance_factor * options_.delta, 2,
                   3, &pairs2);
-
-//#ifdef TEST_GLOBAL_TIMINGS
-//  float mtiming = globalTimings_.BruteForcePairs / globalTimings_.BruteForcePairsNb;
-//  if (mtiming > 0.00045)
-//    cout << "Mean timing: " << mtiming << endl;
-//#endif
-
   if (pairs1.size() == 0 || pairs2.size() == 0) {
-#ifdef TEST_GLOBAL_TIMINGS
-    Utilities::stopTimer(globalTimingsTimer);
-    globalTimings_.TryOneBase += globalTimingsTimer;
-    globalTimings_.TryOneBaseNb ++;
-#endif
     return false;
   }
   //cout << pairs1.size() << " " << pairs1.size() << endl;
@@ -1108,11 +1014,6 @@ bool Match4PCSImpl::TryOneBase() {
                                    distance_factor * options_.delta,
                                    distance_factor * options_.delta, pairs1,
                                    pairs2, &congruent_quads)) {
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.TryOneBase += globalTimingsTimer;
-  globalTimings_.TryOneBaseNb ++;
-#endif
     return false;
   }
   
@@ -1155,11 +1056,7 @@ bool Match4PCSImpl::TryOneBase() {
         
 
       // We give more tolerantz in computing the best rigid transformation.
-      if (f < distance_factor * options_.delta) {
-
-#ifdef TEST_GLOBAL_TIMINGS
-        globalTimings_.VerifyNb2++;
-#endif      
+      if (f < distance_factor * options_.delta) {   
         // Verify the rest of the points in Q against P.
         f = Verify(rotation, center, translate);
         if (f > best_LCP_) {
@@ -1180,22 +1077,12 @@ bool Match4PCSImpl::TryOneBase() {
           translate_ = translate;
         }
         // Terminate if we have the desired LCP already.
-        if (best_LCP_ > options_.terminate_threshold){
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.TryOneBase += globalTimingsTimer;
-  globalTimings_.TryOneBaseNb ++;
-#endif       
+        if (best_LCP_ > options_.terminate_threshold){    
           return true;
         }
       }
     }
   }
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.TryOneBase += globalTimingsTimer;
-  globalTimings_.TryOneBaseNb ++;
-#endif
   // If we reached here we do not have yet the desired LCP.
   return false;
 }
@@ -1209,27 +1096,6 @@ struct eqstr {
 // Initialize all internal data structures and data members.
 void Match4PCSImpl::Initialize(const std::vector<Point3D>& P,
                                const std::vector<Point3D>& Q) {
-#ifdef TEST_GLOBAL_TIMINGS
-  globalTimings_.TryOneBase = 0;
-  globalTimings_.TryOneBaseNb = 0;
-  globalTimings_.BruteForcePairs = 0;
-  globalTimings_.BruteForcePairsNb = 0;
-  globalTimings_.SelectQuadrilateral = 0;
-  globalTimings_.TryQuadrilateral = 0;
-  globalTimings_.FindCongruentQuadrilaterals = 0;
-  globalTimings_.FindCongruentQuadrilateralsFast = 0;
-  globalTimings_.FindCongruentQuadrilateralsNb = 0;
-  globalTimings_.FindCongruentQuadrilateralsFastNb = 0;
-  globalTimings_.Perform_N_steps = 0;
-  globalTimings_.SelectRandomTriangle = 0;
-  globalTimings_.Initialize = 0;
-  globalTimings_.Verify = 0;
-  globalTimings_.VerifyNb = 0;
-  globalTimings_.VerifyNb2 = 0;
-  
-  Utilities::Timer globalTimingsTimer;
-  Utilities::startTimer(globalTimingsTimer);
-#endif
   const float kSmallError = 0.00001;
   const int kMinNumberOfTrials = 4;
   const float kDiameterFraction = 0.3;
@@ -1365,26 +1231,14 @@ void Match4PCSImpl::Initialize(const std::vector<Point3D>& P,
   cv::Mat rotation = cv::Mat::eye(3, 3, CV_64F);
   cv::Vec3f translate(0, 0, 0);
   cv::Vec3f center(0, 0, 0);
-#ifdef TEST_GLOBAL_TIMINGS
-        globalTimings_.VerifyNb2++;
-#endif 
   best_LCP_ = Verify(rotation, center, translate);
   printf("Initial LCP: %f\n", best_LCP_);
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.Initialize += globalTimingsTimer;
-#endif
 }
 
 // Performs N RANSAC iterations and compute the best transformation. Also,
 // transforms the set Q by this optimal transformation.
 bool Match4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
                                     std::vector<Point3D>* Q) {
-  if (transformation == NULL || Q == NULL) return false;
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::Timer globalTimingsTimer;
-  Utilities::startTimer(globalTimingsTimer);
-#endif
 
 #ifdef TEST_RECORD_CONVERGENCE
   ofstream myfile;
@@ -1495,11 +1349,6 @@ bool Match4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
   myfile.close();
 #endif  
 
-#ifdef TEST_GLOBAL_TIMINGS
-  Utilities::stopTimer(globalTimingsTimer);
-  globalTimings_.Perform_N_steps += globalTimingsTimer;
-#endif
-
   return ok || current_trial_ >= number_of_trials_;
 }
 
@@ -1514,87 +1363,6 @@ float Match4PCSImpl::ComputeTransformation(const std::vector<Point3D>& P,
   for (int i = 0; i < 4; ++i) transformation->at<double>(i, i) = 1.0;
   Perform_N_steps(number_of_trials_, transformation, Q);
   
-
-
-#ifdef TEST_GLOBAL_TIMINGS
-    ofstream myfile;
-    myfile.open ("timings_global_pcs.txt", ios::out | ios::app);
-    myfile << "# nbPoint total PerBase PairsGenTotal PairGenMean PairFilterTotal Pair FilterMean Verify" << endl
-           << sampled_Q_3D_.size() << " "
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.TryOneBase << " "
-           << globalTimings_.TryOneBase
-           /float(globalTimings_.TryOneBaseNb) << " "
-           
-           << globalTimings_.BruteForcePairs << " "
-           << globalTimings_.BruteForcePairs           
-           /float(globalTimings_.BruteForcePairsNb) << " "
-           
-           << globalTimings_.FindCongruentQuadrilaterals << " "
-           << globalTimings_.FindCongruentQuadrilaterals
-           /float(globalTimings_.FindCongruentQuadrilateralsNb) << " "
-           
-           << globalTimings_.Verify << endl;
-    myfile.close();
-
-    
-    
-      cout << "\t[Timings] TryOneBase                      = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.TryOneBase << endl;
-      cout << "\t[Timings] TryOneBaseNb                    = " 
-           << globalTimings_.TryOneBaseNb << endl;
-      cout << "\t[Timings] BruteForcePairs                 = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.BruteForcePairs << endl;
-      cout << "\t[Timings] BruteForcePairsNb               = " 
-           << globalTimings_.BruteForcePairsNb << endl;
-      cout << "\t[Timings] BruteForcePairsMean             = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.BruteForcePairs
-       /float(globalTimings_.BruteForcePairsNb) << endl;
-      cout << "\t[Timings] SelectQuadrilateral             = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.SelectQuadrilateral << endl;
-      cout << "\t[Timings] TryQuadrilateral                = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.TryQuadrilateral << endl;
-      cout << "\t[Timings] FindCongruentQuadrilaterals     = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.FindCongruentQuadrilaterals << endl;
-      cout << "\t[Timings] FindCongruentQuadrilateralsNb   = " 
-           << globalTimings_.FindCongruentQuadrilateralsNb << endl;
-      cout << "\t[Timings] FindCongruentQuadrilateralsMean = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.FindCongruentQuadrilaterals
-       /float(globalTimings_.FindCongruentQuadrilateralsNb) << endl;
-      cout << "\t[Timings] FindCongruentQuadrilateralsFast = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.FindCongruentQuadrilateralsFast << endl;
-      cout << "\t[Timings] FindCongruentQuadrilateralsFastNb = " 
-           << globalTimings_.FindCongruentQuadrilateralsFastNb << endl;
-      cout << "\t[Timings] FindCongruentQuadrilateralsFastMean = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.FindCongruentQuadrilateralsFast
-       /float(globalTimings_.FindCongruentQuadrilateralsFastNb) << endl;
-      cout << "\t[Timings] Perform_N_steps                 = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.Perform_N_steps << endl;
-      cout << "\t[Timings] Initialize                      = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.Initialize << endl;
-      cout << "\t[Timings] Verify                          = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.Verify<< endl;
-      cout << "\t[Timings] VerifyNb                        = " 
-           << globalTimings_.VerifyNb << endl;
-      cout << "\t[Timings] VerifyNb2                       = " 
-           << globalTimings_.VerifyNb2 << endl;
-      cout << "\t[Timings] Verify Mean                     = " 
-           << setiosflags(ios::fixed) << setprecision(8) 
-           << globalTimings_.Verify/float(globalTimings_.VerifyNb) << endl;
-#endif
-
   return best_LCP_;
 }
 
