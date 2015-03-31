@@ -61,8 +61,8 @@
 #include "accelerators/kdtree.h"
 #include "accelerators/bbox.h"
 
-#include <hash_map>
 #include <fstream>
+#include <array>
 
 #define sqr(x) ((x)*(x))
 #define norm2(p) (sqr(p.x)+sqr(p.y)+sqr(p.z))

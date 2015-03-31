@@ -47,7 +47,6 @@
 #include "ANN/ANN.h"
 #include <opencv2/highgui/highgui.hpp>
 
-#include <hash_map>
 #include <fstream>
 
 namespace match_4pcs {
