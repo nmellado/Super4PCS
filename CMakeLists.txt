@@ -62,6 +62,12 @@ find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR}) 
 
 find_package( OpenCV REQUIRED core highgui)
+
+# Add package imgcodec required for cv::imread with OpenCV 3.0
+if (${OpenCV_VERSION} GREATER "3.0.0")
+    find_package( OpenCV REQUIRED imgcodecs )
+endif (${OpenCV_VERSION} GREATER "3.0.0")
+
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 
