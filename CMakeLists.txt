@@ -71,6 +71,7 @@ endif (${OpenCV_VERSION} GREATER "3.0.0")
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 
+find_path(ANN_DIR ann_1.1.2)
 IF(DEFINED ANN_DIR)
   set(ANN_INCLUDE_DIR "${ANN_DIR}/include")
   include_directories( ${ANN_INCLUDE_DIR} )
