@@ -93,7 +93,7 @@ struct IndexValidator{
 
 template <>
 template <class IndexT, class SizeT>
-IndexT
+constexpr IndexT
 IndexValidator<true>::validate(const IndexT& n,
                                const SizeT&  gsize)
 {
@@ -108,7 +108,7 @@ IndexValidator<true>::validate(const IndexT& n,
 
 template <>
 template <class IndexT, class SizeT>
-IndexT
+constexpr IndexT
 IndexValidator<false>::validate(const IndexT& n,
                                 const SizeT& /*gsize*/)
 {
