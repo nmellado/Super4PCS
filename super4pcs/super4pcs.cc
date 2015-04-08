@@ -764,27 +764,19 @@ MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
   int number_of_points = sampled_Q_3D_.size();
   int terminate_value = best_LCP_ * number_of_points;
 
-  Eigen::Matrix<Scalar, 4, 1> query_point;
-
   Scalar sq_eps = epsilon*epsilon;
 
   for (int i = 0; i < number_of_points; ++i) {
-    Point3D p = sampled_Q_3D_[i];
-    //Transform(rotation, center, translate, &p);
-
-    query_point << p.x,
-                   p.y,
-                   p.z,
-                   Scalar(1);
-    query_point = (mat * query_point).eval();
-
 
     // Use the kdtree to get the nearest neighbor
 #ifdef TEST_GLOBAL_TIMINGS
     Timer t (true);
 #endif
     typename Super4PCS::KdTree<Scalar>::Index resId =
-    kd_tree_.doQueryRestrictedClosest(query_point.head<3>(), sq_eps);
+    kd_tree_.doQueryRestrictedClosest(
+                (mat * pcfunctor_.getPointInWorldCoord( i ).homogeneous()).head<3>(),
+                sq_eps);
+
 
 #ifdef TEST_GLOBAL_TIMINGS
     kdTreeTime += Scalar(t.elapsed().count()) / Scalar(1000000.);
