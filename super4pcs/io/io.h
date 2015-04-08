@@ -1,7 +1,7 @@
 #ifndef IO_H
 #define IO_H
 
-#include "4pcs.h"
+#include "shared4pcs.h"
 
 #include <fstream>
 #include <iostream>
