@@ -61,32 +61,19 @@
 #include "accelerators/kdtree.h"
 #include "accelerators/bbox.h"
 
+#include "pairCreationFunctor.h"
+
 #include <fstream>
 #include <array>
 
 #define sqr(x) ((x)*(x))
 #define norm2(p) (sqr(p.x)+sqr(p.y)+sqr(p.z))
 
-#ifndef MAX
-#define MAX(a,b) a<b?a:b
+#ifdef TEST_GLOBAL_TIMINGS
+#   include "utils/timer.h"
 #endif
 
 //#define MULTISCALE
-
-typedef std::vector<std::pair<int, int>> PairsVector;
-typedef double Scalar;
-
-#ifdef TEST_GLOBAL_TIMINGS
-
-#   include "utils/timer.h"
-
-Scalar totalTime;
-Scalar kdTreeTime;
-Scalar verifyTime;
-
-using Super4PCS::Utils::Timer;
-
-#endif
 
 namespace match_4pcs {
 
@@ -250,182 +237,20 @@ struct Quadrilateral {
   }
 };
 
-
-struct PairCreationFunctor{
-
-public:
-  // Processing data
-  Scalar norm_threshold;
-  double pair_normals_angle;
-  double pair_distance;
-  double pair_distance_epsilon;
-
-  // Shared data
-  Match4PCSOptions options_;
-  const std::vector<Point3D>& Q_;
-
-  PairsVector* pairs;
-
-  std::vector<unsigned int> ids;
-
-
-  // Internal data
-  typedef Eigen::Matrix<Scalar, 3, 1> Point;
-  typedef Super4PCS::Accelerators::PairExtraction::HyperSphere
-  < PairCreationFunctor::Point, 3, Scalar> Primitive;
-
-  std::vector< /*Eigen::Map<*/PairCreationFunctor::Point/*>*/ > points;
-  std::vector< Primitive > primitives;
-
-private:
-  cv::Point3f segment1;
-  std::vector<Point3D> base_3D_;
-  int base_point1_, base_point2_;
-
-  PairCreationFunctor::Point _gcenter;
-  Scalar _ratio;
-
-public:
-  inline PairCreationFunctor(
-    Match4PCSOptions options,
-    const std::vector<Point3D>& Q)
-    :options_(options), Q_(Q),
-     pairs(NULL), _ratio(1.f)
-    { }
-
-
-  inline PairCreationFunctor::Point worldToUnit(
-    const PairCreationFunctor::Point &p) const {
-
-    static const PairCreationFunctor::Point half =
-              PairCreationFunctor::Point::Ones() * Scalar(0.5f);
-    return (p-_gcenter) / _ratio + half;
-  }
-
-
-  inline void synch3DContent(){
-    points.clear();
-    primitives.clear();
-
-    Super4PCS::AABB3D<Scalar> bbox;
-
-    unsigned int nSamples = Q_.size();
-
-    points.reserve(nSamples);
-    primitives.reserve(nSamples);
-
-    // Compute bounding box on fine data to be SURE to have all points in the
-    // unit bounding box
-    for (int i = 0; i < nSamples; ++i) {
-        PairCreationFunctor::Point q ( Q_[i].x,
-                                       Q_[i].y,
-                                       Q_[i].z );
-      points.push_back(q);
-      bbox.extendTo(q);
-    }
-
-    _gcenter = bbox.center();
-    // add a delta to avoid to have elements with coordinate = 1
-    _ratio = MAX(bbox.depth() + 0.001,
-             MAX(bbox.width() + 0.001,
-                 bbox.height()+ 0.001));
-
-    // update point cloud (worldToUnit use the ratio and gravity center
-    // previously computed)
-    // Generate primitives
-    for (int i = 0; i < nSamples; ++i) {
-      points[i] = worldToUnit(points[i]);
-
-      primitives.push_back(Primitive(points[i], Scalar(1.)));
-      ids.push_back(i);
-    }
-
-    cout << "Work with " << points.size() << " points" << endl;
-  }
-
-  inline void setRadius(Scalar radius) {
-    const Scalar nRadius = radius/_ratio;
-    for(std::vector< Primitive >::iterator it = primitives.begin();
-        it != primitives.end(); it++)
-      (*it).radius() = nRadius;
-  }
-
-  inline Scalar getNormalizedEpsilon(Scalar eps){
-    return eps/_ratio;
-  }
-
-  inline void setBase( int base_point1, int base_point2,
-                       std::vector<Point3D>& base_3D){
-    base_3D_     = base_3D;
-    base_point1_ = base_point1;
-    base_point2_ = base_point2;
-
-    segment1 = base_3D_[base_point2_] - base_3D_[base_point1_];
-    segment1 *= 1.0 / cv::norm(segment1);
-  }
-
-
-  inline void beginPrimitiveCollect(int /*primId*/){ }
-  inline void endPrimitiveCollect(int /*primId*/){ }
-
-
-  inline void process(int i, int j){
-    if (i>j){
-      const Point3D& p = Q_[j];
-      const Point3D& q = Q_[i];
-
-#ifndef MULTISCALE
-      const float distance = cv::norm(q - p);
-      if (fabs(distance - pair_distance) > pair_distance_epsilon) return;
-#endif
-      const bool use_normals = norm(q.normal()) > 0 && norm(p.normal()) > 0;
-      bool normals_good = true;
-      if (use_normals) {
-        const double first_normal_angle = cv::norm(q.normal() - p.normal());
-        const double second_normal_angle = cv::norm(q.normal() + p.normal());
-        // Take the smaller normal distance.
-        const float first_norm_distance =
-            min(fabs(first_normal_angle - pair_normals_angle),
-                fabs(second_normal_angle - pair_normals_angle));
-        // Verify appropriate angle between normals and distance.
-        normals_good = first_norm_distance < norm_threshold;
-      }
-      if (!normals_good) return;
-      cv::Point3f segment2 = q - p;
-      segment2 *= 1.0 / cv::norm(segment2);
-      // Verify restriction on the rotation angle, translation and colors.
-      const bool use_rgb = (p.rgb()[0] >= 0 && q.rgb()[0] >= 0 &&
-                            base_3D_[base_point1_].rgb()[0] >= 0 &&
-                            base_3D_[base_point2_].rgb()[0] >= 0);
-      const bool rgb_good =
-          use_rgb ? cv::norm(p.rgb() - base_3D_[base_point1_].rgb()) <
-                            options_.max_color_distance &&
-                        cv::norm(q.rgb() - base_3D_[base_point2_].rgb()) <
-                            options_.max_color_distance
-                  : true;
-      const bool dist_good = cv::norm(p - base_3D_[base_point1_]) <
-                                 options_.max_translation_distance &&
-                             cv::norm(q - base_3D_[base_point2_]) <
-                                 options_.max_translation_distance;
-
-      if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0 &&
-          dist_good && rgb_good) {
-        // Add ordered pair.
-        pairs->push_back(pair<int, int>(j, i));
-      }
-      // The same for the second order.
-      segment2 = p - q;
-      segment2 *= 1.0 / cv::norm(segment2);
-      if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0 &&
-          dist_good && rgb_good) {
-        // Add ordered pair.
-        pairs->push_back(pair<int, int>(i, j));
-      }
-    }
-  }
-};
-
 class MatchSuper4PCSImpl {
+
+    typedef double Scalar;
+    typedef PairCreationFunctor<Scalar>::PairsVector PairsVector;
+
+#ifdef TEST_GLOBAL_TIMINGS
+
+    Scalar totalTime;
+    Scalar kdTreeTime;
+    Scalar verifyTime;
+
+    using Timer = Super4PCS::Utils::Timer;
+
+#endif
  public:
   explicit MatchSuper4PCSImpl(const Match4PCSOptions& options)
       : number_of_trials_(0),
@@ -512,7 +337,7 @@ class MatchSuper4PCSImpl {
   // Parameters.
   Match4PCSOptions options_;
 
-  PairCreationFunctor pcfunctor_;
+  PairCreationFunctor<Scalar> pcfunctor_;
 
   // Private member functions.
 
@@ -637,7 +462,7 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
   double alpha = /*std::abs(*/b1.dot(b2)/*)*/;
 
   // 1. Datastructure construction
-  typedef PairCreationFunctor::Point Point;
+  typedef PairCreationFunctor<Scalar>::Point Point;
   const Scalar eps = pcfunctor_.getNormalizedEpsilon(
     std::min(distance_threshold1, distance_threshold2));
   typedef Super4PCS::IndexedNormalHealSet IndexedNormalSet3D;
@@ -874,7 +699,7 @@ bool MatchSuper4PCSImpl::SelectQuadrilateral(double* invariant1, double* invaria
         if (d1 >= too_small && d2 >= too_small && d3 >= too_small) {
           // Not too close to any of the first 3.
           double distance =
-              fabs(A * sampled_P_3D_[i].x + B * sampled_P_3D_[i].y +
+              std::abs(A * sampled_P_3D_[i].x + B * sampled_P_3D_[i].y +
                    C * sampled_P_3D_[i].z - 1.0);
           // Search for the most planar.
           if (distance < best_distance) {
@@ -926,7 +751,8 @@ double MatchSuper4PCSImpl::MeanDistance() {
 // distance at most (normalized) delta from some point in Q. In the paper
 // we describe randomized verification. We apply deterministic one here with
 // early termination. It was found to be fast in practice.
-Scalar MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
+MatchSuper4PCSImpl::Scalar
+MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
 
 #ifdef TEST_GLOBAL_TIMINGS
     Timer t_verify (true);
@@ -1020,11 +846,11 @@ MatchSuper4PCSImpl::ExtractPairs(double pair_distance,
 
 #ifdef MULTISCALE
   BruteForceFunctor
-  <PairCreationFunctor::Point, 3, Scalar> interFunctor;
+  <PairCreationFunctor<Scalar>::Point, 3, Scalar> interFunctor;
 #else
   IntersectionFunctor
-          <PairCreationFunctor::Primitive,
-          PairCreationFunctor::Point, 3, Scalar> interFunctor;
+          <PairCreationFunctor<Scalar>::Primitive,
+          PairCreationFunctor<Scalar>::Point, 3, Scalar> interFunctor;
 #endif
 
   Scalar eps = pcfunctor_.getNormalizedEpsilon(pair_distance_epsilon);
