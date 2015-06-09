@@ -71,6 +71,11 @@ public:
   }
 
 
+  inline Scalar unitToWorld( Scalar d) const {
+    return d * _ratio;
+  }
+
+
   inline Point getPointInWorldCoord(int i) const {
     return unitToWorld(points[i]);
   }

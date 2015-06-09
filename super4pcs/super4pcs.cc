@@ -761,7 +761,7 @@ MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
   // We allow factor 2 scaling in the normalization.
   float epsilon = options_.delta;
   int good_points = 0;
-  int number_of_points = sampled_Q_3D_.size();
+  int number_of_points = pcfunctor_.points.size();
   int terminate_value = best_LCP_ * number_of_points;
 
   Scalar sq_eps = epsilon*epsilon;
@@ -824,7 +824,7 @@ MatchSuper4PCSImpl::ExtractPairs(double pair_distance,
   pcfunctor_.pairs = pairs;
 
   pairs->clear();
-  pairs->reserve(2 * pcfunctor_.Q_.size());
+  pairs->reserve(2 * pcfunctor_.points.size());
 
   pcfunctor_.pair_distance         = pair_distance;
   pcfunctor_.pair_distance_epsilon = pair_distance_epsilon;
@@ -914,10 +914,7 @@ bool MatchSuper4PCSImpl::TryOneBase() {
     return false;
   }
 
-  float factor;
-  if (sampled_Q_3D_.size() <= 200) factor = 3.5;
-  else if (sampled_Q_3D_.size() >=500) factor = 1.5;
-  else factor = 3.5 - (sampled_Q_3D_.size() - 200) * (3.5 - 1.5) / (500.0 - 200.0);
+
   if (!FindCongruentQuadrilateralsFast(invariant1, invariant2,
                                    distance_factor /** factor*/ * options_.delta,
                                    distance_factor /** factor*/ * options_.delta,
@@ -1159,17 +1156,17 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
   // Guaranteed close to the diameter but gives good results for most common
   // objects if they are densely sampled.
   P_diameter_ = 0.0;
+  int nbPoints = pcfunctor_.points.size();
   for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
-    int at = rand() % sampled_Q_3D_.size();
-    int bt = rand() % sampled_Q_3D_.size();
-    cv::Point3f u(sampled_Q_3D_[bt].x - sampled_Q_3D_[at].x,
-                  sampled_Q_3D_[bt].y - sampled_Q_3D_[at].y,
-                  sampled_Q_3D_[bt].z - sampled_Q_3D_[at].z);
-    double l = cv::norm(u);
+    int at = rand() % nbPoints;
+    int bt = rand() % nbPoints;
+    Scalar l = (pcfunctor_.points[bt] - pcfunctor_.points[at]).norm();
     if (l > P_diameter_) {
       P_diameter_ = l;
     }
   }
+  //switch from unit space to original space
+  P_diameter_ = pcfunctor_.unitToWorld(P_diameter_);
 
   // Mean distance and a bit more... We increase the estimation to allow for
   // noise, wrong estimation and non-uniform sampling.
