@@ -281,11 +281,30 @@ void test_model(const vector<Transform> &transforms,
 
     if(use_super4pcs){
         MatchSuper4PCS matcher(options);
-        cout << "Use Super4PCS" << endl;
+        cout << "./Super4PCS -i "
+             << input1.c_str() << " "
+             << input2.c_str()
+             << " -o " << options.overlap_estimation
+             << " -d " << options.delta
+             << " -n " << options.sample_size
+             << " -a " << options.max_normal_difference
+             << " -c " << options.max_color_distance
+             << " -t " << options.max_time_seconds
+             << endl;
         score = matcher.ComputeTransformation(mergedset, &set2, &mat);
     }else{
         Match4PCS matcher(options);
-        cout << "Use old 4PCS" << endl;
+        cout << "./Super4PCS -i "
+             << input1.c_str() << " "
+             << input2.c_str()
+             << " -o " << options.overlap_estimation
+             << " -d " << options.delta
+             << " -n " << options.sample_size
+             << " -a " << options.max_normal_difference
+             << " -c " << options.max_color_distance
+             << " -t " << options.max_time_seconds
+             << " -x "
+             << endl;
         score = matcher.ComputeTransformation(mergedset, &set2, &mat);
     }
 
