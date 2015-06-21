@@ -112,6 +112,7 @@ set(Super4PCS_SRC
 )
 set(Super4PCS_INCLUDE
     ${SRC_DIR}/shared4pcs.h
+    ${SRC_DIR}/pairExtraction.h
     ${SRC_DIR}/4pcs.h
     ${SRC_DIR}/pairCreationFunctor.h
 )
