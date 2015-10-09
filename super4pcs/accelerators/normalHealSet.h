@@ -127,6 +127,13 @@ public:
   bool addElement(const Point& pos, 
                   const Point& normal, 
                   unsigned int id);
+
+  template <typename otherPoint>
+  inline bool addElement(const otherPoint& pos,
+                         const otherPoint& normal,
+                         unsigned int id){
+      return addElement(pos.template cast<double>(), normal.template cast<double>(), id);
+  }
   
   //! \return NULL if the grid does not exist or p is out of bound
   inline ChealMap* getMap(const Point& p) { 
