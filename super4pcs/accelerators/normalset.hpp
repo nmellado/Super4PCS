@@ -74,7 +74,7 @@ IndexedNormalSet<Point, dim, _ngSize, Scalar>::indexPos(
   const Point& p) const
 {      
   // Unroll the loop over the different dimensions at compile time
-  return UnrollIndexLoop( coordinatesPos(p),  dim-1,  _egSize );  
+  return Utils::UnrollIndexLoop<VALIDATE_INDICES>( coordinatesPos(p),  dim-1,  _egSize );
 }
 
 /*! 
@@ -87,7 +87,7 @@ IndexedNormalSet<Point, dim, _ngSize, Scalar>::indexNormal(
   const Point& n) const
 {
   // Unroll the loop over the different dimension at compile time
-  return UnrollIndexLoop( coordinatesNormal(n), dim-1, _ngSize);
+  return Utils::UnrollIndexLoop<VALIDATE_INDICES>( coordinatesNormal(n), dim-1, _ngSize);
 }
 
 
@@ -97,7 +97,7 @@ IndexedNormalSet<Point, dim, _ngSize, Scalar>::indexCoordinatesPos(
   const Point& pCoord) const
 {      
   // Unroll the loop over the different dimensions at compile time
-  return UnrollIndexLoop( pCoord,  dim-1,  _egSize );  
+  return Utils::UnrollIndexLoop<VALIDATE_INDICES>( pCoord,  dim-1,  _egSize );
 }
 
 
@@ -107,7 +107,7 @@ IndexedNormalSet<Point, dim, _ngSize, Scalar>::indexCoordinatesNormal(
   const Point& nCoord) const
 {
   // Unroll the loop over the different dimension at compile time
-  return UnrollIndexLoop( nCoord,  dim-1, _ngSize);
+  return Utils::UnrollIndexLoop<VALIDATE_INDICES>( nCoord,  dim-1, _ngSize);
 }
 
 
