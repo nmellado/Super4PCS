@@ -39,6 +39,18 @@ add_test(NAME pair_extraction
          #CONFIGURATIONS Release
          COMMAND pair_extraction)
 
+
+#############################################
+## quad extraction
+set(quad_extraction_SRCS
+    quad_extraction.cc
+)
+add_executable(quad_extraction ${quad_extraction_SRCS})
+add_dependencies(buildtests quad_extraction)
+add_test(NAME quad_extraction
+         #CONFIGURATIONS Release
+         COMMAND quad_extraction)
+
 #############################################
 ## matching
 set(matching_SRCS
@@ -59,6 +71,7 @@ foreach(subtest_id ${matching_subtests})
     set_tests_properties ( "matching_${subtest_id}" PROPERTIES TIMEOUT 600) # in seconds
 endforeach()
 
+target_link_libraries(quad_extraction ${Chealpix_LIBS} super4pcs_accel super4pcs_algo)
 target_link_libraries(matching super4pcs_io super4pcs_accel super4pcs_algo)
 target_link_libraries(matching ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 TARGET_LINK_LIBRARIES(matching ${ANN_LIBS} )
