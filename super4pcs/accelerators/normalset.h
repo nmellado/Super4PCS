@@ -72,6 +72,13 @@ struct IndexedNormalSet{
                       Utils::POW(_ngSize, dim)> AngularGrid;
                       
   enum MOVE_DIR { POSITIVE, NEGATIVE };
+
+#ifdef DEBUG
+#define VALIDATE_INDICES true
+#pragma message "Index validation is enabled in debug mode"
+#else
+#define VALIDATE_INDICES false
+#endif
   
 private:
   static constexpr Scalar _nepsilon = Scalar(1.)/Scalar(_ngSize) + 0.00001;
