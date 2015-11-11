@@ -66,10 +66,16 @@ endif (${ENABLE_TIMING})
 ## Dependencies
 ################################################################################
 
+find_package(CFITSIO)
+if (NOT CFITSIO_FOUND)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/cfitsio EXCLUDE_FROM_ALL)
+	set(CFITSIO_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/3rdparty/cfitsio" )
+	message("Cannot find CFitsio in the path: building from source (${CFITSIO_INCLUDE_DIR})")
+endif()
 add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/chealpix EXCLUDE_FROM_ALL)
 include_directories(${Chealpix_INCLUDE_DIR})
 
-# switch from C to CXX11
+# switch from C++ to CXX11
 ADD_DEFINITIONS( -std=c++11 )
 
 find_package(Eigen3 REQUIRED)
@@ -90,7 +96,7 @@ IF(DEFINED ANN_DIR)
   set(ANN_INCLUDE_DIR "${ANN_DIR}/include")
   include_directories( ${ANN_INCLUDE_DIR} )
   
-  set(ANN_LIBS "${ANN_DIR}/lib/libANN.a")
+  set(ANN_LIBS "${ANN_DIR}/lib/libANN.dll")
 ENDIF(DEFINED ANN_DIR)
 
 
@@ -98,8 +104,10 @@ ENDIF(DEFINED ANN_DIR)
 ## Tests
 ################################################################################
 
-include(cmake/ConfigureTesting.cmake)
-add_subdirectory(tests EXCLUDE_FROM_ALL)
+if(DEFINED ${SUPER4PCS_BUILD_TEST})
+	include(cmake/ConfigureTesting.cmake)
+	add_subdirectory(tests EXCLUDE_FROM_ALL)
+endif(DEFINED ${SUPER4PCS_BUILD_TEST})
 
 ################################################################################
 ## Project files

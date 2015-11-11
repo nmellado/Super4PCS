@@ -33,9 +33,9 @@ public:
   // Internal data
   typedef Eigen::Matrix<Scalar, 3, 1> Point;
   typedef Super4PCS::Accelerators::PairExtraction::HyperSphere
-  < PairCreationFunctor::Point, 3, Scalar> Primitive;
+  < typename PairCreationFunctor::Point, 3, Scalar> Primitive;
 
-  std::vector< /*Eigen::Map<*/PairCreationFunctor::Point/*>*/ > points;
+  std::vector< /*Eigen::Map<*/typename PairCreationFunctor::Point/*>*/ > points;
   std::vector< Primitive > primitives;
 
 private:
@@ -43,9 +43,9 @@ private:
   std::vector<Point3D> base_3D_;
   int base_point1_, base_point2_;
 
-  PairCreationFunctor::Point _gcenter;
+  typename PairCreationFunctor::Point _gcenter;
   Scalar _ratio;
-  static const PairCreationFunctor::Point half;
+  static const typename PairCreationFunctor::Point half;
 
 public:
   inline PairCreationFunctor(
@@ -57,7 +57,7 @@ public:
 
 private:
   inline Point worldToUnit(
-    const Eigen::MatrixBase<PairCreationFunctor::Point> &p) const {
+    const Eigen::MatrixBase<typename PairCreationFunctor::Point> &p) const {
     static const Point half = Point::Ones() * Scalar(0.5f);
     return (p-_gcenter) / _ratio + half;
   }
@@ -65,7 +65,7 @@ private:
 
 public:
   inline Point unitToWorld(
-    const Eigen::MatrixBase<PairCreationFunctor::Point> &p) const {
+    const Eigen::MatrixBase<typename PairCreationFunctor::Point> &p) const {
     static const Point half = Point::Ones() * Scalar(0.5f);
     return (p - half) * _ratio + _gcenter;
   }
@@ -94,7 +94,7 @@ public:
 
     // Compute bounding box on fine data to be SURE to have all points in the
     // unit bounding box
-    for (int i = 0; i < nSamples; ++i) {
+    for (unsigned int i = 0; i < nSamples; ++i) {
         PairCreationFunctor::Point q ( Q_[i].x,
                                        Q_[i].y,
                                        Q_[i].z );
@@ -111,7 +111,7 @@ public:
     // update point cloud (worldToUnit use the ratio and gravity center
     // previously computed)
     // Generate primitives
-    for (int i = 0; i < nSamples; ++i) {
+    for (unsigned int i = 0; i < nSamples; ++i) {
       points[i] = worldToUnit(points[i]);
 
       primitives.push_back(Primitive(points[i], Scalar(1.)));
