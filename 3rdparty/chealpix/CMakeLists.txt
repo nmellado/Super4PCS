@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(chealpix)
 
+find_package(CFITSIO REQUIRED)
 include_directories(${CFITSIO_INCLUDE_DIRS})
 
 # Set variables
