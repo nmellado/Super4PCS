@@ -1,0 +1,426 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{FE684FAA-7321-32F9-A0BD-0DA034AAB6FF}</ProjectGUID>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>Win32</Platform>
+    <ProjectName>cfitsio</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Platform)\$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Platform)\$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectName)</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectName)</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.lib</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.lib</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.lib</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateManifest>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateManifest>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <CompileAs>CompileAsC</CompileAs>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;CMAKE_INTDIR="Release";cfitsio_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;CMAKE_INTDIR=\"Release\";cfitsio_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build/Release/cfitsio.lib</ImportLibrary>
+      <ProgramDataBaseFile>F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build/Release/cfitsio.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <CompileAs>CompileAsC</CompileAs>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;CMAKE_INTDIR="Release";cfitsio_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;CMAKE_INTDIR=\"Release\";cfitsio_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build/Release/cfitsio.lib</ImportLibrary>
+      <ProgramDataBaseFile>F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build/Release/cfitsio.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <CompileAs>CompileAsC</CompileAs>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;CMAKE_INTDIR="Release";cfitsio_EXPORTS;VISUAL_CPLUSPLUS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;CMAKE_INTDIR=\"Release\";cfitsio_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build/Release/cfitsio.lib</ImportLibrary>
+      <ProgramDataBaseFile>F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build/Release/cfitsio.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <CompileAs>CompileAsC</CompileAs>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;CMAKE_INTDIR="Release";cfitsio_EXPORTS;VISUAL_CPLUSPLUS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_DEPRECATE;CMAKE_INTDIR=\"Release\";cfitsio_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build/Release/cfitsio.lib</ImportLibrary>
+      <ProgramDataBaseFile>F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build/Release/cfitsio.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+      <Version>
+      </Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building Custom Rule F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building Custom Rule F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+"F:\Program Files (x86)\CMake\bin\cmake.exe" -HF:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio -BF:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build --check-stamp-file F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+"F:\Program Files (x86)\CMake\bin\cmake.exe" -HF:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio -BF:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build --check-stamp-file F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"F:\Program Files (x86)\CMake\bin\cmake.exe" -HF:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio -BF:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build --check-stamp-file F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"F:\Program Files (x86)\CMake\bin\cmake.exe" -HF:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio -BF:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build --check-stamp-file F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/CMakeLists.txt;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\CMakeLists.txt;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInitialize.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCCompiler.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCXXCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeGenericSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\WindowsPaths.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-C.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeRCCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeRCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCXXInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Compiler\MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/CMakeLists.txt;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\CMakeLists.txt;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInitialize.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCCompiler.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCXXCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeGenericSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\WindowsPaths.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-C.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeRCCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeRCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCXXInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Compiler\MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/CMakeLists.txt;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\CMakeLists.txt;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInitialize.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCCompiler.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCXXCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeGenericSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\WindowsPaths.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-C.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeRCCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeRCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCXXInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Compiler\MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/CMakeLists.txt;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\CMakeLists.txt;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInitialize.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCCompiler.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCXXCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeGenericSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\WindowsPaths.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-C.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeRCCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeRCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCXXInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Compiler\MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfortran.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\drvrgsiftp.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\drvrsmem.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\eval_defs.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\eval_tab.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\f77_wrap.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\fitsio.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\fitsio2.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\fpack.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\group.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\grparser.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\longnam.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\region.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\simplerng.h" />
+    <ClInclude Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\unistd.h" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\buffers.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\cfileio.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\checksum.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\drvrfile.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\drvrmem.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\drvrnet.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\drvrsmem.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\drvrgsiftp.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\editcol.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\edithdu.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\eval_l.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\eval_y.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\eval_f.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\fitscore.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcol.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcolb.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcold.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcole.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcoli.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcolj.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcolk.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcoll.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcols.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcolsb.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcoluk.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcolui.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getcoluj.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\getkey.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\group.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\grparser.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\histo.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\iraffits.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\modkey.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcol.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcolb.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcold.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcole.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcoli.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcolj.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcolk.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcoluk.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcoll.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcols.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcolsb.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcolu.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcolui.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putcoluj.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\putkey.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\region.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\scalnull.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\swapproc.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\wcssub.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\wcsutil.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\imcompress.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\quantize.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\ricecomp.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\pliocomp.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\fits_hcompress.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\fits_hdecompress.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\zlib\zuncompress.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\zlib\zcompress.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\zlib\adler32.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\zlib\crc32.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\zlib\inffast.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\zlib\inftrees.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\zlib\trees.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\zlib\zutil.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\zlib\deflate.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\zlib\infback.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\zlib\inflate.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\zlib\uncompr.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\simplerng.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\f77_wrap1.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\f77_wrap2.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\f77_wrap3.c" />
+    <ClCompile Include="F:\Nicolas\Pro\code\git\Super4PCS\3rdparty\cfitsio\f77_wrap4.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="F:/Nicolas/Pro/code/git/Super4PCS/3rdparty/cfitsio/cfitsio.build/ZERO_CHECK.vcxproj">
+      <Project>8362D44D-4214-338C-80D6-4E26D4FECEA2</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

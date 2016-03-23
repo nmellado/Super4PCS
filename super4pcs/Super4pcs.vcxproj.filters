@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\3rdParty">
+      <UniqueIdentifier>{2ecded72-7a97-4796-a7b5-3fea2ad945d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\super4pcs">
+      <UniqueIdentifier>{6c9b5e38-adc7-492a-8413-f36af215b116}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\super4pcs\io">
+      <UniqueIdentifier>{e48940d0-2eab-4195-afb3-3e730c9d94b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\super4pcs\accelerators">
+      <UniqueIdentifier>{1870b4c4-836e-46da-87b5-ba3f14094daa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\super4pcs\accelerators\pairExtraction">
+      <UniqueIdentifier>{9004de6c-716b-4367-939e-80eb814ac6a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\super4pcs\utils">
+      <UniqueIdentifier>{0e7adf0a-47df-4f8b-b705-25e047f1144a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="io\io.cc">
+      <Filter>Source Files\super4pcs\io</Filter>
+    </ClCompile>
+    <ClCompile Include="accelerators\normalHealSet.cpp">
+      <Filter>Source Files\super4pcs\accelerators</Filter>
+    </ClCompile>
+    <ClCompile Include="4pcs.cc">
+      <Filter>Source Files\super4pcs</Filter>
+    </ClCompile>
+    <ClCompile Include="super4pcs.cc">
+      <Filter>Source Files\super4pcs</Filter>
+    </ClCompile>
+    <ClCompile Include="super4pcs_test.cc">
+      <Filter>Source Files\super4pcs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdparty\chealpix\src\chealpix.c">
+      <Filter>Source Files\3rdParty</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="io\io.h">
+      <Filter>Source Files\super4pcs\io</Filter>
+    </ClInclude>
+    <ClInclude Include="io\io_ply.h">
+      <Filter>Source Files\super4pcs\io</Filter>
+    </ClInclude>
+    <ClInclude Include="accelerators\bbox.h">
+      <Filter>Source Files\super4pcs\accelerators</Filter>
+    </ClInclude>
+    <ClInclude Include="accelerators\kdtree.h">
+      <Filter>Source Files\super4pcs\accelerators</Filter>
+    </ClInclude>
+    <ClInclude Include="accelerators\normalHealSet.h">
+      <Filter>Source Files\super4pcs\accelerators</Filter>
+    </ClInclude>
+    <ClInclude Include="accelerators\normalset.h">
+      <Filter>Source Files\super4pcs\accelerators</Filter>
+    </ClInclude>
+    <ClInclude Include="accelerators\normalset.hpp">
+      <Filter>Source Files\super4pcs\accelerators</Filter>
+    </ClInclude>
+    <ClInclude Include="accelerators\utils.h">
+      <Filter>Source Files\super4pcs\accelerators</Filter>
+    </ClInclude>
+    <ClInclude Include="accelerators\pairExtraction\intersectionPrimitive.h">
+      <Filter>Source Files\super4pcs\accelerators\pairExtraction</Filter>
+    </ClInclude>
+    <ClInclude Include="accelerators\pairExtraction\bruteForceFunctor.h">
+      <Filter>Source Files\super4pcs\accelerators\pairExtraction</Filter>
+    </ClInclude>
+    <ClInclude Include="accelerators\pairExtraction\intersectionFunctor.h">
+      <Filter>Source Files\super4pcs\accelerators\pairExtraction</Filter>
+    </ClInclude>
+    <ClInclude Include="accelerators\pairExtraction\intersectionNode.h">
+      <Filter>Source Files\super4pcs\accelerators\pairExtraction</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\timer.h">
+      <Filter>Source Files\super4pcs\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="4pcs.h">
+      <Filter>Source Files\super4pcs</Filter>
+    </ClInclude>
+    <ClInclude Include="pairCreationFunctor.h">
+      <Filter>Source Files\super4pcs</Filter>
+    </ClInclude>
+    <ClInclude Include="pairExtraction.h">
+      <Filter>Source Files\super4pcs</Filter>
+    </ClInclude>
+    <ClInclude Include="shared4pcs.h">
+      <Filter>Source Files\super4pcs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdparty\chealpix\include\chealpix.h">
+      <Filter>Source Files\3rdParty</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="accelerators\CMakeLists.txt">
+      <Filter>Source Files\super4pcs\accelerators</Filter>
+    </Text>
+  </ItemGroup>
+</Project>

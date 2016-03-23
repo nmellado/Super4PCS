@@ -65,6 +65,7 @@
 
 #include <fstream>
 #include <array>
+#include <time.h>
 
 #define sqr(x) ((x)*(x))
 #define norm2(p) (sqr(p.x)+sqr(p.y)+sqr(p.z))
@@ -478,7 +479,7 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
 
   IndexedNormalSet3D nset (eps, 2.);
 
-  for (int i = 0; i < P_pairs.size(); ++i) {
+  for (unsigned int i = 0; i < P_pairs.size(); ++i) {
     const Point& p1 = pcfunctor_.points[P_pairs[i].first];
     const Point& p2 = pcfunctor_.points[P_pairs[i].second];
     Point  n  = (p2 - p1).normalized();
@@ -498,7 +499,7 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
   unsigned int j = 0;
   std::vector<unsigned int> nei;
   // 2. Query time
-  for (int i = 0; i < Q_pairs.size(); ++i) {
+  for (unsigned int i = 0; i < Q_pairs.size(); ++i) {
     const Point& p1 = pcfunctor_.points[Q_pairs[i].first];
     const Point& p2 = pcfunctor_.points[Q_pairs[i].second];
 
@@ -691,7 +692,7 @@ bool MatchSuper4PCSImpl::SelectQuadrilateral(double* invariant1, double* invaria
       *base4 = -1;
       double best_distance = FLT_MAX;
       // Go over all points in P.
-      for (int i = 0; i < sampled_P_3D_.size(); ++i) {
+      for (unsigned int i = 0; i < sampled_P_3D_.size(); ++i) {
         double d1 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base1]);
         double d2 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base2]);
         double d3 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base3]);
@@ -704,7 +705,7 @@ bool MatchSuper4PCSImpl::SelectQuadrilateral(double* invariant1, double* invaria
           // Search for the most planar.
           if (distance < best_distance) {
             best_distance = distance;
-            *base4 = i;
+            *base4 = int(i);
           }
         }
       }
@@ -735,7 +736,7 @@ double MatchSuper4PCSImpl::MeanDistance() {
   for (int i = 0; i < sampled_P_3D_.size(); ++i) {
     query_point << sampled_P_3D_[i].x, sampled_P_3D_[i].y, sampled_P_3D_[i].z;
 
-    typename Super4PCS::KdTree<Scalar>::Index resId =
+    Super4PCS::KdTree<Scalar>::Index resId =
     kd_tree_.doQueryRestrictedClosest(query_point, P_diameter_ * kDiameterFraction, i);
 
     if (resId != Super4PCS::KdTree<Scalar>::invalidIndex()) {
@@ -772,7 +773,7 @@ MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
 #ifdef TEST_GLOBAL_TIMINGS
     Timer t (true);
 #endif
-    typename Super4PCS::KdTree<Scalar>::Index resId =
+    Super4PCS::KdTree<Scalar>::Index resId =
     kd_tree_.doQueryRestrictedClosest(
                 (mat * pcfunctor_.getPointInWorldCoord( i ).homogeneous()).head<3>(),
                 sq_eps);
@@ -1417,7 +1418,7 @@ bool MatchSuper4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
     cv::eigen2cv( transform_, *transformation );
 
     // Transforms Q by the new transformation.
-    for (int i = 0; i < Q->size(); ++i) {
+    for (unsigned int i = 0; i < Q->size(); ++i) {
       cv::Mat first(4, 1, CV_64F), transformed;
       first.at<double>(0, 0) = (*Q)[i].x;
       first.at<double>(1, 0) = (*Q)[i].y;

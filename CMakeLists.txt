@@ -51,6 +51,27 @@ if( NOT cmake_build_type_tolower STREQUAL "release" )
   add_definitions(-DDEBUG)
 endif()
 
+if (MSVC)
+  if (MSVC_VERSION LESS 1900)
+	message(FATAL_ERROR "Requires Microsoft Visual Studio Compiler version 14.0 or above.")
+  endif()
+endif()
+
+# Add the c++11 flag, whatever it is
+# This test is by-passed for MSVC compiler, which support C++11 features natively
+# without requiring a flag (after version 1800)
+include(CheckCXXCompilerFlag)
+if (NOT MSVC)
+  CHECK_CXX_COMPILER_FLAG(-std=c++11 COMPILER_SUPPORTS_CXX11)
+  CHECK_CXX_COMPILER_FLAG(-std=c++0x COMPILER_SUPPORTS_CXX0X)
+  if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  elseif(COMPILER_SUPPORTS_CXX0X)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+  else()
+	message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+  endif()
+endif()
 
 ################################################################################
 ## Apply user-defined configuration
@@ -68,18 +89,6 @@ endif (${ENABLE_TIMING})
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/chealpix EXCLUDE_FROM_ALL)
 include_directories(${Chealpix_INCLUDE_DIR})
-
-#Add the c++11 flag, whatever it is
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG(-std=c++11 COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG(-std=c++0x COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-  message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
 
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR}) 
@@ -99,7 +108,11 @@ IF(DEFINED ANN_DIR)
   set(ANN_INCLUDE_DIR "${ANN_DIR}/include")
   include_directories( ${ANN_INCLUDE_DIR} )
   
-  set(ANN_LIBS "${ANN_DIR}/lib/libANN.a")
+  if (MSVC)
+	set(ANN_LIBS "${ANN_DIR}/lib/libANN.dll")
+  else()
+	set(ANN_LIBS "${ANN_DIR}/lib/libANN.a")
+  endif()
 ENDIF(DEFINED ANN_DIR)
 
 
@@ -107,8 +120,10 @@ ENDIF(DEFINED ANN_DIR)
 ## Tests
 ################################################################################
 
-include(cmake/ConfigureTesting.cmake)
-add_subdirectory(tests EXCLUDE_FROM_ALL)
+if(DEFINED ${SUPER4PCS_BUILD_TEST})
+	include(cmake/ConfigureTesting.cmake)
+	add_subdirectory(tests EXCLUDE_FROM_ALL)
+endif(DEFINED ${SUPER4PCS_BUILD_TEST})
 
 ################################################################################
 ## Project files

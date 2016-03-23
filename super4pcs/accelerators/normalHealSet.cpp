@@ -85,10 +85,11 @@ IndexedNormalHealSet::getNeighbors(
   const Point& p, 
   std::vector<unsigned int>&nei)
 {
+  using ChealMapIterator = ChealMap::const_iterator;
   ChealMap* grid = getMap(p);
   if ( grid == NULL ) return;
   
-  for(typename ChealMap::const_iterator it = grid->cbegin();
+  for(ChealMapIterator it = grid->cbegin();
       it != grid->cend(); it++){
     const std::vector<unsigned int>& lnei = *it;
     nei.insert( nei.end(), lnei.begin(), lnei.end() );
@@ -123,7 +124,7 @@ IndexedNormalHealSet::getNeighbors(
   
   const double alpha          = std::acos(cosAlpha);
   //const double perimeter      = double(2) * M_PI * std::atan(alpha);
-  const unsigned int nbSample = pow(2,_resolution+1);
+  const unsigned int nbSample = std::pow(2,_resolution+1);
   const double angleStep      = double(2) * M_PI / double(nbSample);
 
   
