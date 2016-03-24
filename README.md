@@ -5,6 +5,8 @@ Copyright 2014 Nicolas Mellado
 
 Authors: Nicolas Mellado, Dror Aiger
 
+##News
+* 23th March 2016: Super4PCS can now be compiled with Visual Studio 2015! Checkout the [Wiki](http://github.com/nmellado/Super4PCS/wiki) for more details.
 
 ##Related pages
 * [Paper project page](http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS)
