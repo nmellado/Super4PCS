@@ -267,60 +267,6 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)\3rdparty\cfitsio\CMakeLists.txt">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building Custom Rule $(SolutionDir)\3rdparty/cfitsio/CMakeLists.txt</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building Custom Rule $(SolutionDir)\3rdparty/cfitsio/CMakeLists.txt</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule $(SolutionDir)\3rdparty/cfitsio/CMakeLists.txt</Message>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule $(SolutionDir)\3rdparty/cfitsio/CMakeLists.txt</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
-"F:\Program Files (x86)\CMake\bin\cmake.exe" -H$(SolutionDir)\3rdparty/cfitsio -B$(SolutionDir)\3rdparty/cfitsio/cfitsio.build --check-stamp-file $(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
-"F:\Program Files (x86)\CMake\bin\cmake.exe" -H$(SolutionDir)\3rdparty/cfitsio -B$(SolutionDir)\3rdparty/cfitsio/cfitsio.build --check-stamp-file $(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-"F:\Program Files (x86)\CMake\bin\cmake.exe" -H$(SolutionDir)\3rdparty/cfitsio -B$(SolutionDir)\3rdparty/cfitsio/cfitsio.build --check-stamp-file $(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-"F:\Program Files (x86)\CMake\bin\cmake.exe" -H$(SolutionDir)\3rdparty/cfitsio -B$(SolutionDir)\3rdparty/cfitsio/cfitsio.build --check-stamp-file $(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\3rdparty/cfitsio/CMakeLists.txt;$(SolutionDir)\3rdparty\cfitsio\CMakeLists.txt;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInitialize.cmake;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCCompiler.cmake;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCXXCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeGenericSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\WindowsPaths.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-C.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeRCCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeRCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCXXInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Compiler\MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;$(SolutionDir)\3rdparty\cfitsio\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\3rdparty/cfitsio/CMakeLists.txt;$(SolutionDir)\3rdparty\cfitsio\CMakeLists.txt;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInitialize.cmake;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCCompiler.cmake;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCXXCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeGenericSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\WindowsPaths.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-C.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeRCCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeRCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCXXInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Compiler\MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;$(SolutionDir)\3rdparty\cfitsio\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\3rdparty/cfitsio/CMakeLists.txt;$(SolutionDir)\3rdparty\cfitsio\CMakeLists.txt;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInitialize.cmake;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCCompiler.cmake;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCXXCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeGenericSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\WindowsPaths.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-C.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeRCCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeRCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCXXInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Compiler\MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;$(SolutionDir)\3rdparty\cfitsio\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\3rdparty/cfitsio/CMakeLists.txt;$(SolutionDir)\3rdparty\cfitsio\CMakeLists.txt;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInitialize.cmake;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCCompiler.cmake;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeCXXCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeSystemSpecificInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeGenericSystem.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\WindowsPaths.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-C.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\3.4.0-rc2\CMakeRCCompiler.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeRCInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCXXInformation.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Compiler\MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC-CXX.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\Platform\Windows-MSVC.cmake;F:\Program Files (x86)\CMake\share\cmake-3.4\Modules\CMakeCommonLanguageInclude.cmake;$(SolutionDir)\3rdparty\cfitsio\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp</Outputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\3rdparty\cfitsio\cfitsio.build\CMakeFiles\generate.stamp</Outputs>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
-      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
-    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SolutionDir)\3rdparty\cfitsio\cfortran.h" />
