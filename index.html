@@ -1,42 +1,45 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Super4pcs by nmellado</title>
+    <meta name="description" content="Super4pcs : Fast Global Pointcloud Registration via Smart Indexing">
 
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Super4pcs</title>
   </head>
+
   <body>
-    <div class="wrapper">
-      <header>
-        <h1>Super4pcs</h1>
-        <p>Fast Global Pointcloud Registration via Smart Indexing</p>
 
-        <p class="view"><a href="https://github.com/nmellado/Super4PCS">View the Project on GitHub <small>nmellado/Super4PCS</small></a></p>
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/nmellado/Super4PCS">View on GitHub</a>
 
+          <h1 id="project_title">Super4pcs</h1>
+          <h2 id="project_tagline">Fast Global Pointcloud Registration via Smart Indexing</h2>
 
-        <ul>
-          <li><a href="https://github.com/nmellado/Super4PCS/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/nmellado/Super4PCS/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/nmellado/Super4PCS">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
-      <section>
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/nmellado/Super4PCS/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/nmellado/Super4PCS/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
         <h1>
-<a name="super4pcs" class="anchor" href="#super4pcs"><span class="octicon octicon-link"></span></a>Super4PCS</h1>
+<a id="super4pcs" class="anchor" href="#super4pcs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Super4PCS</h1>
 
 <p>Copyright 2014 Nicolas Mellado</p>
 
 <p>Authors: Nicolas Mellado, Dror Aiger</p>
 
 <h2>
-<a name="overview" class="anchor" href="#overview"><span class="octicon octicon-link"></span></a>Overview</h2>
+<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h2>
 
 <p>An implementation of the Super 4-points Congruent Sets (Super 4PCS) 
 algorithm presented in:</p>
@@ -51,12 +54,12 @@ Symposium on Geometry Processing 2014.</p>
 the number of data points) and is also output sensitive in the complexity of the alignment problem based on the (unknown) overlap across scan pairs. Technically, we map the algorithm as an ‘instance problem’ and solve it efficiently using a smart indexing data organization. The algorithm is simple, memory-efficient, and fast. We demonstrate that Super 4PCS results in significant speedup over alternative approaches and allows unstructured efficient acquisition of scenes at scales previously not possible. Complete source code and datasets are available for research use at <a href="http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/">http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/</a>.</p>
 
 <h2>
-<a name="development-state" class="anchor" href="#development-state"><span class="octicon octicon-link"></span></a>Development state</h2>
+<a id="development-state" class="anchor" href="#development-state" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Development state</h2>
 
 <p>I am currently working on the source code to clean it and define a stable API. More interesting updates will come soon !</p>
 
 <h3>
-<a name="test" class="anchor" href="#test"><span class="octicon octicon-link"></span></a>Test</h3>
+<a id="test" class="anchor" href="#test" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Test</h3>
 
 <p>Tests are currently under active development (see <a href="http://my.cdash.org/index.php?project=Super4PCS">CDash</a>). More tests will be added soon.</p>
 
@@ -70,10 +73,10 @@ the number of data points) and is also output sensitive in the complexity of the
 </ul>
 
 <h2>
-<a name="compilation" class="anchor" href="#compilation"><span class="octicon octicon-link"></span></a>Compilation</h2>
+<a id="compilation" class="anchor" href="#compilation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compilation</h2>
 
 <h3>
-<a name="dependencies" class="anchor" href="#dependencies"><span class="octicon octicon-link"></span></a>Dependencies:</h3>
+<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Dependencies:</h3>
 
 <ul>
 <li><a href="http://eigen.tuxfamily.org/">Eigen</a></li>
@@ -86,7 +89,7 @@ the number of data points) and is also output sensitive in the complexity of the
 <p>Super4PCS also requires <a href="http://healpix.jpl.nasa.gov/html/csubnode4.htm">Chealpix</a>, but we included it in the source tree to ease the installation procedure.</p>
 
 <h3>
-<a name="compiling" class="anchor" href="#compiling"><span class="octicon octicon-link"></span></a>Compiling</h3>
+<a id="compiling" class="anchor" href="#compiling" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compiling</h3>
 
 <p>The simplest solution is to use cmake, from the source directory:</p>
 
@@ -101,7 +104,7 @@ cmake -DANN_DIR=/your/path/to/ann_1.1.2/ ..
 However, ANN doesn't come with a cmake package, so you need to set its path by hand (this will be fixed later).</p>
 
 <h3>
-<a name="compilation-error" class="anchor" href="#compilation-error"><span class="octicon octicon-link"></span></a>Compilation error</h3>
+<a id="compilation-error" class="anchor" href="#compilation-error" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compilation error</h3>
 
 <p>You may encounter compilation issues when compiling with old versions of Eigen and C++11:</p>
 
@@ -127,23 +130,28 @@ However, ANN doesn't come with a cmake package, so you need to set its path by h
 </ul>
 
 <h2>
-<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
 
 <p>A good starting point is to call the enclosed script <code>./run-example.sh</code>.</p>
 
 <p>More details about parameter setting will be added soon. In the meantime please contact us to get support on parameter tuning (see section below).</p>
 
 <h2>
-<a name="contact" class="anchor" href="#contact"><span class="octicon octicon-link"></span></a>Contact</h2>
+<a id="contact" class="anchor" href="#contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contact</h2>
 
 <p>Please feel free to contact us if you have any question regarding this source code (see the <a href="http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/">project page</a> for contact information).</p>
       </section>
-      <footer>
-        <p>This project is maintained by <a href="https://github.com/nmellado">nmellado</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Super4pcs maintained by <a href="https://github.com/nmellado">nmellado</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
       </footer>
     </div>
-    <script src="javascripts/scale.fix.js"></script>
+
     
+
   </body>
 </html>
