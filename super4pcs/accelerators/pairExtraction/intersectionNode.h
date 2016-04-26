@@ -236,16 +236,10 @@ NdNode< Point, _dim, Scalar, _PointContainer, _IdContainer>::split(
       }
     }
   }
-  
-  
+
   // Remove childs not containing any element
-  for(typename Container::iterator it  = childs.begin()+offset; 
-                                        it != childs.end(); ){
-    if((*it).rangeLength() == 0)
-      childs.erase(it);
-    else
-      it++;
-  }
+  childs.erase(std::remove_if(childs.begin(), childs.end(), [](auto& c)
+    {return c.rangeLength() == 0; }));
 }
 
 } // namespace Accelerators
