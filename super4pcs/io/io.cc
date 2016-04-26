@@ -347,6 +347,9 @@ IOManager::WriteObj(string filename, const vector<Point3D> &v,
     else if (tex_coords.size())
       f << "f " << tris[i].a << "/" << tris[i].t1 << " " << tris[i].b << "/"
         << tris[i].t2 << " " << tris[i].c << "/" << tris[i].t3 << endl;
+    else
+        f << "f " << tris[i].a << "/" << tris[i].n1 << " " << tris[i].b << "/"
+        << tris[i].n2 << " " << tris[i].c << "/" << tris[i].n3 << endl;
   }
 
   f.close();
