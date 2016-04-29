@@ -48,6 +48,7 @@
 #include <memory>
 
 #include <opencv2/core/core.hpp>
+#include "Eigen/Core"
 
 
 namespace match_4pcs {
@@ -88,6 +89,11 @@ class Point3D : public cv::Point3f {
       normal_(other.normal_),
       rgb_(other.rgb_),
       hsv_(other.hsv_) {}
+  template<typename Scalar>
+  explicit inline Point3D(const Eigen::Matrix<Scalar, 3, 1>& other):
+      cv::Point3f(other(0), other(1), other(2)){
+  }
+
   inline Point3D() : cv::Point3f(0.0f, 0.0f, 0.0f) {}
   inline const cv::Vec3f& rgb() const { return rgb_; }
   inline const cv::Vec3f& hsv() const { return hsv_; }
