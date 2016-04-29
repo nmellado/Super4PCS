@@ -166,6 +166,9 @@ void testFunction( Scalar epsilon,
       std::vector< std::pair<int,int> >pairs2;
       std::vector< Point > &points;
       Scalar epsilon;
+      inline ExtractFunctor(std::vector< Point > &p) : points(p) {}
+
+      inline
       void process(int i, int j){
           if (i>j){
               if (std::abs(  (points[j] - points[i]).norm()
@@ -179,9 +182,8 @@ void testFunction( Scalar epsilon,
           }
       }
   };
-  ExtractFunctor extractfunctor;
+  ExtractFunctor extractfunctor (points);
   extractfunctor.basis  = basis;
-  extractfunctor.points = points;
   extractfunctor.epsilon = epsilon;
 
   //extract pairs
