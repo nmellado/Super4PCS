@@ -203,8 +203,8 @@ void testFunction( Scalar epsilon,
   /// quadrangles extraction
 
   // Compute the angle formed by the two vectors of the basis
-  Point3D b1 = basis.b - basis.a;  b1.normalize();
-  Point3D b2 = basis.d - basis.c;  b2.normalize();
+  Point3D b1 ((basis.b - basis.a).eval());  b1.normalize();
+  Point3D b2 ((basis.d - basis.c).eval());  b2.normalize();
   double alpha = b1.dot(b2);
 
 
