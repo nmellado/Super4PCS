@@ -115,6 +115,14 @@ public:
     // We need to check if epsilon is a power of two and correct it if needed
     const int gridDepth = -std::log2(epsilon);
     _egSize = std::pow(2,gridDepth);
+
+	if (gridDepth <= 0 || !isValid())
+		throw std::invalid_argument(
+			std::string("[IndexedNormalHealSet] Invalid configuration (depth=") +
+			std::to_string(gridDepth) +
+			std::string(", size=") +
+			std::to_string(_egSize) +
+			std::string(")"));
     _grid = std::vector<ChealMap*> (std::pow(_egSize, 3), NULL);
     
     _ngLength = nside2npix(resolution);
@@ -190,6 +198,10 @@ public:
                      const Point& n,
                      double alpha,
                      std::vector<unsigned int>&nei);
+
+  inline bool isValid() const {
+	  return _egSize > 0;
+  }
 
 }; // class IndexedNormalHealSet
 } // namespace Super4PCS
