@@ -167,14 +167,27 @@ int main(int argc, char **argv) {
   // Match and return the score (estimated overlap or the LCP).  
   float score = 0;
   
-  if(use_super4pcs){
-    MatchSuper4PCS matcher(options);
-    cout << "Use Super4PCS" << endl;
-    score = matcher.ComputeTransformation(set1, &set2, &mat);
-  }else{
-    Match4PCS matcher(options);
-    cout << "Use old 4PCS" << endl;
-    score = matcher.ComputeTransformation(set1, &set2, &mat);  
+  try {
+
+	  if (use_super4pcs) {
+		  MatchSuper4PCS matcher(options);
+		  cout << "Use Super4PCS" << endl;
+		  score = matcher.ComputeTransformation(set1, &set2, &mat);
+	  }
+	  else {
+		  Match4PCS matcher(options);
+		  cout << "Use old 4PCS" << endl;
+		  score = matcher.ComputeTransformation(set1, &set2, &mat);
+	  }
+  }
+  catch (const std::exception& e) {
+	  std::cout << "[Error]: " << e.what() << '\n';
+	  std::cout << "Aborting with code -2 ..." << std::endl;
+	  return -2;
+  }
+  catch (...) {
+	  std::cout << "[Unknown Error]: Aborting with code -3 ..." << std::endl;
+	  return -3;
   }
 
   cout << "Score: " << score << endl;
