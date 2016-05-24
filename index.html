@@ -31,115 +31,28 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h1>
-<a id="super4pcs" class="anchor" href="#super4pcs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Super4PCS</h1>
+      
+        <img src="images/cam_0.jpg" alt="Mountain View" style="width:100%;">
+        <p>
+        The Super4PCS library provides you the most efficient way to <strong>register</strong> point-clouds acquired by any 3D acquisition device: 3D scans, Lidar, photogrammetry, etc. Clouds can be structured (range maps, 360&deg;) or not. Normals and color are not required, but can used when available.
+        </p>
 
-<p>Copyright 2014 Nicolas Mellado</p>
-
-<p>Authors: Nicolas Mellado, Dror Aiger</p>
-
-<h2>
-<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h2>
-
-<p>An implementation of the Super 4-points Congruent Sets (Super 4PCS) 
-algorithm presented in:</p>
-
-<blockquote>
-<p>Super 4PCS: Fast Global Pointcloud Registration via Smart Indexing
-Nicolas Mellado, Dror Aiger, Niloy J. Mitra
-Symposium on Geometry Processing 2014.</p>
-</blockquote>
-
-<p>Data acquisition in large-scale scenes regularly involves accumulating information across multiple scans. A common approach is to locally align scan pairs using Iterative Closest Point (ICP) algorithm (or its variants), but requires static scenes and small motion between scan pairs. This prevents accumulating data across multiple scan sessions and/or different acquisition modalities (e.g., stereo, depth scans). Alternatively, one can use a global registration algorithm allowing scans to be in arbitrary initial poses. The state-of-the-art global registration algorithm, 4PCS, however has a quadratic time complexity in the number of data points. This vastly limits its applicability to acquisition of large environments. We present Super 4PCS for global pointcloud registration that is optimal, i.e., runs in linear time (in 
-the number of data points) and is also output sensitive in the complexity of the alignment problem based on the (unknown) overlap across scan pairs. Technically, we map the algorithm as an ‘instance problem’ and solve it efficiently using a smart indexing data organization. The algorithm is simple, memory-efficient, and fast. We demonstrate that Super 4PCS results in significant speedup over alternative approaches and allows unstructured efficient acquisition of scenes at scales previously not possible. Complete source code and datasets are available for research use at <a href="http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/">http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/</a>.</p>
-
-<h2>
-<a id="development-state" class="anchor" href="#development-state" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Development state</h2>
-
-<p>I am currently working on the source code to clean it and define a stable API. More interesting updates will come soon !</p>
-
-<h3>
-<a id="test" class="anchor" href="#test" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Test</h3>
-
-<p>Tests are currently under active development (see <a href="http://my.cdash.org/index.php?project=Super4PCS">CDash</a>). More tests will be added soon.</p>
-
-<p>To submit the result of the test from your computer, go into your <code>build</code> directory, and run <code>ctest -D Experimental</code>. </p>
-
-<p>Tests currently available:</p>
-
-<ul>
-<li>pair_extraction: generate random point clouds in 2, 3 and 4D, and query the pair generation structure with various radius.</li>
-<li>matching: test the whole Super4PCS pipeline by registering range maps of the standford repository. You need an internet connection to build this test, since the datasets are downloaded at this time.</li>
-</ul>
-
-<h2>
-<a id="compilation" class="anchor" href="#compilation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compilation</h2>
-
-<h3>
-<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Dependencies:</h3>
-
-<ul>
-<li><a href="http://eigen.tuxfamily.org/">Eigen</a></li>
-<li><a href="http://www.cs.umd.edu/%7Emount/ANN/">LibANN</a></li>
-<li><a href="http://opencv.org/">OpenCV</a></li>
-<li>
-<a href="http://heasarc.gsfc.nasa.gov/fitsio/fitsio.html">CFITSIO</a>, a dependency of chealpix. Both ubuntu and debian provide a virtual package 'cfitsio-dev'.</li>
-</ul>
-
-<p>Super4PCS also requires <a href="http://healpix.jpl.nasa.gov/html/csubnode4.htm">Chealpix</a>, but we included it in the source tree to ease the installation procedure.</p>
-
-<h3>
-<a id="compiling" class="anchor" href="#compiling" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compiling</h3>
-
-<p>The simplest solution is to use cmake, from the source directory:</p>
-
-<pre><code>mkdir build
-cd build
-cmake -DANN_DIR=/your/path/to/ann_1.1.2/ ..
-</code></pre>
-
-<p>Note: For now Super4PCS has been tested on Linux plateforms (Ubuntu, Debian).</p>
-
-<p>Chealpix sources are now part of the Super4PCS repository and are compiled automatically.
-However, ANN doesn't come with a cmake package, so you need to set its path by hand (this will be fixed later).</p>
-
-<h3>
-<a id="compilation-error" class="anchor" href="#compilation-error" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compilation error</h3>
-
-<p>You may encounter compilation issues when compiling with old versions of Eigen and C++11:</p>
-
-<pre><code>/somePath/eigen3/Eigen/src/Core/util/Macros.h:252:35: error: unable to find string literal operator ‘operator""X’
- #define EIGEN_ASM_COMMENT(X)  asm("#"X)
-                                    ^
-/somePath/eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h:604:1: note: in expansion of macro ‘EIGEN_ASM_COMMENT’
- EIGEN_ASM_COMMENT("mybegin2");
- ^
-</code></pre>
-
-<p>You can easily fix it by:</p>
-
-<ul>
-<li>update and use an up-to-date version of <a href="http://eigen.tuxfamily.org/">Eigen</a>. You may need to call</li>
-</ul>
-
-<pre><code>cmake -DEIGEN3_INCLUDE_DIR=/your/path/to/eigen/ ..
-</code></pre>
-
-<ul>
-<li>Not recommended: modify one line in Eigen sources (Instructions <a href="https://sourceforge.net/p/pagmo/mailman/message/30074799/">here</a>).</li>
-</ul>
-
-<h2>
-<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
-
-<p>A good starting point is to call the enclosed script <code>./run-example.sh</code>.</p>
-
-<p>More details about parameter setting will be added soon. In the meantime please contact us to get support on parameter tuning (see section below).</p>
-
-<h2>
-<a id="contact" class="anchor" href="#contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contact</h2>
-
-<p>Please feel free to contact us if you have any question regarding this source code (see the <a href="http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/">project page</a> for contact information).</p>
+        <p>
+        Super4PCS library is <strong>light</strong>, <strong>efficient</strong>, and <strong>robust</strong> to typical acquisition artifacts:  missing data, noise, variation of sampling, etc ; no assumptions are made about the represented shape, and the initial poses of the clouds. 
+        And of course, all of this is open-source.
+        </p>
+         
+        <hr>
+        
+        <p>This website is currently under construction: we are preparing <strong>tutorials</strong>, <strong>test-cases</strong>, <strong>FAQ</strong>, etc.
+        In the meantime, you may want to visit:
+        <ul>
+            <li>The <a href="http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS" target="_blank">paper project page</a>,</li>
+            <li>Our <a href="http://github.com/nmellado/Super4PCS" target="_blank">github repository</a>,</li>
+            <li>Our <a href="http://github.com/nmellado/Super4PCS/wiki" target="_blank">Wiki</a> pages.</li>
+        </ul>
+        </p>
+ 
       </section>
     </div>
 
