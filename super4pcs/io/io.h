@@ -48,6 +48,20 @@ public:
 private:
   bool
   ReadPly(const char *name, vector<Point3D> &v, vector<cv::Point3f> &normals);
+
+  /*!
+   * \brief ReadPtx
+   * \param name
+   * \param v
+   * \return
+   *
+   * \note Transformations declared in file are ignored
+   *
+   * Implementation inspired by
+   *            http://github.com/adasta/pcl_io_extra/blob/master/src/ptx_io.cpp
+   */
+  bool
+  ReadPtx(const char *name, vector<Point3D> &v);
   
   bool 
   ReadObj(const char *name, vector<Point3D> &v, vector<cv::Point2f> &tex_coords,

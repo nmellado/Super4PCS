@@ -1,6 +1,10 @@
 #include "io.h"
 #include "io_ply.h"
 
+#include <Eigen/Geometry>
+
+#define LINE_BUF_SIZE 100
+
 using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -21,6 +25,8 @@ IOManager::ReadObject(
     return ReadPly (name, v, normals);
   if ( ext.compare ("obj") == 0 )
     return ReadObj (name, v, tex_coords, normals, tris, mtls);
+  if ( ext.compare ("ptx") == 0 )
+    return ReadPtx (name, v);
   
   std::cerr << "Unsupported file format" << std::endl;  
   return false;
@@ -63,6 +69,64 @@ IOManager::ReadPly(const char *filename,
   }
   
   return false;
+}
+
+
+bool IOManager::ReadPtx(const char *filename, vector<Point3D> &vertex)
+{
+    fstream f(filename, ios::in);
+    if (!f || f.fail()) {
+        cerr << "(PTX) error opening file" << endl;
+        return false;
+    }
+
+
+    int numOfVertices;
+    int rows, cols;
+    char line[LINE_BUF_SIZE];
+
+    {
+        f.getline(line,LINE_BUF_SIZE);
+        std::stringstream ss(line); ss >> cols;
+    }
+    {
+        f.getline(line,LINE_BUF_SIZE);
+        std::stringstream ss(line); ss >> rows;
+    }
+
+    numOfVertices = cols*rows;
+
+    // skip matrices declaration
+    for(int i=0; i<8; i++) f.getline(line,LINE_BUF_SIZE);
+
+    Point3D ptx;
+    float intensity;
+    cv::Vec3f rgb;
+
+    vertex.clear();
+    vertex.reserve(numOfVertices);
+
+
+    for (unsigned int i = 0; i < numOfVertices && ! f.eof(); i++) {
+        f.getline(line,LINE_BUF_SIZE);
+        std::stringstream ss(line);
+
+        ss >> ptx.x;
+        ss >> ptx.y;
+        ss >> ptx.z;
+        ss >> intensity;
+        ss >> rgb[0];
+        ss >> rgb[1];
+        ss >> rgb[2];
+
+        ptx.set_rgb(rgb);
+
+        vertex.push_back( ptx );
+    }
+
+    f.close();
+
+    return vertex.size() == numOfVertices;
 }
 
 bool 
