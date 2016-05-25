@@ -46,7 +46,7 @@ public:
                    const vector<cv::Point2f> &tex_coords, const vector<cv::Point3f> &normals,
                    const vector<tripple> &tris, const vector<string> &mtls);
 private:
-  bool 
+  bool
   ReadPly(const char *name, vector<Point3D> &v, vector<cv::Point3f> &normals);
   
   bool 
