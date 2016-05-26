@@ -221,22 +221,24 @@ readBinary1Body (const std::string & filename,
     }
     delete [] v;
 
-    if (feof (in)){
-        cerr << "(PLY) incomplete file" << endl;
-        return false;
-    }
+    if (numOfFaces != 0){
+        if (feof (in)){
+            cerr << "(PLY) incomplete file" << endl;
+            return false;
+        }
 
-    // *****************
-    // Reading topology.
-    // *****************
-    for (unsigned int i = 0; i < numOfFaces && !feof (in); i++) {
-        unsigned int f[4];
-        char polygonSize;
-        /*count = */fread (&polygonSize, 1, 1, in);
-        /*count = */fread (f, 4, 3, in);
-        if (bigEndian == true)
-            bigLittleEndianSwap (f, 3);
-        face.push_back(tripple(f[0],f[1],f[2]));
+        // *****************
+        // Reading topology.
+        // *****************
+        for (unsigned int i = 0; i < numOfFaces && !feof (in); i++) {
+            unsigned int f[4];
+            char polygonSize;
+            /*count = */fread (&polygonSize, 1, 1, in);
+            /*count = */fread (f, 4, 3, in);
+            if (bigEndian == true)
+                bigLittleEndianSwap (f, 3);
+            face.push_back(tripple(f[0],f[1],f[2]));
+        }
     }
 
     return true;
@@ -335,19 +337,21 @@ readASCII1Body (const std::string & filename,
         }
     }
 
-    if (feof (in)){
-        cerr << "(PLY) incomplete file" << endl;
-        return false;
-    }
+    if (numOfFaces != 0){
+        if (feof (in)){
+            cerr << "(PLY) incomplete file" << endl;
+            return false;
+        }
 
-    // *****************
-    // Reading topology.
-    // *****************
-    for (unsigned int i = 0; i < numOfFaces && !feof (in); i++) {
-        int f[3];
-        int polygonSize;
-        /*count = */fscanf (in, "%d %d %d %d", &polygonSize, &f[0], &f[1], &f[2]);
-        face.push_back(tripple(f[0],f[1],f[2]));
+        // *****************
+        // Reading topology.
+        // *****************
+        for (unsigned int i = 0; i < numOfFaces && !feof (in); i++) {
+            int f[3];
+            int polygonSize;
+            /*count = */fscanf (in, "%d %d %d %d", &polygonSize, &f[0], &f[1], &f[2]);
+            face.push_back(tripple(f[0],f[1],f[2]));
+        }
     }
 
     return true;
