@@ -23,7 +23,7 @@ std::string input2 = "input2.obj";
 // Output. The transformed second input.
 std::string output = "output.obj";
 
-// Output. The transformed second input.
+// Transformation matrice.
 std::string outputMat = "";
 
 // Delta (see the paper).
