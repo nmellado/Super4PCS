@@ -389,8 +389,7 @@ IOManager::WritePly(string filename,
   }
     
   plyFile.close();
-  
-  cout << "Merged object was written to " << filename.c_str() << endl;
+
   return true;
 }
 
@@ -441,8 +440,7 @@ IOManager::WriteObj(string filename, const vector<Point3D> &v,
   }
 
   f.close();
-  
-  cout << "Merged object was written to " << filename.c_str() << endl;
+
   return true;
 }
 
