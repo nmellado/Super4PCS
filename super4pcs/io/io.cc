@@ -292,8 +292,32 @@ IOManager::WriteObject(const char *name,
                     tris, 
                     mtls);
   }
-                 
+
 }
+
+bool IOManager::WriteMatrix(const string &name,
+                            const cv::Mat &mat,
+                            IOManager::MATRIX_MODE mode)
+{
+    std::ofstream sstr;
+    sstr.open(name, std::ofstream::out | std::ofstream::trunc);
+
+    bool status = false;
+
+    switch (mode) {
+    case POLYWORKS:
+        formatPolyworksMatrix(mat, sstr);
+        status = true;
+        break;
+    default:
+        break;
+    }
+
+    sstr.close();
+
+    return status;
+}
+
 bool
 IOManager::WritePly(string filename,
                     const vector<Point3D> &v,
@@ -423,6 +447,27 @@ IOManager::WriteObj(string filename, const vector<Point3D> &v,
 }
 
 
+
+std::ofstream &
+IOManager::formatPolyworksMatrix(const cv::Mat& mat, std::ofstream &sstr) {
+
+    auto formatValue = [](const double& v){
+        return (v >= 0.
+                ? std::string(" ") + std::to_string(v)
+                : std::to_string(v));
+    };
+
+    sstr << "VERSION\t=\t1\n";
+    sstr << "MATRIX\t=\n";
+    for (int j = 0; j!= 4; ++j){
+        sstr << formatValue(mat.at<double>(j, 0)) << "  "
+             << formatValue(mat.at<double>(j, 1)) << "  "
+             << formatValue(mat.at<double>(j, 2)) << "  "
+             << formatValue(mat.at<double>(j, 3)) << "\n";
+    }
+
+    return sstr;
+}
 
 
 

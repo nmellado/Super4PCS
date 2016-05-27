@@ -36,6 +36,10 @@ using namespace std;
 using namespace match_4pcs;
 
 class IOManager{
+public:
+  enum MATRIX_MODE {
+      POLYWORKS //! <\brief Matrix file to be loaded and applied to polyworks layers
+  };
 
 public:
   // Obj read/write simple functions.
@@ -45,6 +49,8 @@ public:
   bool WriteObject(const char *name, const vector<Point3D> &v,
                    const vector<cv::Point2f> &tex_coords, const vector<cv::Point3f> &normals,
                    const vector<tripple> &tris, const vector<string> &mtls);
+
+  bool WriteMatrix(const string& name, const cv::Mat& mat, MATRIX_MODE mode);
 private:
   bool
   ReadPly(const char *name, vector<Point3D> &v, vector<cv::Point3f> &normals);
@@ -75,6 +81,16 @@ private:
   WriteObj(string name, const vector<Point3D> &v,
            const vector<cv::Point2f> &tex_coords, const vector<cv::Point3f> &normals,
            const vector<tripple> &tris, const vector<string> &mtls);
+
+
+  /*!
+   * \brief formatPolyworksMatrix Format 4x4 matrice so it can be loaded by polyworks
+   * \param mat
+   * \param sstr
+   * \return
+   */
+  std::ofstream &
+  formatPolyworksMatrix(const cv::Mat& mat, std::ofstream &sstr);
 }; // class IOMananger
 
 #endif // IO_H

@@ -23,6 +23,9 @@ std::string input2 = "input2.obj";
 // Output. The transformed second input.
 std::string output = "output.obj";
 
+// Output. The transformed second input.
+std::string outputMat = "";
+
 // Delta (see the paper).
 double delta = 5.0;
 
@@ -68,6 +71,8 @@ void getArgs(int argc, char **argv) {
       n_points = atoi(argv[++i]);
     } else if (!strcmp(argv[i], "-r")) {
       output = argv[++i];
+    } else if (!strcmp(argv[i], "-m")) {
+      outputMat = argv[++i];
     } else if (!strcmp(argv[i], "-x")) {
       use_super4pcs = false;
     } else if (!strcmp(argv[i], "-h")) {
@@ -79,6 +84,7 @@ void getArgs(int argc, char **argv) {
       fprintf(stderr, "\t[ -c max_color_diff (%f) ]\n", max_color);
       fprintf(stderr, "\t[ -t max_time_seconds (%d) ]\n", max_time_seconds);
       fprintf(stderr, "\t[ -r result_file_name (%s) ]\n", output.c_str());
+      fprintf(stderr, "\t[ -m output matrix file (%s) ]\n", outputMat.c_str());
       fprintf(stderr, "\t[ -x (use 4pcs: false by default) ]\n");
       exit(0);
     } else if (argv[i][0] == '-') {
@@ -203,6 +209,16 @@ int main(int argc, char **argv) {
       mat.at<double>(2, 1), mat.at<double>(2, 2), mat.at<double>(2, 3),
       mat.at<double>(3, 0), mat.at<double>(3, 1), mat.at<double>(3, 2),
       mat.at<double>(3, 3));
+
+
+  if(! outputMat.empty() ){
+      std::cout << "Exporting Matrix to "
+                << outputMat.c_str()
+                << "..." << std::flush;
+      iomananger.WriteMatrix(outputMat, mat, IOManager::POLYWORKS);
+      std::cout << "DONE" << std::endl;
+  }
+
 
   // If the default images are the input then we need to test the result.
   if (input1 == "input1.obj" && input2 == "input2.obj") {  // test!
