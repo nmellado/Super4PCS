@@ -127,7 +127,7 @@ inline float PointsDistance(const Point3D& p, const Point3D& q) {
 // bellow). This is done because the solution for planar points is much
 // simpler.
 // The method is the closed-form solution by Horn:
-// people.csail.mit.edu/bkph/papers/Absolute_Orientation.pdf‎
+// people.csail.mit.edu/bkph/papers/Absolute_Orientation.pdf
 double ComputeRigidTransformation(vector<pair<Point3D, Point3D>>* pairs,
                                   cv::Mat* rotation, cv::Point3f* translation,
                                   cv::Point3f* center) {

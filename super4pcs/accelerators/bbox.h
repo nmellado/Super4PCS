@@ -36,7 +36,7 @@
 // global pointcloud registration that is optimal, i.e., runs in linear time (in
 // the number of data points) and is also output sensitive in the complexity of
 // the alignment problem based on the (unknown) overlap across scan pairs.
-// Technically, we map the algorithm as an ‘instance problem’ and solve it
+// Technically, we map the algorithm as an 'instance problem' and solve it 
 // efficiently using a smart indexing data organization. The algorithm is
 // simple, memory-efficient, and fast. We demonstrate that Super 4PCS results in
 // significant speedup over alternative approaches and allows unstructured
