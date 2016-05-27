@@ -21,7 +21,9 @@ std::string input1 = "input1.obj";
 std::string input2 = "input2.obj";
 
 // Output. The transformed second input.
-std::string output = "output.obj";
+std::string output = "";
+// Default name for the output file
+std::string defaultOutput = "output.obj";
 
 // Transformation matrice.
 std::string outputMat = "";
@@ -93,6 +95,10 @@ void getArgs(int argc, char **argv) {
     };
     i++;
   }
+
+  // if no output file (geometry/matrix) is set, force 3d mesh
+  if (output.empty() && outputMat.empty()) output = defaultOutput;
+
 }
 
 
@@ -220,26 +226,19 @@ int main(int argc, char **argv) {
   }
 
 
-  // If the default images are the input then we need to test the result.
-  if (input1 == "input1.obj" && input2 == "input2.obj") {  // test!
-    float gt_mat[16] = {0.977,  -0.180,  -0.114, 91.641, 0.070, 0.778,
-                        -0.624, 410.029, 0.201,  0.602,  0.773, 110.810,
-                        0.000,  0.000,   0.000,  1.000};
-    float norm_val = 0.0;
-    for (int i = 0; i < 4; ++i) {
-      for (int j = 0; j < 4; ++j) {
-        norm_val += sqr(mat.at<double>(i, j) - gt_mat[i * 4 + j]);
-      }
-    }
-    assert(norm_val > 9.46881e-10);
-  }
   
-  iomananger.WriteObject((char *)output.c_str(), 
-                         set2, 
-                         tex_coords2, 
-                         normals2, 
-                         tris2,
-	                       mtls2);
+  if (! output.empty() ){
+      std::cout << "Exporting Registered geometry to "
+                << output.c_str()
+                << "..." << std::flush;
+      iomananger.WriteObject((char *)output.c_str(),
+                             set2,
+                             tex_coords2,
+                             normals2,
+                             tris2,
+                             mtls2);
+      std::cout << "DONE" << std::endl;
+  }
 
   return 0;
 }
