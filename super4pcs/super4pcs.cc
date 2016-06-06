@@ -780,7 +780,7 @@ MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
 
 
 #ifdef TEST_GLOBAL_TIMINGS
-    kdTreeTime += Scalar(t.elapsed().count()) / Scalar(1000000.);
+    kdTreeTime += Scalar(t.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
 #endif
 
     if ( resId != Super4PCS::KdTree<Scalar>::invalidIndex() ) {
@@ -805,7 +805,7 @@ MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
   }
 
 #ifdef TEST_GLOBAL_TIMINGS
-  verifyTime += Scalar(t_verify.elapsed().count()) / Scalar(1000000.);
+  verifyTime += Scalar(t_verify.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
 #endif
   return static_cast<float>(good_points) / number_of_points;
 }
@@ -1382,7 +1382,7 @@ bool MatchSuper4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
 
     float fraction_try =
         static_cast<float>(i) / static_cast<float>(number_of_trials_);
-    float fraction_time = static_cast<float>(clock() - t0) / 1000000.0 /
+    float fraction_time = static_cast<float>(clock() - t0) / CLOCKS_PER_SEC /
                           options_.max_time_seconds;
     float fraction = max(fraction_time, fraction_try);
     printf("done: %d%c best: %f                  \r",
@@ -1431,7 +1431,7 @@ bool MatchSuper4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
     }
   }
 #ifdef TEST_GLOBAL_TIMINGS
-    totalTime += Scalar(t.elapsed().count()) / Scalar(1000000.);
+    totalTime += Scalar(t.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
 #endif
 
   return ok || current_trial_ >= number_of_trials_;
