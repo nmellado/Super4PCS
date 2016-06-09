@@ -345,7 +345,7 @@ IOManager::WritePly(string filename,
   // Write Header
   plyFile << "ply" << std::endl;
   plyFile << "format binary_little_endian 1.0" << std::endl;
-  plyFile << "comment Kinect depth data" << std::endl;
+  plyFile << "Super4PCS output file" << std::endl;
   plyFile << "element vertex " << v.size() << std::endl;
   plyFile << "property float x" << std::endl;
   plyFile << "property float y" << std::endl;
