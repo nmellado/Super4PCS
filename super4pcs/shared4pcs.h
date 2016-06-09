@@ -100,6 +100,7 @@ class Point3D : public cv::Point3f {
   inline const cv::Point3f& normal() const { return normal_; }
   inline void set_rgb(const cv::Vec3f& rgb) {
       rgb_ = rgb;
+      hasColor_ = true;
 //      internal::RGB2HSV(rgb_[0]/255.f,rgb_[1]/255.f,rgb_[2]/255.f, hsv_[0],hsv_[1],hsv_[2]);
   }
   inline void set_normal(const cv::Point3d& normal) {
@@ -120,6 +121,7 @@ class Point3D : public cv::Point3f {
     y /= n;
     z /= n;
   }
+  inline bool hasColor() const { return hasColor_; }
 
  private:
   // Normal.
@@ -127,6 +129,7 @@ class Point3D : public cv::Point3f {
   // Color.
   cv::Vec3f rgb_{-1.0f, -1.0f, -1.0f};
 //  cv::Vec3f hsv_{-1.0f, -1.0f, -1.0f};
+  bool hasColor_ = false;
 };
 
 // Throughout this file the first model is called P, the second is Q
