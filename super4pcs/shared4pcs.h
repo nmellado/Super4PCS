@@ -87,8 +87,8 @@ class Point3D : public cv::Point3f {
   inline Point3D(const Point3D& other):
       cv::Point3f(other),
       normal_(other.normal_),
-      rgb_(other.rgb_),
-      hsv_(other.hsv_) {}
+      rgb_(other.rgb_)/*,
+      hsv_(other.hsv_)*/ {}
   template<typename Scalar>
   explicit inline Point3D(const Eigen::Matrix<Scalar, 3, 1>& other):
       cv::Point3f(other(0), other(1), other(2)){
@@ -96,11 +96,11 @@ class Point3D : public cv::Point3f {
 
   inline Point3D() : cv::Point3f(0.0f, 0.0f, 0.0f) {}
   inline const cv::Vec3f& rgb() const { return rgb_; }
-  inline const cv::Vec3f& hsv() const { return hsv_; }
+//  inline const cv::Vec3f& hsv() const { return hsv_; }
   inline const cv::Point3f& normal() const { return normal_; }
   inline void set_rgb(const cv::Vec3f& rgb) {
       rgb_ = rgb;
-      internal::RGB2HSV(rgb_[0]/255.f,rgb_[1]/255.f,rgb_[2]/255.f, hsv_[0],hsv_[1],hsv_[2]);
+//      internal::RGB2HSV(rgb_[0]/255.f,rgb_[1]/255.f,rgb_[2]/255.f, hsv_[0],hsv_[1],hsv_[2]);
   }
   inline void set_normal(const cv::Point3d& normal) {
       double norm = cv::norm(normal);
@@ -126,7 +126,7 @@ class Point3D : public cv::Point3f {
   cv::Point3f normal_{0.0f, 0.0f, 0.0f};
   // Color.
   cv::Vec3f rgb_{-1.0f, -1.0f, -1.0f};
-  cv::Vec3f hsv_{-1.0f, -1.0f, -1.0f};
+//  cv::Vec3f hsv_{-1.0f, -1.0f, -1.0f};
 };
 
 // Throughout this file the first model is called P, the second is Q
