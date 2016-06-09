@@ -334,7 +334,7 @@ IOManager::WritePly(string filename,
   // we check if we have colors by looking if the first rgb vector is void
   bool useColors = false;
   for (unsigned int i = 0; i!=v.size(); i++){
-    if (cv::norm(v[i].rgb())){
+    if (v[i].hasColor()){
       useColors = true;
       break;
     }
