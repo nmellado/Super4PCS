@@ -207,8 +207,9 @@ public:
 
     inline void doQueryK(const VectorType& p);
 
-    std::vector< VectorType >
-    doQueryDist(const VectorType& queryPoint,float sqdist);
+    template<typename Container = std::vector<VectorType> >
+    inline void
+    doQueryDist(const VectorType& queryPoint, float sqdist, Container& result);
 
     inline Index
     doQueryRestrictedClosest(const VectorType& queryPoint, Scalar sqdist, int currentId = -1);
@@ -409,14 +410,15 @@ KdTree<Scalar, Index>::doQueryRestrictedClosest(const VectorType& queryPoint,
   neighborhood size.
  */
 template<typename Scalar, typename Index>
-std::vector< typename KdTree<Scalar, Index>::VectorType >
-KdTree<Scalar, Index>::doQueryDist(const VectorType& queryPoint,float sqdist)
+template<typename Container >
+void
+KdTree<Scalar, Index>::doQueryDist(const VectorType& queryPoint,
+                                   float sqdist,
+                                   Container& result)
 {
     mNodeStack[0].nodeId = 0;
     mNodeStack[0].sq = 0.f;
     unsigned int count = 1;
-
-    std::vector< VectorType >result;
 
     while (count)
     {
@@ -431,7 +433,7 @@ KdTree<Scalar, Index>::doQueryDist(const VectorType& queryPoint,float sqdist)
                 unsigned int end = node.start+node.size;
                 for (unsigned int i=node.start ; i<end ; ++i)
                     if ( (queryPoint - mPoints[i]).squaredNorm() < sqdist){
-                        result.push_back(mPoints[i]);
+                        result.push_back(typename Container::value_type(mPoints[i]));
                     }
             }
             else
@@ -459,7 +461,6 @@ KdTree<Scalar, Index>::doQueryDist(const VectorType& queryPoint,float sqdist)
             --count;
         }
     }
-    return result;
 }
 
 template<typename Scalar, typename Index>
