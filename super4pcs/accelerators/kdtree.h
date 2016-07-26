@@ -53,6 +53,7 @@
 
 #include <limits>
 #include <iostream>
+#include <numeric>  //iota
 
 // max depth of the tree
 #define KD_MAX_DEPTH 32
