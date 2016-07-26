@@ -205,12 +205,12 @@ public:
 
     ~KdTree();
 
-    void doQueryK(const VectorType& p);
+    inline void doQueryK(const VectorType& p);
 
     std::vector< VectorType >
     doQueryDist(const VectorType& queryPoint,float sqdist);
 
-    Index
+    inline Index
     doQueryRestrictedClosest(const VectorType& queryPoint, Scalar sqdist, int currentId = -1);
 
      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
