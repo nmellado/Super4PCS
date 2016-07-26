@@ -737,7 +737,7 @@ double MatchSuper4PCSImpl::MeanDistance() {
     query_point << sampled_P_3D_[i].x, sampled_P_3D_[i].y, sampled_P_3D_[i].z;
 
     Super4PCS::KdTree<Scalar>::Index resId =
-    kd_tree_.doQueryRestrictedClosest(query_point, P_diameter_ * kDiameterFraction, i);
+    kd_tree_.doQueryRestrictedClosestIndex(query_point, P_diameter_ * kDiameterFraction, i);
 
     if (resId != Super4PCS::KdTree<Scalar>::invalidIndex()) {
       distance += cv::norm(sampled_P_3D_[i] - sampled_P_3D_[resId]);
@@ -774,7 +774,7 @@ MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
     Timer t (true);
 #endif
     Super4PCS::KdTree<Scalar>::Index resId =
-    kd_tree_.doQueryRestrictedClosest(
+    kd_tree_.doQueryRestrictedClosestIndex(
                 (mat * pcfunctor_.getPointInWorldCoord( i ).homogeneous()).head<3>(),
                 sq_eps);
 
