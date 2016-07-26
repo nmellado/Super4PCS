@@ -431,7 +431,7 @@ KdTree<Scalar, Index>::doQueryDist(const VectorType& queryPoint,float sqdist)
                 unsigned int end = node.start+node.size;
                 for (unsigned int i=node.start ; i<end ; ++i)
                     if ( (queryPoint - mPoints[i]).squaredNorm() < sqdist){
-                        result << mPoints[i];
+                        result.push_back(mPoints[i]);
                     }
             }
             else
