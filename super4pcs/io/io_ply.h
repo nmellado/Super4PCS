@@ -18,7 +18,8 @@ readHeader ( const char *filename,
              unsigned int & numOfVertexProperties,
              bool         & haveColor )
 {
-    ifstream in (filename);
+    // use binary mode to preserve end line symbols on linux and windows
+    ifstream in (filename, std::ios_base::in | std::ios_base::binary);
     if (!in){
         cerr << "(PLY) error opening file" << endl;
         return 0;
