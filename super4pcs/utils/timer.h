@@ -48,6 +48,7 @@
 #define _TIMER_H_
 
 #include <chrono>  //timers
+#include "disablewarnings.h"
 
 namespace Super4PCS{
 namespace Utils{

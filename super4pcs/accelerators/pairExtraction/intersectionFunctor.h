@@ -171,7 +171,7 @@ IntersectionFunctor<Primitive, Point, dim, Scalar>::process(
         if ((*pit).intersect(n.center(), edgeHalfLength+epsilon)){
           // There is two options now: either there is already few points in the
           // current node, in that case we stop splitting it, or we split.          
-          if (n.rangeLength() > minNodeSize){        
+          if (n.rangeLength() > int(minNodeSize)){
 //#pragma omp critical  
             n.split(*childNodes, edgeHalfLength);                    
           }else{

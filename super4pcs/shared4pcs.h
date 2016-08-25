@@ -50,6 +50,7 @@
 #include <opencv2/core/core.hpp>
 #include "Eigen/Core"
 
+#include "utils/disablewarnings.h"
 
 namespace match_4pcs {
 

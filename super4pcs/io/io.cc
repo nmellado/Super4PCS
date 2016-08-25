@@ -107,7 +107,7 @@ bool IOManager::ReadPtx(const char *filename, vector<Point3D> &vertex)
     vertex.reserve(numOfVertices);
 
 
-    for (unsigned int i = 0; i < numOfVertices && ! f.eof(); i++) {
+    for (int i = 0; i < numOfVertices && ! f.eof(); i++) {
         f.getline(line,LINE_BUF_SIZE);
         std::stringstream ss(line);
 

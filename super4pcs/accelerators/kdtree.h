@@ -47,6 +47,7 @@
 #ifndef KDTREE_H
 #define KDTREE_H
 
+#include "utils/disablewarnings.h"
 #include "bbox.h"
 
 #include "Eigen/Core"

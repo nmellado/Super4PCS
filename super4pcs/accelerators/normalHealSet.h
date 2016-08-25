@@ -48,6 +48,7 @@
 #ifndef _INDEXED_NORMAL_HEAL_SET_H_
 #define _INDEXED_NORMAL_HEAL_SET_H_
 
+#include "utils/disablewarnings.h"
 #include "utils.h"
 #include "chealpix.h"
 #include <vector>

@@ -47,6 +47,8 @@
 #ifndef BBOX_H
 #define BBOX_H
 
+#include "utils/disablewarnings.h"
+
 #include <limits>
 
 namespace Super4PCS{
