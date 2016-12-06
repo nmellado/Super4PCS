@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Super4pcs", "Super4pcs\Super4pcs.vcxproj", "{EC169232-18F7-4DD8-9DEB-6AEF670BDD99}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Super4pcs", "src\Super4pcs\Super4pcs.vcxproj", "{EC169232-18F7-4DD8-9DEB-6AEF670BDD99}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A7D00B21-CB9C-4BBB-8DEE-51025104F867} = {A7D00B21-CB9C-4BBB-8DEE-51025104F867}
 		{FE684FAA-7321-32F9-A0BD-0DA034AAB6FF} = {FE684FAA-7321-32F9-A0BD-0DA034AAB6FF}
