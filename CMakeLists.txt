@@ -3,7 +3,7 @@ project (Super4PCS)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-set(SRC_DIR ${PROJECT_SOURCE_DIR}/super4pcs)
+set(SRC_DIR ${PROJECT_SOURCE_DIR}/src/super4pcs/)
  
 ################################################################################
 ## Configuration file 
