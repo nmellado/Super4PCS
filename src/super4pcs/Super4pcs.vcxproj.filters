@@ -40,7 +40,7 @@
     <ClCompile Include="super4pcs_test.cc">
       <Filter>Source Files\super4pcs</Filter>
     </ClCompile>
-    <ClCompile Include="..\3rdparty\chealpix\src\chealpix.c">
+    <ClCompile Include="..\..\3rdparty\chealpix\src\chealpix.c">
       <Filter>Source Files\3rdParty</Filter>
     </ClCompile>
   </ItemGroup>
@@ -96,11 +96,11 @@
     <ClInclude Include="shared4pcs.h">
       <Filter>Source Files\super4pcs</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\chealpix\include\chealpix.h">
-      <Filter>Source Files\3rdParty</Filter>
-    </ClInclude>
     <ClInclude Include="utils\disablewarnings.h">
       <Filter>Source Files\super4pcs\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\3rdparty\chealpix\include\chealpix.h">
+      <Filter>Source Files\3rdParty</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
