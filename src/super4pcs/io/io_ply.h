@@ -85,7 +85,7 @@ readHeader ( const char *filename,
             }
         } else if (currentelement != "" && current == "property") {
             in >> current;
-            if (current == "float") {
+            if (current == "float" || current == "double") {
                 numOfVertexProperties++;
                 in >> current;
             }
