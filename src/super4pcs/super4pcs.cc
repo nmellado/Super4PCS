@@ -63,16 +63,12 @@
 
 #include "pairCreationFunctor.h"
 
-#include <fstream>
 #include <array>
-#include <time.h>
+#include <chrono>
+#include <fstream>
 
 #define sqr(x) ((x)*(x))
 #define norm2(p) (sqr(p.x)+sqr(p.y)+sqr(p.z))
-
-#ifdef TEST_GLOBAL_TIMINGS
-#   include "utils/timer.h"
-#endif
 
 //#define MULTISCALE
 
@@ -242,15 +238,12 @@ class MatchSuper4PCSImpl {
 
     typedef double Scalar;
     typedef PairCreationFunctor<Scalar>::PairsVector PairsVector;
+    typedef std::chrono::high_resolution_clock Clock;
+    typedef std::chrono::duration<double, std::milli> DurationMsecs;
 
 #ifdef TEST_GLOBAL_TIMINGS
-
-    Scalar totalTime;
-    Scalar kdTreeTime;
-    Scalar verifyTime;
-
-    using Timer = Super4PCS::Utils::Timer;
-
+     DurationMsecs kdtree_duration_;
+     DurationMsecs verify_duration_;
 #endif
  public:
   explicit MatchSuper4PCSImpl(const Match4PCSOptions& options)
@@ -335,6 +328,9 @@ class MatchSuper4PCSImpl {
   float best_LCP_;
   // Current trial.
   int current_trial_;
+  // Start time point.
+  Clock::time_point finish_time_;
+
   // Parameters.
   Match4PCSOptions options_;
 
@@ -343,12 +339,13 @@ class MatchSuper4PCSImpl {
   // Private member functions.
 
   // Tries one base and finds the best transformation for this base.
-  // Returns true if the achieved LCP is greater than terminate_threshold_,
-  // else otherwise.
-  bool TryOneBase();
+  // Returns true if the achieved LCP is greater than terminate_threshold_ within
+  // the maximum allowed time, false otherwise.
+  bool TryOneBase(bool enable_timer);
 
   // Constructs pairs of points in Q, corresponding to a single pair in the
-  // in basein P.
+  // in basein P. Returns true if pairs of points can be constructed within the maximum
+  // allowed time, false otherwise.
   // @param [in] pair_distance The distance between the pairs in P that we have
   // to match in the pairs we select from Q.
   // @param [in] pair_normal_distance The angle between the normals of the pair
@@ -359,39 +356,39 @@ class MatchSuper4PCSImpl {
   // @param [in] base_point1 The index of the first point in P.
   // @param [in] base_point2 The index of the second point in P.
   // @param [out] pairs A set of pairs in Q that match the pair in P with
+  // @param [in] enable_timer Check whether the maximum allowed time has passed or not.
   // respect to distance and normals, up to the given tolerance.
-  void
-  ExtractPairs(double pair_distance, double pair_normals_angle,
-                       double pair_distance_epsilon, int base_point1,
-                       int base_point2,
-                       PairsVector* pairs);
+  bool ExtractPairs(double pair_distance, double pair_normals_angle,
+                    double pair_distance_epsilon, int base_point1,
+                    int base_point2, PairsVector* pairs, bool enable_timer);
 
   // For each randomly picked base, verifies the computed transformation by
   // computing the number of points that this transformation brings near points
   // in Q. Returns the current LCP. R is the rotation matrix, (tx,ty,tz) is
   // the translation vector and (cx,cy,cz) is the center of transformation.template <class MatrixDerived>
-  Scalar Verify(const Eigen::Matrix<Scalar, 4, 4>& mat);
+  Scalar Verify(const Eigen::Matrix<Scalar, 4, 4>& mat, bool enable_timer);
 
   // Computes the mean distance between point in Q and its nearest neighbor.
   double MeanDistance();
 
   // Selects a quadrilateral from P and returns the corresponding invariants
-  // and point indices. Returns true if a quadrilateral has been found, false
-  // otherwise.
+  // and point indices. Returns true if a quadrilateral has been found within the
+  // maximum allowed time, false otherwise.
   bool SelectQuadrilateral(double* invariant1, double* invariant2, int* base1,
-                           int* base2, int* base3, int* base4);
+                           int* base2, int* base3, int* base4, bool enable_timer);
 
   // Select random triangle in P such that its diameter is close to
   // max_base_diameter_. This enables to increase the probability of having
-  // all three points in the inlier set. Return true on success, false if such a
-  // triangle cannot be found.
-  bool SelectRandomTriangle(int* base1, int* base2, int* base3);
+  // all three points in the inlier set. Return true on success within the maximum
+  // alowed time, false if such a triangle cannot be found.
+  bool SelectRandomTriangle(int* base1, int* base2, int* base3, bool enable_timer);
 
   // Takes quadrilateral as a base, computes robust intersection point
   // (approximate as the lines might not intersect) and returns the invariants
   // corresponding to the two selected lines. The method also updates the order
   // of the base base_3D_.
-  bool TryQuadrilateral(double* invariant1, double* invariant2, int &base1, int &base2, int &base3, int &base4);
+  bool TryQuadrilateral(double* invariant1, double* invariant2, int &base1, int &base2,
+                        int &base3, int &base4);
 
   // Finds congruent candidates in the set Q, given the invariants and threshold
   // distances. Returns true if a non empty set can be found, false otherwise.
@@ -408,13 +405,15 @@ class MatchSuper4PCSImpl {
   // @param [in] Q_pointsSecond Point coordinates for the pairs second id
   // @param [out] quadrilaterals The set of congruent quadrilateral. In fact,
   // it's a super set from which we extract the real congruent set.
+  // @param [in] enable_timer Check whether the maximum allowed time has passed or not.
   bool FindCongruentQuadrilateralsFast(double invariant1, double invariant2,
                                        double distance_threshold1,
                                        double distance_threshold2,
                                        const PairsVector& P_pairs,
                                        const PairsVector& Q_pairs,
                                        const std::vector<Point3D>& Q_points,
-                                       std::vector<Quadrilateral>* quadrilaterals);
+                                       std::vector<Quadrilateral>* quadrilaterals,
+                                       bool enable_timer);
 
   // Computes the best rigid transformation between three corresponding pairs.
   // The transformation is characterized by rotation matrix, translation vector
@@ -445,7 +444,8 @@ class MatchSuper4PCSImpl {
   // finding congruent sets and verification. Returns true if the process can be
   // terminated (the target LCP was obtained or the maximum number of trials has
   // been reached), false otherwise.
-  bool Perform_N_steps(int n, cv::Mat* transformation, std::vector<Point3D>* Q);
+  bool Perform_N_steps(int n, cv::Mat* transformation, std::vector<Point3D>* Q,
+                       bool enable_timer = true);
 };
 
 // Finds congruent candidates in the set Q, given the invariants and threshold
@@ -455,7 +455,7 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
     double distance_threshold2, const std::vector<std::pair<int, int>>& P_pairs,
     const std::vector<std::pair<int, int>>& Q_pairs,
     const std::vector<Point3D>& Q_points,
-    std::vector<Quadrilateral>* quadrilaterals) {
+    std::vector<Quadrilateral>* quadrilaterals, bool enable_timer) {
 
   // Compute the angle formed by the two vectors of the basis
   Point3D b1 = base_3D_[1] - base_3D_[0];  b1.normalize();
@@ -480,6 +480,8 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
   IndexedNormalSet3D nset (eps, 2.);
 
   for (unsigned int i = 0; i < P_pairs.size(); ++i) {
+    if (enable_timer && Clock::now() > finish_time_) return false;
+
     const Point& p1 = pcfunctor_.points[P_pairs[i].first];
     const Point& p2 = pcfunctor_.points[P_pairs[i].second];
     Point  n  = (p2 - p1).normalized();
@@ -500,6 +502,8 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
   std::vector<unsigned int> nei;
   // 2. Query time
   for (unsigned int i = 0; i < Q_pairs.size(); ++i) {
+    if (enable_timer && Clock::now() > finish_time_) return false;
+
     const Point& p1 = pcfunctor_.points[Q_pairs[i].first];
     const Point& p2 = pcfunctor_.points[Q_pairs[i].second];
 
@@ -525,6 +529,8 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
     Point3D invPoint;
     //const float distance_threshold2s = distance_threshold2 * distance_threshold2;
     for (unsigned int k = 0; k != nei.size(); k++){
+      if (enable_timer && Clock::now() > finish_time_) return false;
+
       int id = nei[k];
 
       const Point3D& pp1 = Q_points[P_pairs[id].first];
@@ -542,6 +548,8 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
   for (std::set< std::pair<unsigned int, unsigned int > >::const_iterator it =
              comb.cbegin();
        it != comb.cend(); it++){
+    if (enable_timer && Clock::now() > finish_time_) return false;
+
     const unsigned int & id = (*it).first;
     const unsigned int & i  = (*it).second;
 
@@ -610,9 +618,9 @@ bool MatchSuper4PCSImpl::TryQuadrilateral(double* invariant1, double* invariant2
 // a triangle with all three edges close to this distance. Wide triangles helps
 // to make the transformation robust while too large triangles makes the
 // probability of having all points in the inliers small so we try to trade-off.
-bool MatchSuper4PCSImpl::SelectRandomTriangle(int* base1, int* base2, int* base3) {
+bool MatchSuper4PCSImpl::SelectRandomTriangle(int* base1, int* base2, int* base3, bool enable_timer) {
   if (base1 == NULL || base2 == NULL || base3 == NULL) return false;
-  
+
   int number_of_points = sampled_P_3D_.size();
   *base1 = *base2 = *base3 = -1;
 
@@ -622,6 +630,8 @@ bool MatchSuper4PCSImpl::SelectRandomTriangle(int* base1, int* base2, int* base3
   // Try fixed number of times retaining the best other two.
   float best_wide = 0.0;
   for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
+    if (enable_timer && Clock::now() > finish_time_) return false;
+
     // Pick and compute
     int second_point = rand() % number_of_points;
     int third_point = rand() % number_of_points;
@@ -646,11 +656,9 @@ bool MatchSuper4PCSImpl::SelectRandomTriangle(int* base1, int* base2, int* base3
 // Selects a good base from P and computes its invariants. Returns false if
 // a good planar base cannot can be found.
 bool MatchSuper4PCSImpl::SelectQuadrilateral(double* invariant1, double* invariant2,
-                                        int* base1, int* base2, int* base3,
-                                        int* base4) {
-  if (invariant1 == NULL || invariant2 == NULL || base1 == NULL ||
-      base2 == NULL || base3 == NULL || base4 == NULL)
-    return false;
+                                             int* base1, int* base2, int* base3,
+                                             int* base4, bool enable_timer) {
+  if (!invariant1 || !invariant2 || !base1 || !base2 || !base3 || !base4) return false;
 
   const float kBaseTooSmall = 0.2;
   int current_trial = 0;
@@ -658,9 +666,8 @@ bool MatchSuper4PCSImpl::SelectQuadrilateral(double* invariant1, double* invaria
   // Try fix number of times.
   while (current_trial < kNumberOfDiameterTrials) {
     // Select a triangle if possible. otherwise fail.
-    if (!SelectRandomTriangle(base1, base2, base3)){
-      return false;
-    }
+    if (!SelectRandomTriangle(base1, base2, base3, enable_timer)) return false;
+    if (enable_timer && Clock::now() > finish_time_) return false;
 
     base_3D_[0] = sampled_P_3D_[*base1];
     base_3D_[1] = sampled_P_3D_[*base2];
@@ -693,6 +700,8 @@ bool MatchSuper4PCSImpl::SelectQuadrilateral(double* invariant1, double* invaria
       double best_distance = FLT_MAX;
       // Go over all points in P.
       for (unsigned int i = 0; i < sampled_P_3D_.size(); ++i) {
+        if (enable_timer && Clock::now() > finish_time_) return false;
+
         double d1 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base1]);
         double d2 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base2]);
         double d3 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base3]);
@@ -718,7 +727,7 @@ bool MatchSuper4PCSImpl::SelectQuadrilateral(double* invariant1, double* invaria
     }
     current_trial++;
   }
-  
+
   // We failed to find good enough base..
   return false;
 }
@@ -753,10 +762,9 @@ double MatchSuper4PCSImpl::MeanDistance() {
 // we describe randomized verification. We apply deterministic one here with
 // early termination. It was found to be fast in practice.
 MatchSuper4PCSImpl::Scalar
-MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
-
+MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat, bool enable_timer) {
 #ifdef TEST_GLOBAL_TIMINGS
-    Timer t_verify (true);
+  Clock::time_point start_verify = Clock::now();
 #endif
 
   // We allow factor 2 scaling in the normalization.
@@ -768,19 +776,18 @@ MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
   Scalar sq_eps = epsilon*epsilon;
 
   for (int i = 0; i < number_of_points; ++i) {
-
+    if (enable_timer && Clock::now() > finish_time_) return 0;
     // Use the kdtree to get the nearest neighbor
 #ifdef TEST_GLOBAL_TIMINGS
-    Timer t (true);
+    Clock::time_point start_kdtree = Clock::now();
 #endif
     Super4PCS::KdTree<Scalar>::Index resId =
     kd_tree_.doQueryRestrictedClosestIndex(
                 (mat * pcfunctor_.getPointInWorldCoord( i ).homogeneous()).head<3>(),
                 sq_eps);
 
-
 #ifdef TEST_GLOBAL_TIMINGS
-    kdTreeTime += Scalar(t.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
+    kdtree_duration_ += DurationMsecs(Clock::now() - start_kdtree);
 #endif
 
     if ( resId != Super4PCS::KdTree<Scalar>::invalidIndex() ) {
@@ -805,7 +812,7 @@ MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
   }
 
 #ifdef TEST_GLOBAL_TIMINGS
-  verifyTime += Scalar(t_verify.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
+  verify_duration_ += DurationMsecs(Clock::now() - start_verify);
 #endif
   return static_cast<float>(good_points) / number_of_points;
 }
@@ -813,12 +820,11 @@ MatchSuper4PCSImpl::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
 // Constructs two sets of pairs in Q, each corresponds to one pair in the base
 // in P, by having the same distance (up to some tolerantz) and optionally the
 // same angle between normals and same color.
-void
-MatchSuper4PCSImpl::ExtractPairs(double pair_distance,
-                                    double pair_normals_angle,
-                                    double pair_distance_epsilon,
-                                    int base_point1, int base_point2,
-                                    PairsVector* pairs) {
+bool MatchSuper4PCSImpl::ExtractPairs(double pair_distance,
+                                      double pair_normals_angle,
+                                      double pair_distance_epsilon,
+                                      int base_point1, int base_point2,
+                                      PairsVector* pairs, bool enable_timer) {
 
   using namespace Super4PCS::Accelerators::PairExtraction;
 
@@ -848,17 +854,19 @@ MatchSuper4PCSImpl::ExtractPairs(double pair_distance,
 
   Scalar eps = pcfunctor_.getNormalizedEpsilon(pair_distance_epsilon);
 
-  interFunctor.process(pcfunctor_.primitives,
-                       pcfunctor_.points,
-                       eps,
-                       50,
-                       pcfunctor_);
+  return interFunctor.process(pcfunctor_.primitives,
+                              pcfunctor_.points,
+                              eps,
+                              50,
+                              pcfunctor_,
+                              finish_time_,
+                              enable_timer);
 }
 
 // Pick one base, finds congruent 4-points in Q, verifies for all
 // transformations, and retains the best transformation and LCP. This is
 // a complete RANSAC iteration.
-bool MatchSuper4PCSImpl::TryOneBase() {
+bool MatchSuper4PCSImpl::TryOneBase(bool enable_timer) {
   vector<pair<Point3D, Point3D>> congruent_points(4);
   double invariant1, invariant2;
   int base_id1, base_id2, base_id3, base_id4;
@@ -868,6 +876,8 @@ bool MatchSuper4PCSImpl::TryOneBase() {
 
 #ifdef STATIC_BASE
   static bool first_time = true;
+
+  if (enable_timer && Clock::now() > finish_time_) return false;
 
   if (first_time){
       base_id1 = 0;
@@ -890,7 +900,7 @@ bool MatchSuper4PCSImpl::TryOneBase() {
 #else
 
   if (!SelectQuadrilateral(&invariant1, &invariant2, &base_id1, &base_id2,
-                           &base_id3, &base_id4)) {
+                           &base_id3, &base_id4, enable_timer)) {
     return false;
   }
 #endif
@@ -906,15 +916,12 @@ bool MatchSuper4PCSImpl::TryOneBase() {
   double normal_angle1 = cv::norm(base_3D_[0].normal() - base_3D_[1].normal());
   double normal_angle2 = cv::norm(base_3D_[2].normal() - base_3D_[3].normal());
 
-  ExtractPairs(distance1, normal_angle1, distance_factor * options_.delta, 0,
-                  1, &pairs1);
-  ExtractPairs(distance2, normal_angle2, distance_factor * options_.delta, 2,
-                  3, &pairs2);
+  if (!ExtractPairs(distance1, normal_angle1, distance_factor * options_.delta, 0,
+                    1, &pairs1, enable_timer)) return false;
+  if (!ExtractPairs(distance2, normal_angle2, distance_factor * options_.delta, 2,
+                    3, &pairs2, enable_timer)) return false;
 
-  if (pairs1.size() == 0 || pairs2.size() == 0) {
-    return false;
-  }
-
+  if (pairs1.size() == 0 || pairs2.size() == 0) return false;
 
   if (!FindCongruentQuadrilateralsFast(invariant1, invariant2,
                                    distance_factor /** factor*/ * options_.delta,
@@ -922,7 +929,8 @@ bool MatchSuper4PCSImpl::TryOneBase() {
                                    pairs1,
                                    pairs2,
                                    sampled_Q_3D_,
-                                   &congruent_quads)) {
+                                   &congruent_quads,
+                                   enable_timer)) {
     return false;
   }
 
@@ -1000,7 +1008,7 @@ bool MatchSuper4PCSImpl::TryOneBase() {
         // The transformation is computed from the point-clouds centered inn [0,0,0]
 
         // Verify the rest of the points in Q against P.
-        Scalar lcp = Verify(transform);
+        Scalar lcp = Verify(transform, enable_timer);
         if (lcp > best_LCP_) {
           // Retain the best LCP and transformation.
           base_[0] = base_id1;
@@ -1055,9 +1063,8 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
   sampled_Q_3D_.clear();
 
 #ifdef TEST_GLOBAL_TIMINGS
-    kdTreeTime = 0;
-    totalTime  = 0;
-    verifyTime = 0;
+    kdtree_duration_ = DurationMsecs(0);
+    verify_duration_ = DurationMsecs(0);
 #endif
 
 
@@ -1196,7 +1203,7 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
   printf("norm_max_dist: %f\n", options_.delta);
   current_trial_ = 0;
   transform_ = Eigen::Matrix<Scalar, 4, 4>::Identity();
-  best_LCP_ = Verify(transform_);
+  best_LCP_ = Verify(transform_, false);
   printf("Initial LCP: %f\n", best_LCP_);
 
   Q_copy_ = Q;
@@ -1367,29 +1374,23 @@ bool MatchSuper4PCSImpl::ComputeRigidTransformation(const vector< pair<Point3D, 
 // Performs N RANSAC iterations and compute the best transformation. Also,
 // transforms the set Q by this optimal transformation.
 bool MatchSuper4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
-                                    std::vector<Point3D>* Q) {
+                                         std::vector<Point3D>* Q, bool enable_timer) {
   if (transformation == NULL || Q == NULL) return false;
-
-#ifdef TEST_GLOBAL_TIMINGS
-    Timer t (true);
-#endif
 
   float last_best_LCP = best_LCP_;
   bool ok;
-  int64 t0 = clock();
-  for (int i = current_trial_; i < current_trial_ + n; ++i) {
-    ok = TryOneBase();
 
-    float fraction_try =
-        static_cast<float>(i) / static_cast<float>(number_of_trials_);
-    float fraction_time = static_cast<float>(clock() - t0) / CLOCKS_PER_SEC /
-                          options_.max_time_seconds;
-    float fraction = max(fraction_time, fraction_try);
-    printf("done: %d%c best: %f                  \r",
-           static_cast<int>(fraction * 100), '%', best_LCP_);
-    fflush(stdout);
+  for (int i = current_trial_; i < current_trial_ + n; ++i) {
+    ok = TryOneBase(enable_timer);
+
+    float fraction_trials = i / static_cast<float>(number_of_trials_);
+    //float fraction = max(fraction_time, fraction_try);
+    //printf("done: %d%c best: %f                  \r",
+           //static_cast<int>(fraction * 100), '%', best_LCP_);
+    //fflush(stdout);
     // ok means that we already have the desired LCP.
-    if (ok || i > number_of_trials_ || fraction >= 0.99 || best_LCP_ == 1.0) break;
+    if (enable_timer && Clock::now() > finish_time_) break;
+    if (ok || fraction_trials >= 0.99 || best_LCP_ == 1.0) break;
   }
 
   current_trial_ += n;
@@ -1430,9 +1431,6 @@ bool MatchSuper4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
       (*Q)[i].z = transformed.at<double>(2, 0);
     }
   }
-#ifdef TEST_GLOBAL_TIMINGS
-    totalTime += Scalar(t.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
-#endif
 
   return ok || current_trial_ >= number_of_trials_;
 }
@@ -1448,13 +1446,18 @@ float MatchSuper4PCSImpl::ComputeTransformation(const std::vector<Point3D>& P,
 
   *transformation = cv::Mat(4, 4, CV_64F, cv::Scalar(0.0));
   for (int i = 0; i < 4; ++i) transformation->at<double>(i, i) = 1.0;
-  Perform_N_steps(number_of_trials_, transformation, Q);
+
+  finish_time_ = Clock::now() + std::chrono::seconds(options_.max_time_seconds);
+  Perform_N_steps(number_of_trials_, transformation, Q, true);
+
+  auto start_time     = finish_time_ - std::chrono::seconds(options_.max_time_seconds);
+  auto total_duration = DurationMsecs(Clock::now() - start_time);
 
 #ifdef TEST_GLOBAL_TIMINGS
-  cout << "----------- Timings (msec) -------------"           << endl;
-  cout << " Total computation time  : " << totalTime           << endl;
-  cout << " Total verify time       : " << verifyTime          << endl;
-  cout << "    Kdtree query         : " << kdTreeTime          << endl;
+  cout << "----------- Timings (msec) -------------"                << endl;
+  cout << " Total computation time  : " << total_duration.count()   << endl;
+  cout << " Total verify time       : " << verify_duration_.count() << endl;
+  cout << " Kdtree query            : " << kdtree_duration_.count() << endl;
 #endif
 
   return best_LCP_;

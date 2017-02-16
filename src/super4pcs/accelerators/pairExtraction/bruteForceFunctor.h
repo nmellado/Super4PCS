@@ -49,8 +49,10 @@
 #define _BRUTE_FORCE_FUNCTOR_H_
 
 #include "intersectionNode.h"
-#include <list>
+
+#include <chrono>
 #include <iostream>
+#include <list>
 
 namespace Super4PCS{
 namespace Accelerators{
@@ -66,19 +68,21 @@ template <class _Point, int _dim, typename _Scalar>
 struct BruteForceFunctor{
   typedef _Point Point;
   typedef _Scalar Scalar;
+  typedef std::chrono::high_resolution_clock Clock;
+
   enum { dim = _dim };
 
   template <class PointContainer1,
             class PointContainer2,
             class ProcessingFunctor> //!< Process the extracted pairs
   inline
-  void
-  process(
-    const PointContainer1 & M, //!< Input point set \in [0:1]^d
-    const PointContainer2 & Q, //!< Input point set \in [0:1]^d
-    Scalar &epsilon,           //!< Intersection accuracy, refined
-    unsigned int minNodeSize,  //!< Min number of points in nodes
-    ProcessingFunctor& functor
+  bool process(const PointContainer1 & M, //!< Input point set \in [0:1]^d
+               const PointContainer2 & Q, //!< Input point set \in [0:1]^d
+               Scalar &epsilon,           //!< Intersection accuracy, refined
+               unsigned int minNodeSize,  //!< Min number of points in nodes
+               ProcessingFunctor& functor,
+               Clock::time_point const & finish_time,
+               bool enable_timer
   );
 
 };
@@ -91,15 +95,15 @@ template <class Point, int dim, typename Scalar>
 template <class PointContainer1,
           class PointContainer2,
           class ProcessingFunctor>
-void
-BruteForceFunctor<Point, dim, Scalar>::process(
+bool BruteForceFunctor<Point, dim, Scalar>::process(
         const PointContainer1 & M, //!< Input point set \in [0:1]^d
         const PointContainer2 & Q, //!< Input point set \in [0:1]^d
         Scalar &/*epsilon*/,           //!< Intersection accuracy, refined
         unsigned int /*minNodeSize*/,  //!< Min number of points in nodes
-        ProcessingFunctor& functor
-    )
-{
+        ProcessingFunctor& functor,
+        Clock::time_point const & finish_time,
+        bool enable_timer
+) {
   // This functor is optimized to be ran on a single point set
   // \FIXME Should implement a better way to deal with that...
   assert(M.size() != Q.size());
@@ -109,10 +113,13 @@ BruteForceFunctor<Point, dim, Scalar>::process(
   for (j = 0; j != size; ++j){
     functor.beginPrimitiveCollect(j);
     for (i = j+1; i != size; ++i){
-      functor.process(i,j);
+      if (enable_timer && Clock::now() > finish_time) return false;
+      functor.process(i, j, finish_time, enable_timer);
     }
     functor.endPrimitiveCollect(j);
   }
+
+  return true;
 }
 
 } // namespace PairExtraction

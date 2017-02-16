@@ -49,8 +49,10 @@
 #define _INTERSECTION_H_
 
 #include "intersectionNode.h"
-#include <list>
+
+#include <chrono>
 #include <iostream>
+#include <list>
 
 namespace Super4PCS{
 namespace Accelerators{
@@ -67,18 +69,20 @@ struct IntersectionFunctor{
   typedef _Point Point;
   typedef _Primitive Primitive;
   typedef _Scalar Scalar;
+  typedef std::chrono::high_resolution_clock Clock;
+
   enum { dim = _dim };
 
   template <class PrimitiveContainer, 
             class PointContainer,
             class ProcessingFunctor> //!< Process the extracted pairs
-  void
-  process(
-    const PrimitiveContainer& M, //!< Input primitives to intersect with Q
-    const PointContainer    & Q, //!< Normalized innput point set \in [0:1]^d
-    Scalar &epsilon,              //!< Intersection accuracy, refined 
-    unsigned int minNodeSize,    //!< Min number of points in nodes
-    ProcessingFunctor& functor
+  bool process(const PrimitiveContainer& M, //!< Input primitives to intersect with Q
+               const PointContainer    & Q, //!< Normalized innput point set \in [0:1]^d
+               Scalar &epsilon,              //!< Intersection accuracy, refined
+               unsigned int minNodeSize,    //!< Min number of points in nodes
+               ProcessingFunctor& functor,
+               Clock::time_point const & finish_time,
+               bool enable_timer
   );
 
 };
@@ -91,15 +95,15 @@ template <class Primitive, class Point, int dim, typename Scalar>
 template <class PrimitiveContainer, 
           class PointContainer,
           class ProcessingFunctor>
-void
-IntersectionFunctor<Primitive, Point, dim, Scalar>::process(
+bool IntersectionFunctor<Primitive, Point, dim, Scalar>::process(
     const PrimitiveContainer& M, //!< Input primitives to intersect with Q
     const PointContainer    & Q, //!< Normalized innput point set \in [0:1]^d
     Scalar &epsilon,              //!< Intersection accuracy in [0:1]
     unsigned int minNodeSize,    //!< Min number of points in nodes
-    ProcessingFunctor& functor
-    )
-{
+    ProcessingFunctor& functor,
+    Clock::time_point const & finish_time,
+    bool enable_timer
+) {
   using std::pow;
 
   // types definitions
@@ -146,9 +150,10 @@ IntersectionFunctor<Primitive, Point, dim, Scalar>::process(
   // First Loop
   while (clvl != lvlMax-1){
     // Stop if we not have any nodes to checks
-    if (childNodes->empty())
-      break;
-      
+    if (childNodes->empty()) break;
+
+    if (enable_timer && Clock::now() > finish_time) return false;
+
     edgeLength     = Scalar(1.f)/pow(2, clvl);
     edgeHalfLength = edgeLength/Scalar(2.f);
     
@@ -159,14 +164,13 @@ IntersectionFunctor<Primitive, Point, dim, Scalar>::process(
     childNodes->clear();
 
 //#pragma omp parallel    
-    for(typename NodeContainer::iterator nit  = nodes->begin(); 
-                                               nit != nodes->end(); nit++){
+    for(auto nit  = nodes->begin(); nit != nodes->end(); nit++) {
       Node &n = *nit; 
       
       // Check if the current node intersect one of the primitives
       // In this case, subdivide, store new nodes and stop the loop
-      for(typename PrimitiveContainer::const_iterator pit = M.begin();
-          pit != M.end(); pit++){
+      for(auto pit = M.begin(); pit != M.end(); pit++) {
+        if (enable_timer && Clock::now() > finish_time) return false;
 
         if ((*pit).intersect(n.center(), edgeHalfLength+epsilon)){
           // There is two options now: either there is already few points in the
@@ -190,42 +194,42 @@ IntersectionFunctor<Primitive, Point, dim, Scalar>::process(
   results.reserve(childNodes->size());  
   
   unsigned int pId = 0;
-  for(typename PrimitiveContainer::const_iterator itP = M.begin();
-      itP != M.end(); itP++, pId++){
+  for(auto itP = M.begin(); itP != M.end(); itP++, pId++) {
     // add childs
-    for(typename NodeContainer::const_iterator itN = childNodes->begin();
-        itN != childNodes->end(); itN++){
+    for(auto itN = childNodes->begin(); itN != childNodes->end(); itN++) {
       if ((*itP).intersect((*itN).center(), epsilon*2.f)){
-      
         functor.beginPrimitiveCollect(pId);
+
         for(unsigned int j = 0; j!= (*itN).rangeLength(); j++){
+          if (enable_timer && Clock::now() > finish_time) return false;
+
           if(pId>(*itN).idInRange(j))
             if((*itP).intersectPoint((*itN).pointInRange(j),epsilon))
               functor.process(pId, (*itN).idInRange(j));
-        }     
-        functor.endPrimitiveCollect(pId);   
+        }
+        functor.endPrimitiveCollect(pId);
       }
     }
-    
+
     // add other leafs
-    for(typename std::vector< std::pair<Node, Scalar> >::const_iterator itPairs = 
-                   earlyNodes.begin();
-        itPairs != earlyNodes.end();
-        itPairs++){
+    for(auto itPairs = earlyNodes.begin(); itPairs != earlyNodes.end(); itPairs++) {
       if((*itP).intersect((*itPairs).first.center(), (*itPairs).second)){
 
         // Notice the functor we are collecting points for the current primitive
         functor.beginPrimitiveCollect(pId);
         for(unsigned int j = 0; j!= (*itPairs).first.rangeLength(); j++){
+          if (enable_timer && Clock::now() > finish_time) return false;
+
           if(pId>(*itPairs).first.idInRange(j))
-            if((*itP).intersectPoint((*itPairs).first.pointInRange(j),epsilon))            
+            if((*itP).intersectPoint((*itPairs).first.pointInRange(j),epsilon))
               functor.process(pId, (*itPairs).first.idInRange(j));
-          
         }
         functor.endPrimitiveCollect(pId);
       }
     }
   } 
+
+  return true;
 }
 
 } // namespace PairExtraction
