@@ -28,6 +28,12 @@ std::string defaultOutput = "output.obj";
 // Transformation matrice.
 std::string outputMat = "";
 
+// Sampled cloud 1
+std::string outputSampled1 = "";
+
+// Sampled cloud 2
+std::string outputSampled2 = "";
+
 // Delta (see the paper).
 double delta = 5.0;
 
@@ -77,6 +83,10 @@ void getArgs(int argc, char **argv) {
       outputMat = argv[++i];
     } else if (!strcmp(argv[i], "-x")) {
       use_super4pcs = false;
+    } else if (!strcmp(argv[i], "--sampled1")) {
+      outputSampled1 = argv[++i];
+    } else if (!strcmp(argv[i], "--sampled2")) {
+      outputSampled2 = argv[++i];
     } else if (!strcmp(argv[i], "-h")) {
       fprintf(stderr, "\nUsage: %s -i input1 input2\n\n", argv[0]);
       fprintf(stderr, "\t[ -o overlap (%2.2f) ]\n", overlap);
@@ -88,6 +98,8 @@ void getArgs(int argc, char **argv) {
       fprintf(stderr, "\t[ -r result_file_name (%s) ]\n", output.c_str());
       fprintf(stderr, "\t[ -m output matrix file (%s) ]\n", outputMat.c_str());
       fprintf(stderr, "\t[ -x (use 4pcs: false by default) ]\n");
+      fprintf(stderr, "\t[ --sampled1 (output sampled cloud 1 -- debug+super4pcs only) ]\n");
+      fprintf(stderr, "\t[ --sampled2 (output sampled cloud 2 -- debug+super4pcs only) ]\n");
       exit(0);
     } else if (argv[i][0] == '-') {
       cerr << "Unknown flag\n";
@@ -184,13 +196,38 @@ int main(int argc, char **argv) {
 	  if (use_super4pcs) {
 		  MatchSuper4PCS matcher(options);
 		  cout << "Use Super4PCS" << endl;
-		  score = matcher.ComputeTransformation(set1, &set2, &mat);
+          score = matcher.ComputeTransformation(set1, &set2, &mat);
+
+          if(! outputSampled1.empty() ){
+              std::cout << "Exporting Sampled cloud 1 to "
+                        << outputSampled1.c_str()
+                        << "..." << std::flush;
+              iomananger.WriteObject((char *)outputSampled1.c_str(),
+                                     matcher.getFirstSampled(),
+                                     vector<cv::Point2f>(),
+                                     vector<cv::Point3f>(),
+                                     vector<tripple>(),
+                                     vector<string>());
+              std::cout << "DONE" << std::endl;
+
+              std::cout << "Exporting Sampled cloud 2 to "
+                        << outputSampled2.c_str()
+                        << "..." << std::flush;
+              iomananger.WriteObject((char *)outputSampled2.c_str(),
+                                     matcher.getSecondSampled(),
+                                     vector<cv::Point2f>(),
+                                     vector<cv::Point3f>(),
+                                     vector<tripple>(),
+                                     vector<string>());
+              std::cout << "DONE" << std::endl;
+          }
 	  }
 	  else {
 		  Match4PCS matcher(options);
 		  cout << "Use old 4PCS" << endl;
-		  score = matcher.ComputeTransformation(set1, &set2, &mat);
-	  }
+          score = matcher.ComputeTransformation(set1, &set2, &mat);
+      }
+
   }
   catch (const std::exception& e) {
 	  std::cout << "[Error]: " << e.what() << '\n';
@@ -224,8 +261,6 @@ int main(int argc, char **argv) {
       iomananger.WriteMatrix(outputMat, mat, IOManager::POLYWORKS);
       std::cout << "DONE" << std::endl;
   }
-
-
   
   if (! output.empty() ){
       std::cout << "Exporting Registered geometry to "
