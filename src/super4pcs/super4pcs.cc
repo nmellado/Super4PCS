@@ -283,6 +283,16 @@ class MatchSuper4PCSImpl {
   float ComputeTransformation(const std::vector<Point3D>& P,
                               std::vector<Point3D>* Q, cv::Mat* transformation);
 
+  // Read access to the sampled clouds used for the registration
+  inline const std::vector<Point3D>& getFirstSampled() const {
+      return sampled_P_3D_;
+  }
+
+  // Read access to the sampled clouds used for the registration
+  inline const std::vector<Point3D>& getSecondSampled() const {
+      return sampled_Q_3D_;
+  }
+
  private:
   // Private data contains parameters and internal variables that are computed
   // and change during the match computation. All parameters have default
@@ -446,6 +456,7 @@ class MatchSuper4PCSImpl {
   // terminated (the target LCP was obtained or the maximum number of trials has
   // been reached), false otherwise.
   bool Perform_N_steps(int n, cv::Mat* transformation, std::vector<Point3D>* Q);
+
 };
 
 // Finds congruent candidates in the set Q, given the invariants and threshold
@@ -1471,5 +1482,16 @@ MatchSuper4PCS::ComputeTransformation(const std::vector<Point3D>& P,
                                        cv::Mat* transformation) {
   return pimpl_->ComputeTransformation(P, Q, transformation);
 }
+
+const std::vector<Point3D>&
+MatchSuper4PCS::getFirstSampled() const{
+  return pimpl_->getFirstSampled();
+}
+
+const std::vector<Point3D>&
+MatchSuper4PCS::getSecondSampled() const{
+  return pimpl_->getSecondSampled();
+}
+
 }
 

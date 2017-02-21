@@ -200,6 +200,9 @@ class MatchSuper4PCS {
   float ComputeTransformation(const std::vector<Point3D>& P,
                               std::vector<Point3D>* Q, cv::Mat* transformation);
 
+  const std::vector<Point3D>& getFirstSampled() const;
+  const std::vector<Point3D>& getSecondSampled() const;
+
  private:
   std::unique_ptr<MatchSuper4PCSImpl> pimpl_;
 };
