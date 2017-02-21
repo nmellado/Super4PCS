@@ -210,7 +210,6 @@ int main(int argc, char **argv) {
                                      vector<string>());
               std::cout << "DONE" << std::endl;
           }
-
           if(! outputSampled2.empty() ){
               std::cout << "Exporting Sampled cloud 2 to "
                         << outputSampled2.c_str()
