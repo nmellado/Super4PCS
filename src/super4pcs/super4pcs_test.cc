@@ -22,8 +22,10 @@ std::string input2 = "input2.obj";
 
 // Output. The transformed second input.
 std::string output = "";
-// Default name for the output file
-std::string defaultOutput = "output.obj";
+// Default name for the '.obj' output file
+std::string defaultObjOutput = "output.obj";
+// Default name for the '.ply' output file
+std::string defaultPlyOutput = "output.ply";
 
 // Transformation matrice.
 std::string outputMat = "";
@@ -109,7 +111,7 @@ void getArgs(int argc, char **argv) {
   }
 
   // if no output file (geometry/matrix) is set, force 3d mesh
-  if (output.empty() && outputMat.empty()) output = defaultOutput;
+  if (output.empty() && outputMat.empty()) output = defaultObjOutput;
 
 }
 
@@ -264,6 +266,9 @@ int main(int argc, char **argv) {
   }
   
   if (! output.empty() ){
+      if(tris2.size() == 0) {
+        output = defaultPlyOutput;
+      }
       std::cout << "Exporting Registered geometry to "
                 << output.c_str()
                 << "..." << std::flush;
