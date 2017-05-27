@@ -11,11 +11,10 @@ using namespace std;
 /// Read
 ////////////////////////////////////////////////////////////////////////////////
 bool 
-IOManager::ReadObject(
-           const char *name,
-           vector<Point3D> &v, 
+IOManager::ReadObject(const char *name,
+           vector<Point3D> &v,
            vector<cv::Point2f> &tex_coords,
-           vector<cv::Point3f> &normals, 
+           vector<typename Point3D::VectorType> &normals,
            vector<tripple> &tris,
            vector<std::string> &mtls){
   string filename (name);
@@ -35,7 +34,7 @@ IOManager::ReadObject(
 bool 
 IOManager::ReadPly(const char *filename,
                    vector<Point3D> &v, 
-                   vector<cv::Point3f> &normals){
+                   vector<typename Point3D::VectorType> &normals){
   
   vector<tripple> face;
   unsigned int numOfVertexProperties, numOfVertices, numOfFaces;
@@ -133,7 +132,7 @@ bool
 IOManager::ReadObj(const char *filename,
                    vector<Point3D> &v, 
                    vector<cv::Point2f> &tex_coords,
-                   vector<cv::Point3f> &normals, 
+                   vector<typename Point3D::VectorType> &normals,
                    vector<tripple> &tris,
                    vector<std::string> &mtls) {
   fstream f(filename, ios::in);
@@ -155,8 +154,9 @@ IOManager::ReadObj(const char *filename,
       sscanf(str, "%s %f %f", ch, &tex_coord.x, &tex_coord.y);
       tex_coords.push_back(tex_coord);
     } else if (strcmp(ch, "vn") == 0) {
-      cv::Point3f normal;
-      sscanf(str, "%s %f %f %f", ch, &(normal.x), &(normal.y), &(normal.z));
+      typename Point3D::VectorType normal;
+      sscanf(str, "%s %f %f %f", ch, &x, &y, &z);
+      normal << x, y, z;
       normals.push_back(normal);
     } else if (strcmp(ch, "f") == 0) {
       tripple triangle;
@@ -268,7 +268,7 @@ bool
 IOManager::WriteObject(const char *name,
                        const vector<Point3D> &v,
                        const vector<cv::Point2f> &tex_coords,
-                       const vector<cv::Point3f> &normals,
+                       const vector<typename Point3D::VectorType> &normals,
                        const vector<tripple> &tris,
                        const vector<std::string> &mtls) {
   string filename (name);
@@ -321,7 +321,7 @@ bool IOManager::WriteMatrix(const string &name,
 bool
 IOManager::WritePly(string filename,
                     const vector<Point3D> &v,
-                    const vector<cv::Point3f> &normals)
+                    const vector<typename Point3D::VectorType> &normals)
 {
   std::ofstream plyFile;
   plyFile.open (filename.c_str(), std::ios::out |  std::ios::trunc | std::ios::binary);
@@ -373,9 +373,9 @@ IOManager::WritePly(string filename,
     plyFile.write(reinterpret_cast<const char*>(&v[i].z),sizeof(float));
 
     if (useNormals){
-      plyFile.write(reinterpret_cast<const char*>(&normals[i].x),sizeof(float));
-      plyFile.write(reinterpret_cast<const char*>(&normals[i].y),sizeof(float));
-      plyFile.write(reinterpret_cast<const char*>(&normals[i].z),sizeof(float));
+      plyFile.write(reinterpret_cast<const char*>(&normals[i](0)),sizeof(float));
+      plyFile.write(reinterpret_cast<const char*>(&normals[i](1)),sizeof(float));
+      plyFile.write(reinterpret_cast<const char*>(&normals[i](2)),sizeof(float));
     }
 
     if (useColors){
@@ -396,7 +396,7 @@ IOManager::WritePly(string filename,
 bool 
 IOManager::WriteObj(string filename, const vector<Point3D> &v,
                     const vector<cv::Point2f> &tex_coords,
-                    const vector<cv::Point3f> &normals,
+                    const vector<typename Point3D::VectorType> &normals,
                     const vector<tripple> &tris,
                     const vector<std::string> &mtls) {
   fstream f(filename.c_str(), ios::out);
@@ -420,7 +420,7 @@ IOManager::WriteObj(string filename, const vector<Point3D> &v,
   }
 
   for (i = 0; i < normals.size(); ++i) {
-    f << "vn " << normals[i].x << " " << normals[i].y << " " << normals[i].z
+    f << "vn " << normals[i](0) << " " << normals[i](1) << " " << normals[i](2)
       << endl;
   }
 

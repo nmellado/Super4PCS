@@ -146,7 +146,7 @@ readBinary1Body (const std::string & filename,
                  bool         haveColor,
                  bool bigEndian,
                  vector<Point3D>& vertex,
-                 vector<cv::Point3f>& normal,
+                 vector<typename Point3D::VectorType>& normal,
                  vector<tripple>& face )
 {
     //size_t count;
@@ -165,7 +165,7 @@ readBinary1Body (const std::string & filename,
     // *****************
     // Reading geometry.
     // *****************
-    cv::Point3f n;
+    typename Point3D::VectorType n;
     cv::Vec3f rgb;
     float * v = new float[numOfVertexProperties];
     uchar rgb_buff [4];
@@ -197,9 +197,7 @@ readBinary1Body (const std::string & filename,
                 rgb[2] = rgb_buff[2];
                 vertex.back().set_rgb(rgb);
             }else{
-                n.x = v[3];
-                n.y = v[4];
-                n.z = v[5];
+                n << v[3], v[4], v[5];
                 normal.push_back (n);
                 vertex.back().set_normal(n);
             }
@@ -209,9 +207,7 @@ readBinary1Body (const std::string & filename,
             rgb[2] = rgb_buff[2];
             vertex.back().set_rgb(rgb);
         }else if (numOfVertexProperties == 9 || numOfVertexProperties == 10){
-            n.x = v[3];
-            n.y = v[4];
-            n.z = v[5];
+            n << v[3], v[4], v[5];
             rgb[0] = rgb_buff[0];
             rgb[1] = rgb_buff[1];
             rgb[2] = rgb_buff[2];
@@ -254,7 +250,7 @@ readASCII1Body (const std::string & filename,
                 unsigned int numOfVertexProperties,
                 bool         haveColor,
                 vector<Point3D>& vertex,
-                vector<cv::Point3f>& normal,
+                vector<typename Point3D::VectorType>& normal,
                 vector<tripple>& face )
 {
 
@@ -272,7 +268,7 @@ readASCII1Body (const std::string & filename,
     // *****************
     // Reading geometry.
     // *****************
-    cv::Point3f n;
+    typename Point3D::VectorType n;
     cv::Vec3f rgb;
     unsigned int rgb_buff [4];
     for (unsigned int i = 0; i < numOfVertices && !feof (in); i++) {
@@ -314,9 +310,7 @@ readASCII1Body (const std::string & filename,
                 vertex.back().set_rgb(rgb);
 
             }else{
-                n.x = v[3];
-                n.y = v[4];
-                n.z = v[5];
+                n << v[3], v[4], v[5];
                 normal.push_back (n);
                 vertex.back().set_normal(n);
             }
@@ -326,9 +320,7 @@ readASCII1Body (const std::string & filename,
             rgb[2] = float(rgb_buff[2]);
             vertex.back().set_rgb(rgb);
         }else if (numOfVertexProperties == 9 || numOfVertexProperties == 10){
-            n.x = v[3];
-            n.y = v[4];
-            n.z = v[5];
+            n << v[3], v[4], v[5];
             rgb[0] = float(rgb_buff[0]);
             rgb[1] = float(rgb_buff[1]);
             rgb[2] = float(rgb_buff[2]);

@@ -81,8 +81,12 @@ inline void RGB2HSV(float r, float g, float b,
 
 // The basic 3D point structure. A point potentially contains also directional
 // information and color.
+//template <typename _Scalar = float>
 class Point3D : public cv::Point3f {
  public:
+  using Scalar = float; //_Scalar;
+  using VectorType = Eigen::Matrix<Scalar, 3, 1>;
+
   inline Point3D(double x, double y, double z) : cv::Point3f(x, y, z) {}
   inline Point3D(const cv::Point3f& other): cv::Point3f(other) {}
   inline Point3D(const Point3D& other):
@@ -98,24 +102,16 @@ class Point3D : public cv::Point3f {
   inline Point3D() : cv::Point3f(0.0f, 0.0f, 0.0f) {}
   inline const cv::Vec3f& rgb() const { return rgb_; }
 //  inline const cv::Vec3f& hsv() const { return hsv_; }
-  inline const cv::Point3f& normal() const { return normal_; }
+  inline const VectorType& normal() const { return normal_; }
   inline void set_rgb(const cv::Vec3f& rgb) {
       rgb_ = rgb;
       hasColor_ = true;
 //      internal::RGB2HSV(rgb_[0]/255.f,rgb_[1]/255.f,rgb_[2]/255.f, hsv_[0],hsv_[1],hsv_[2]);
   }
-  inline void set_normal(const cv::Point3d& normal) {
-      double norm = cv::norm(normal);
-      normal_.x = normal.x / norm;
-      normal_.y = normal.y / norm;
-      normal_.z = normal.z / norm;
+  inline void set_normal(const VectorType& normal) {
+      normal_ = normal.normalized();
   }
-  inline void set_normal(const cv::Point3f& normal) {
-      float norm = cv::norm(normal);
-      normal_.x = normal.x / norm;
-      normal_.y = normal.y / norm;
-      normal_.z = normal.z / norm;
-  }
+
   inline void normalize() {
     double n = cv::norm(*this);
     x /= n;
@@ -126,7 +122,7 @@ class Point3D : public cv::Point3f {
 
  private:
   // Normal.
-  cv::Point3f normal_{0.0f, 0.0f, 0.0f};
+  VectorType normal_{0.0f, 0.0f, 0.0f};
   // Color.
   cv::Vec3f rgb_{-1.0f, -1.0f, -1.0f};
 //  cv::Vec3f hsv_{-1.0f, -1.0f, -1.0f};

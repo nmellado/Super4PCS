@@ -156,11 +156,11 @@ public:
       const float distance = cv::norm(q - p);
       if (std::abs(distance - pair_distance) > pair_distance_epsilon) return;
 #endif
-      const bool use_normals = norm(q.normal()) > 0 && norm(p.normal()) > 0;
+      const bool use_normals = q.normal().squaredNorm() > 0 && p.normal().squaredNorm() > 0;
       bool normals_good = true;
       if (use_normals) {
-        const Scalar first_normal_angle = cv::norm(q.normal() - p.normal());
-        const Scalar second_normal_angle = cv::norm(q.normal() + p.normal());
+        const Scalar first_normal_angle = (q.normal() - p.normal()).norm();
+        const Scalar second_normal_angle = (q.normal() + p.normal()).norm();
         // Take the smaller normal distance.
         const Scalar first_norm_distance =
             std::min(std::abs(first_normal_angle - pair_normals_angle),
