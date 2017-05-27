@@ -877,7 +877,7 @@ double Match4PCSImpl::Verify(const cv::Mat& rotation, const cv::Point3f& center,
       Point3D& q = sampled_P_3D_[near_neighbor_index[0]];
       bool rgb_good =
           (p.rgb()[0] >= 0 && q.rgb()[0] >= 0)
-              ? cv::norm(p.rgb() - q.rgb()) < options_.max_color_distance
+              ? (p.rgb() - q.rgb()).norm() < options_.max_color_distance
               : true;
       bool norm_good = p.normal().squaredNorm() > 0 && q.normal().squaredNorm() > 0
                            ? std::abs(p.normal().dot(q.normal())) >= cos_dist
@@ -951,9 +951,9 @@ void Match4PCSImpl::BruteForcePairs(double pair_distance,
                             base_3D_[base_point1].rgb()[0] >= 0 &&
                             base_3D_[base_point2].rgb()[0] >= 0);
       const bool rgb_good =
-          use_rgb ? cv::norm(p.rgb() - base_3D_[base_point1].rgb()) <
+          use_rgb ? (p.rgb() - base_3D_[base_point1].rgb()).norm() <
                             options_.max_color_distance &&
-                        cv::norm(q.rgb() - base_3D_[base_point2].rgb()) <
+                    (q.rgb() - base_3D_[base_point2].rgb()).norm() <
                             options_.max_color_distance
                   : true;
       const bool dist_good = cv::norm(p - base_3D_[base_point1]) <
