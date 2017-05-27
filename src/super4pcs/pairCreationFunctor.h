@@ -176,9 +176,9 @@ public:
                             base_3D_[base_point1_].rgb()[0] >= 0 &&
                             base_3D_[base_point2_].rgb()[0] >= 0);
       const bool rgb_good =
-          use_rgb ? cv::norm(p.rgb() - base_3D_[base_point1_].rgb()) <
+          use_rgb ? (p.rgb() - base_3D_[base_point1_].rgb()).norm() <
                             options_.max_color_distance &&
-                        cv::norm(q.rgb() - base_3D_[base_point2_].rgb()) <
+                    (q.rgb() - base_3D_[base_point2_].rgb()).norm() <
                             options_.max_color_distance
                   : true;
       const bool dist_good = cv::norm(p - base_3D_[base_point1_]) <

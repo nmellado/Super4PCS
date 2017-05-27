@@ -166,7 +166,7 @@ readBinary1Body (const std::string & filename,
     // Reading geometry.
     // *****************
     typename Point3D::VectorType n;
-    cv::Vec3f rgb;
+    typename Point3D::VectorType rgb;
     float * v = new float[numOfVertexProperties];
     uchar rgb_buff [4];
 
@@ -192,9 +192,7 @@ readBinary1Body (const std::string & filename,
 
         if (numOfVertexProperties == 6){
             if (haveColor){
-                rgb[0] = rgb_buff[0];
-                rgb[1] = rgb_buff[1];
-                rgb[2] = rgb_buff[2];
+                rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
                 vertex.back().set_rgb(rgb);
             }else{
                 n << v[3], v[4], v[5];
@@ -202,15 +200,11 @@ readBinary1Body (const std::string & filename,
                 vertex.back().set_normal(n);
             }
         }else if (numOfVertexProperties == 7){
-            rgb[0] = rgb_buff[0];
-            rgb[1] = rgb_buff[1];
-            rgb[2] = rgb_buff[2];
+            rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
             vertex.back().set_rgb(rgb);
         }else if (numOfVertexProperties == 9 || numOfVertexProperties == 10){
             n << v[3], v[4], v[5];
-            rgb[0] = rgb_buff[0];
-            rgb[1] = rgb_buff[1];
-            rgb[2] = rgb_buff[2];
+            rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
             normal.push_back (n);
             vertex.back().set_normal(n);
             vertex.back().set_rgb(rgb);
@@ -269,7 +263,7 @@ readASCII1Body (const std::string & filename,
     // Reading geometry.
     // *****************
     typename Point3D::VectorType n;
-    cv::Vec3f rgb;
+    typename Point3D::VectorType rgb;
     unsigned int rgb_buff [4];
     for (unsigned int i = 0; i < numOfVertices && !feof (in); i++) {
         std::vector<float> v(numOfVertexProperties);
@@ -304,9 +298,7 @@ readASCII1Body (const std::string & filename,
 
         if (numOfVertexProperties == 6){
             if (haveColor){
-                rgb[0] = float(rgb_buff[0]);
-                rgb[1] = float(rgb_buff[1]);
-                rgb[2] = float(rgb_buff[2]);
+                rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
                 vertex.back().set_rgb(rgb);
 
             }else{
@@ -315,15 +307,11 @@ readASCII1Body (const std::string & filename,
                 vertex.back().set_normal(n);
             }
         }else if (numOfVertexProperties == 7){
-            rgb[0] = float(rgb_buff[0]);
-            rgb[1] = float(rgb_buff[1]);
-            rgb[2] = float(rgb_buff[2]);
+            rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
             vertex.back().set_rgb(rgb);
         }else if (numOfVertexProperties == 9 || numOfVertexProperties == 10){
             n << v[3], v[4], v[5];
-            rgb[0] = float(rgb_buff[0]);
-            rgb[1] = float(rgb_buff[1]);
-            rgb[2] = float(rgb_buff[2]);
+            rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
             normal.push_back (n);
             vertex.back().set_normal(n);
             vertex.back().set_rgb(rgb);

@@ -100,10 +100,10 @@ class Point3D : public cv::Point3f {
   }
 
   inline Point3D() : cv::Point3f(0.0f, 0.0f, 0.0f) {}
-  inline const cv::Vec3f& rgb() const { return rgb_; }
+  inline const VectorType& rgb() const { return rgb_; }
 //  inline const cv::Vec3f& hsv() const { return hsv_; }
   inline const VectorType& normal() const { return normal_; }
-  inline void set_rgb(const cv::Vec3f& rgb) {
+  inline void set_rgb(const VectorType& rgb) {
       rgb_ = rgb;
       hasColor_ = true;
 //      internal::RGB2HSV(rgb_[0]/255.f,rgb_[1]/255.f,rgb_[2]/255.f, hsv_[0],hsv_[1],hsv_[2]);
@@ -124,7 +124,7 @@ class Point3D : public cv::Point3f {
   // Normal.
   VectorType normal_{0.0f, 0.0f, 0.0f};
   // Color.
-  cv::Vec3f rgb_{-1.0f, -1.0f, -1.0f};
+  VectorType rgb_{-1.0f, -1.0f, -1.0f};
 //  cv::Vec3f hsv_{-1.0f, -1.0f, -1.0f};
   bool hasColor_ = false;
 };

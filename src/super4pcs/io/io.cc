@@ -100,7 +100,7 @@ bool IOManager::ReadPtx(const char *filename, vector<Point3D> &vertex)
 
     Point3D ptx;
     float intensity;
-    cv::Vec3f rgb;
+    typename Point3D::VectorType rgb;
 
     vertex.clear();
     vertex.reserve(numOfVertices);
@@ -114,9 +114,9 @@ bool IOManager::ReadPtx(const char *filename, vector<Point3D> &vertex)
         ss >> ptx.y;
         ss >> ptx.z;
         ss >> intensity;
-        ss >> rgb[0];
-        ss >> rgb[1];
-        ss >> rgb[2];
+        ss >> rgb(0);
+        ss >> rgb(1);
+        ss >> rgb(2);
 
         ptx.set_rgb(rgb);
 
@@ -148,7 +148,7 @@ IOManager::ReadObj(const char *filename,
     if (strcmp(ch, "v") == 0) {
       sscanf(str, "%s %f %f %f", ch, &x, &y, &z);
       v.push_back(Point3D(x, y, z));
-      v[v.size() - 1].set_rgb(cv::Vec3f(0, 0, 0));
+      v[v.size() - 1].set_rgb(Point3D::VectorType::Zero());
     } else if (strcmp(ch, "vt") == 0) {
       cv::Point2f tex_coord;
       sscanf(str, "%s %f %f", ch, &tex_coord.x, &tex_coord.y);
@@ -225,29 +225,20 @@ IOManager::ReadObj(const char *filename,
                 tc2.x < 1.0 && tc2.x > 0 && tc2.y < 1.0 && tc2.y > 0 &&
                 tc3.x < 1.0 && tc3.x > 0 && tc3.y < 1.0 && tc3.y > 0) {
                 
-              v[t.a - 1].set_rgb(cv::Vec3f(
-                  static_cast<float>(
-                      tex.at<cv::Vec3b>(tc1.y * tex.rows, tc1.x * tex.cols)[0]),
-                  static_cast<float>(
-                      tex.at<cv::Vec3b>(tc1.y * tex.rows, tc1.x * tex.cols)[1]),
-                  static_cast<float>(tex.at<cv::Vec3b>(tc1.y * tex.rows,
-                                                       tc1.x * tex.cols)[2])));
+              v[t.a - 1].set_rgb(typename Point3D::VectorType(
+                  tex.at<cv::Vec3b>(tc1.y * tex.rows, tc1.x * tex.cols)[0],
+                  tex.at<cv::Vec3b>(tc1.y * tex.rows, tc1.x * tex.cols)[1],
+                  tex.at<cv::Vec3b>(tc1.y * tex.rows, tc1.x * tex.cols)[2]));
 
-              v[t.b - 1].set_rgb(cv::Vec3f(
-                  static_cast<float>(
-                      tex.at<cv::Vec3b>(tc2.y * tex.rows, tc2.x * tex.cols)[0]),
-                  static_cast<float>(
-                      tex.at<cv::Vec3b>(tc2.y * tex.rows, tc2.x * tex.cols)[1]),
-                  static_cast<float>(tex.at<cv::Vec3b>(tc2.y * tex.rows,
-                                                       tc2.x * tex.cols)[2])));
+              v[t.b - 1].set_rgb(typename Point3D::VectorType(
+                  tex.at<cv::Vec3b>(tc2.y * tex.rows, tc2.x * tex.cols)[0],
+                  tex.at<cv::Vec3b>(tc2.y * tex.rows, tc2.x * tex.cols)[1],
+                  tex.at<cv::Vec3b>(tc2.y * tex.rows, tc2.x * tex.cols)[2]));
 
-              v[t.c - 1].set_rgb(cv::Vec3f(
-                  static_cast<float>(
-                      tex.at<cv::Vec3b>(tc3.y * tex.rows, tc3.x * tex.cols)[0]),
-                  static_cast<float>(
-                      tex.at<cv::Vec3b>(tc3.y * tex.rows, tc3.x * tex.cols)[1]),
-                  static_cast<float>(tex.at<cv::Vec3b>(tc3.y * tex.rows,
-                                                       tc3.x * tex.cols)[2])));
+              v[t.c - 1].set_rgb(typename Point3D::VectorType(
+                  tex.at<cv::Vec3b>(tc3.y * tex.rows, tc3.x * tex.cols)[0],
+                  tex.at<cv::Vec3b>(tc3.y * tex.rows, tc3.x * tex.cols)[1],
+                  tex.at<cv::Vec3b>(tc3.y * tex.rows, tc3.x * tex.cols)[2]));
             }
           }
         }
