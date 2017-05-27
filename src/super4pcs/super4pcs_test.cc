@@ -117,25 +117,20 @@ void getArgs(int argc, char **argv) {
 
 
 void CleanInvalidNormals( vector<Point3D> &v, 
-                          vector<cv::Point3f> &normals){
+                          vector<typename Point3D::VectorType> &normals){
   if (v.size() == normals.size()){
     vector<Point3D>::iterator itV = v.begin();
-    vector<cv::Point3f>::iterator itN = normals.begin();
+    vector<typename Point3D::VectorType>::iterator itN = normals.begin();
   
-    float norm;
     unsigned int nb = 0;
     for( ; itV != v.end(); ){
-      norm = cv::norm((*itV).normal());
-      if (norm < 0.1){
+
+      if ((*itV).normal().squaredNorm() < 0.01){
         itN = normals.erase(itN);
         itV = v.erase(itV);
         nb++;
       }else{
-        if (norm != 1.){
-          (*itN).x /= norm;
-          (*itN).y /= norm;
-          (*itN).z /= norm;
-        }
+        (*itN).normalize();
         itV++;
         itN++;
       }
@@ -152,7 +147,7 @@ int main(int argc, char **argv) {
 
   vector<Point3D> set1, set2;
   vector<cv::Point2f> tex_coords1, tex_coords2;
-  vector<cv::Point3f> normals1, normals2;
+  vector<typename Point3D::VectorType> normals1, normals2;
   vector<tripple> tris1, tris2;
   vector<std::string> mtls1, mtls2;
 
@@ -207,7 +202,7 @@ int main(int argc, char **argv) {
               iomananger.WriteObject((char *)outputSampled1.c_str(),
                                      matcher.getFirstSampled(),
                                      vector<cv::Point2f>(),
-                                     vector<cv::Point3f>(),
+                                     vector<typename Point3D::VectorType>(),
                                      vector<tripple>(),
                                      vector<string>());
               std::cout << "DONE" << std::endl;
@@ -219,7 +214,7 @@ int main(int argc, char **argv) {
               iomananger.WriteObject((char *)outputSampled2.c_str(),
                                      matcher.getSecondSampled(),
                                      vector<cv::Point2f>(),
-                                     vector<cv::Point3f>(),
+                                     vector<typename Point3D::VectorType>(),
                                      vector<tripple>(),
                                      vector<string>());
               std::cout << "DONE" << std::endl;

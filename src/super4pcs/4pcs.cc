@@ -262,14 +262,12 @@ void Transform(const cv::Mat& rotation, const cv::Point3f& center,
   point->y = transformed.at<double>(1, 0) + center.y + translate.y;
   point->z = transformed.at<double>(2, 0) + center.z + translate.z;
 
-  first.at<double>(0, 0) = (point->normal().x);
-  first.at<double>(1, 0) = (point->normal().y);
-  first.at<double>(2, 0) = (point->normal().z);
+  first.at<double>(0, 0) = (point->normal()(0));
+  first.at<double>(1, 0) = (point->normal()(1));
+  first.at<double>(2, 0) = (point->normal()(2));
   transformed = rotation * first;
-  cv::Point3f normal;
-  normal.x = transformed.at<double>(0, 0);
-  normal.y = transformed.at<double>(1, 0);
-  normal.z = transformed.at<double>(2, 0);
+  typename Point3D::VectorType normal;
+  normal << transformed.at<double>(0, 0), transformed.at<double>(1, 0), transformed.at<double>(2, 0);
   point->set_normal(normal);
 }
 
@@ -881,8 +879,8 @@ double Match4PCSImpl::Verify(const cv::Mat& rotation, const cv::Point3f& center,
           (p.rgb()[0] >= 0 && q.rgb()[0] >= 0)
               ? cv::norm(p.rgb() - q.rgb()) < options_.max_color_distance
               : true;
-      bool norm_good = norm(p.normal()) > 0 && norm(q.normal()) > 0
-                           ? fabs(p.normal().ddot(q.normal())) >= cos_dist
+      bool norm_good = p.normal().squaredNorm() > 0 && q.normal().squaredNorm() > 0
+                           ? std::abs(p.normal().dot(q.normal())) >= cos_dist
                            : true;
       if (rgb_good && norm_good) {
         good_points++;
@@ -933,11 +931,11 @@ void Match4PCSImpl::BruteForcePairs(double pair_distance,
       // defined by segment matching alone..
       const float distance = cv::norm(q - p);
       if (fabs(distance - pair_distance) > pair_distance_epsilon) continue;
-      const bool use_normals = norm(q.normal()) > 0 && norm(p.normal()) > 0;
+      const bool use_normals = q.normal().squaredNorm() > 0 && p.normal().squaredNorm() > 0;
       bool normals_good = true;
       if (use_normals) {
-        const double first_normal_angle = cv::norm(q.normal() - p.normal());
-        const double second_normal_angle = cv::norm(q.normal() + p.normal());
+        const double first_normal_angle = (q.normal() - p.normal()).norm();
+        const double second_normal_angle = (q.normal() + p.normal()).norm();
         // Take the smaller normal distance.
         const float first_norm_distance =
             min(fabs(first_normal_angle - pair_normals_angle),
@@ -1001,8 +999,8 @@ bool Match4PCSImpl::TryOneBase() {
   vector<Quadrilateral> congruent_quads;
 
   // Compute normal angles.
-  double normal_angle1 = cv::norm(base_3D_[0].normal() - base_3D_[1].normal());
-  double normal_angle2 = cv::norm(base_3D_[2].normal() - base_3D_[3].normal());
+  double normal_angle1 = (base_3D_[0].normal() - base_3D_[1].normal()).norm();
+  double normal_angle2 = (base_3D_[2].normal() - base_3D_[3].normal()).norm();
 
   BruteForcePairs(distance1, normal_angle1, distance_factor * options_.delta, 0,
                   1, &pairs1);

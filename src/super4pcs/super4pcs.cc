@@ -914,8 +914,8 @@ bool MatchSuper4PCSImpl::TryOneBase() {
   vector<Quadrilateral> congruent_quads;
 
   // Compute normal angles.
-  double normal_angle1 = cv::norm(base_3D_[0].normal() - base_3D_[1].normal());
-  double normal_angle2 = cv::norm(base_3D_[2].normal() - base_3D_[3].normal());
+  double normal_angle1 = (base_3D_[0].normal() - base_3D_[1].normal()).norm();
+  double normal_angle2 = (base_3D_[2].normal() - base_3D_[3].normal()).norm();
 
   ExtractPairs(distance1, normal_angle1, distance_factor * options_.delta, 0,
                   1, &pairs1);
