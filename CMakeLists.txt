@@ -135,6 +135,7 @@ set(Super4PCS_SRC
     ${SRC_DIR}/super4pcs.cc
 )
 set(Super4PCS_INCLUDE
+    ${SRC_DIR}/sampling.h
     ${SRC_DIR}/shared4pcs.h
     ${SRC_DIR}/pairExtraction.h
     ${SRC_DIR}/4pcs.h
