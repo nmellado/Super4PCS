@@ -60,7 +60,6 @@
 #include "accelerators/pairExtraction/intersectionPrimitive.h"
 #include "accelerators/normalset.h"
 #include "accelerators/normalHealSet.h"
-#include "accelerators/kdtree.h"
 #include "accelerators/bbox.h"
 
 #include "pairCreationFunctor.h"
@@ -172,8 +171,8 @@ float distSegmentToSegment(const cv::Point3f& p1, const cv::Point3f& p2,
 class MatchSuper4PCSImpl  : public Super4PCS::Match4PCSBase {
 public:
     using Base = Super4PCS::Match4PCSBase;
+    using Scalar = Base::Scalar;
 
-    typedef double Scalar;
     typedef PairCreationFunctor<Scalar>::PairsVector PairsVector;
 
 #ifdef TEST_GLOBAL_TIMINGS
@@ -227,8 +226,6 @@ public:
 
   // Internal data members.
 
-  // KdTree used to compute the LCP
-  Super4PCS::KdTree<Scalar> kd_tree_;
   // The transformation matrix by wich we transform Q to P
   Eigen::Matrix<Scalar, 4, 4> transform_;
   // Quad centroids in first and second clouds
@@ -623,30 +620,6 @@ bool MatchSuper4PCSImpl::SelectQuadrilateral(double* invariant1, double* invaria
   return false;
 }
 
-// Computes the mean distance between points in Q and their nearest neighbor.
-// We need this for normalization of the user delta (See the paper) to the
-// "scale" of the set.
-double MatchSuper4PCSImpl::MeanDistance() {
-  const float kDiameterFraction = 0.2;
-  Super4PCS::KdTree<Scalar>::VectorType query_point;
-
-  int number_of_samples = 0;
-  Scalar distance = 0.0;
-
-  for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-    query_point << sampled_P_3D_[i].x, sampled_P_3D_[i].y, sampled_P_3D_[i].z;
-
-    Super4PCS::KdTree<Scalar>::Index resId =
-    kd_tree_.doQueryRestrictedClosestIndex(query_point, P_diameter_ * kDiameterFraction, i);
-
-    if (resId != Super4PCS::KdTree<Scalar>::invalidIndex()) {
-      distance += cv::norm(sampled_P_3D_[i] - sampled_P_3D_[resId]);
-      number_of_samples++;
-    }
-  }
-
-  return distance / number_of_samples;
-}
 
 // Verify a given transformation by computing the number of points in P at
 // distance at most (normalized) delta from some point in Q. In the paper
@@ -1036,20 +1009,8 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
     sampled_Q_3D_[i].z -= centroid_Q_.z;
   }
 
-  int number_of_points = sampled_P_3D_.size();
 
-  // Build the kdtree.
-  kd_tree_ = Super4PCS::KdTree<Scalar>(number_of_points);
-
-  Super4PCS::KdTree<Scalar>::VectorType p;
-  for (int i = 0; i < number_of_points; ++i) {
-      p << sampled_P_3D_[i].x,
-           sampled_P_3D_[i].y,
-           sampled_P_3D_[i].z;
-
-      kd_tree_.add(p);
-  }
-  kd_tree_.finalize();
+  Base::initKdTree();
 
   pcfunctor_.synch3DContent();
 
