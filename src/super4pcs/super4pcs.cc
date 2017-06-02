@@ -45,6 +45,7 @@
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
 #include "4pcs.h"
+#include "match4pcsBase.h"
 #include "sampling.h"
 
 #include "Eigen/Core"
@@ -167,24 +168,10 @@ float distSegmentToSegment(const cv::Point3f& p1, const cv::Point3f& p2,
 
 }  // namespace
 
-// Holds a base from P. The base contains 4 points (indices) from the set P.
-struct Quadrilateral {
-  int vertices[4];
-  Quadrilateral(int vertex0, int vertex1, int vertex2, int vertex3) {
-    vertices[0] = vertex0;
-    vertices[1] = vertex1;
-    vertices[2] = vertex2;
-    vertices[3] = vertex3;
-//    cout << vertex0 << " "
-//         << vertex1 << " "
-//         << vertex2 << " "
-//         << vertex3 << " "
-//         << (float(vertex0) + float(vertex1) + float(vertex2) + float(vertex3))/4.f
-//         << endl;
-  }
-};
 
-class MatchSuper4PCSImpl {
+class MatchSuper4PCSImpl  : public Super4PCS::Match4PCSBase {
+public:
+    using Base = Super4PCS::Match4PCSBase;
 
     typedef double Scalar;
     typedef PairCreationFunctor<Scalar>::PairsVector PairsVector;
@@ -200,14 +187,8 @@ class MatchSuper4PCSImpl {
 #endif
  public:
   explicit MatchSuper4PCSImpl(const Match4PCSOptions& options)
-      : number_of_trials_(0),
-        max_base_diameter_(-1),
-        P_mean_distance_(1.0),
-        best_LCP_(0.0F),
-        options_(options),
-        pcfunctor_(options_, sampled_Q_3D_) {
-    base_3D_.resize(4);
-  }
+      : Base(options),
+        pcfunctor_(options_, sampled_Q_3D_) { }
 
   ~MatchSuper4PCSImpl() {
     Clear();
@@ -246,20 +227,8 @@ class MatchSuper4PCSImpl {
 
   // Internal data members.
 
-  // Number of trials. Every trial picks random base from P.
-  int number_of_trials_;
-  // Maximum base diameter. It is computed automatically from the diameter of
-  // P and the estimated overlap and used to limit the distance between the
-  // points in the base in P so that the probability to have all points in
-  // the base as inliers is increased.
-  float max_base_diameter_;
-  // The diameter of P.
-  float P_diameter_;
   // KdTree used to compute the LCP
   Super4PCS::KdTree<Scalar> kd_tree_;
-  // Mean distance between points and their nearest neighbor in the set P.
-  // Used to normalize the "delta" which is given in terms of this distance.
-  float P_mean_distance_;
   // The transformation matrix by wich we transform Q to P
   Eigen::Matrix<Scalar, 4, 4> transform_;
   // Quad centroids in first and second clouds
@@ -267,32 +236,6 @@ class MatchSuper4PCSImpl {
   // noise. At the end, the direct transformation applied as a 4x4 matrix on
   // every points in Q is computed and returned.
   Eigen::Matrix<Scalar, 3, 1> qcentroid1_, qcentroid2_;
-  // The points in the base (indices to P). It is being updated in every
-  // RANSAC iteration.
-  int base_[4];
-  // The current congruent 4 points from Q. Every RANSAC iteration the
-  // algorithm examines a set of such congruent 4-points from Q and retains
-  // the best from them (the one that realizes the best LCP).
-  int current_congruent_[4];
-  // Sampled P (3D coordinates).
-  std::vector<Point3D> sampled_P_3D_;
-  // Sampled Q (3D coordinates).
-  std::vector<Point3D> sampled_Q_3D_;
-  // The 3D points of the base.
-  std::vector<Point3D> base_3D_;
-  // The copy of the input Q. We transform Q to match P and returned the
-  // transformed version.
-  std::vector<Point3D> Q_copy_;
-  // The centroid of P.
-  cv::Point3f centroid_P_;
-  // The centroid of Q.
-  cv::Point3f centroid_Q_;
-  // The best LCP (Largest Common Point) fraction so far.
-  float best_LCP_;
-  // Current trial.
-  int current_trial_;
-  // Parameters.
-  Match4PCSOptions options_;
 
   PairCreationFunctor<Scalar> pcfunctor_;
 
@@ -370,7 +313,7 @@ class MatchSuper4PCSImpl {
                                        const PairsVector& P_pairs,
                                        const PairsVector& Q_pairs,
                                        const std::vector<Point3D>& Q_points,
-                                       std::vector<Quadrilateral>* quadrilaterals);
+                                       std::vector<Super4PCS::Quadrilateral>* quadrilaterals);
 
   // Computes the best rigid transformation between three corresponding pairs.
   // The transformation is characterized by rotation matrix, translation vector
@@ -412,7 +355,7 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
     double distance_threshold2, const std::vector<std::pair<int, int>>& P_pairs,
     const std::vector<std::pair<int, int>>& Q_pairs,
     const std::vector<Point3D>& Q_points,
-    std::vector<Quadrilateral>* quadrilaterals) {
+    std::vector<Super4PCS::Quadrilateral>* quadrilaterals) {
 
   // Compute the angle formed by the two vectors of the basis
   Point3D b1 = base_3D_[1] - base_3D_[0];  b1.normalize();
@@ -503,7 +446,7 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
     const unsigned int & i  = (*it).second;
 
     quadrilaterals->push_back(
-                Quadrilateral(P_pairs[id].first, P_pairs[id].second,
+                Super4PCS::Quadrilateral(P_pairs[id].first, P_pairs[id].second,
                               Q_pairs[i].first,  Q_pairs[i].second));
   }
 
@@ -857,7 +800,7 @@ bool MatchSuper4PCSImpl::TryOneBase() {
   double distance2 = PointsDistance(base_3D_[2], base_3D_[3]);
 
   vector<pair<int, int>> pairs1, pairs2;
-  vector<Quadrilateral> congruent_quads;
+  vector<Super4PCS::Quadrilateral> congruent_quads;
 
   // Compute normal angles.
   double normal_angle1 = (base_3D_[0].normal() - base_3D_[1].normal()).norm();
