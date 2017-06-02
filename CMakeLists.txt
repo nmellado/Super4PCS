@@ -131,6 +131,7 @@ endif(DEFINED ${SUPER4PCS_BUILD_TEST})
 
 include_directories(${SRC_DIR})
 set(Super4PCS_SRC
+    ${SRC_DIR}/match4pcsBase.cc
     ${SRC_DIR}/4pcs.cc
     ${SRC_DIR}/super4pcs.cc
 )

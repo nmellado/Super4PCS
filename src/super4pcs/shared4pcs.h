@@ -136,6 +136,86 @@ class Point3D : public cv::Point3f {
 
 const float kLargeNumber = 1e9;
 
+// Local static helpers that do not depend on state.
+
+static inline float Square(float x) { return x * x; }
+
+static inline float PointsDistance(const Point3D& p, const Point3D& q) {
+  return cv::norm(p - q);
+}
+
+// Compute the closest points between two 3D line segments and obtain the two
+// invariants corresponding to the closet points. This is the "intersection"
+// point that determines the invariants. Since the 4 points are not exactly
+// planar, we use the center of the line segment connecting the two closest
+// points as the "intersection".
+static float distSegmentToSegment(const cv::Point3f& p1, const cv::Point3f& p2,
+                           const cv::Point3f& q1, const cv::Point3f& q2,
+                           double* invariant1, double* invariant2) {
+  if (invariant1 == 0 || invariant2 == 0) return kLargeNumber;
+  const float kSmallNumber = 0.0001;
+  cv::Point3f u = p2 - p1;
+  cv::Point3f v = q2 - q1;
+  cv::Point3f w = p1 - q1;
+  float a = u.dot(u);
+  float b = u.dot(v);
+  float c = v.dot(v);
+  float d = u.dot(w);
+  float e = v.dot(w);
+  float f = a * c - b * b;
+  // s1,s2 and t1,t2 are the parametric representation of the intersection.
+  // they will be the invariants at the end of this simple computation.
+  float s1 = 0.0;
+  float s2 = f;
+  float t1 = 0.0;
+  float t2 = f;
+
+  if (f < kSmallNumber) {
+    s1 = 0.0;
+    s2 = 1.0;
+    t1 = e;
+    t2 = c;
+  } else {
+    s1 = (b * e - c * d);
+    t1 = (a * e - b * d);
+    if (s1 < 0.0) {
+      s1 = 0.0;
+      t1 = e;
+      t2 = c;
+    } else if (s1 > s2) {
+      s1 = s2;
+      t1 = e + b;
+      t2 = c;
+    }
+  }
+
+  if (t1 < 0.0) {
+    t1 = 0.0;
+    if (-d < 0.0)
+      s1 = 0.0;
+    else if (-d > a)
+      s1 = s2;
+    else {
+      s1 = -d;
+      s2 = a;
+    }
+  } else if (t1 > t2) {
+    t1 = t2;
+    if ((-d + b) < 0.0)
+      s1 = 0;
+    else if ((-d + b) > a)
+      s1 = s2;
+    else {
+      s1 = (-d + b);
+      s2 = a;
+    }
+  }
+  *invariant1 = (abs(s1) < kSmallNumber ? 0.0 : s1 / s2);
+  *invariant2 = (abs(t1) < kSmallNumber ? 0.0 : t1 / t2);
+  cv::Point3f distance = w + (*invariant1 * u) - (*invariant2 * v);
+  return cv::norm(distance);
+}
+
 // ----- 4PCS Options -----
 // delta and overlap_estimation are the application parameters. All other
 // parameters are more likely to keep fixed and they can be set via the setters.
