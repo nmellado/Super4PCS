@@ -48,6 +48,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "shared4pcs.h"
+#include "accelerators/kdtree.h"
 
 namespace Super4PCS{
 
@@ -65,6 +66,7 @@ class Match4PCSBase {
 public:
     using Point3D = match_4pcs::Point3D;
     using PairsVector =  std::vector< std::pair<int, int> >;
+    using Scalar = double;
 
 
 protected:
@@ -113,6 +115,8 @@ protected:
     float best_LCP_;
     // Current trial.
     int current_trial_;
+    // KdTree used to compute the LCP
+    Super4PCS::KdTree<Scalar> kd_tree_;
     // Parameters.
     match_4pcs::Match4PCSOptions options_;
 
@@ -124,6 +128,49 @@ protected:
           best_LCP_(0.0F),
           options_(options) {
         base_3D_.resize(4);
+    }
+
+protected:
+    // Computes the mean distance between points in Q and their nearest neighbor.
+    // We need this for normalization of the user delta (See the paper) to the
+    // "scale" of the set.
+    inline Scalar MeanDistance() {
+      const float kDiameterFraction = 0.2;
+      Super4PCS::KdTree<Scalar>::VectorType query_point;
+
+      int number_of_samples = 0;
+      Scalar distance = 0.0;
+
+      for (int i = 0; i < sampled_P_3D_.size(); ++i) {
+        query_point << sampled_P_3D_[i].x, sampled_P_3D_[i].y, sampled_P_3D_[i].z;
+
+        Super4PCS::KdTree<Scalar>::Index resId =
+        kd_tree_.doQueryRestrictedClosestIndex(query_point, P_diameter_ * kDiameterFraction, i);
+
+        if (resId != Super4PCS::KdTree<Scalar>::invalidIndex()) {
+          distance += cv::norm(sampled_P_3D_[i] - sampled_P_3D_[resId]);
+          number_of_samples++;
+        }
+      }
+
+      return distance / number_of_samples;
+    }
+
+    inline void initKdTree(){
+        int number_of_points = sampled_P_3D_.size();
+
+        // Build the kdtree.
+        kd_tree_ = Super4PCS::KdTree<Scalar>(number_of_points);
+
+        Super4PCS::KdTree<Scalar>::VectorType p;
+        for (int i = 0; i < number_of_points; ++i) {
+            p << sampled_P_3D_[i].x,
+                 sampled_P_3D_[i].y,
+                 sampled_P_3D_[i].z;
+
+            kd_tree_.add(p);
+        }
+        kd_tree_.finalize();
     }
 
 }; // class Match4PCSBase

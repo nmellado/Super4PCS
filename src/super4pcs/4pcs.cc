@@ -375,8 +375,6 @@ class Match4PCSImpl : public Super4PCS::Match4PCSBase {
   double Verify(const cv::Mat& rotation, const cv::Point3f& center,
                 const cv::Point3f& translate);
 
-  // Computes the mean distance between point in Q and its nearest neighbor.
-  double MeanDistance();
 
   // Selects a quadrilateral from P and returns the corresponding invariants
   // and point indices. Returns true if a quadrilateral has been found, false
@@ -685,40 +683,6 @@ bool Match4PCSImpl::SelectQuadrilateral(double* invariant1, double* invariant2,
   }
   // We failed to find good enough base..
   return false;
-}
-
-// Computes the mean distance between points in Q and their nearest neighbor.
-// We need this for normalization of the user delta (See the paper) to the
-// "scale" of the set.
-double Match4PCSImpl::MeanDistance() {
-  const float kDiameterFraction = 0.2;
-  ANNpoint query_point;
-  ANNidxArray near_neighbor_index;
-  ANNdistArray distances;
-
-  query_point = annAllocPt(3);
-  near_neighbor_index = new ANNidx[2];
-  distances = new ANNdist[2];
-
-  int number_of_samples = 0;
-  float distance = 0.0;
-  for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-    query_point[0] = sampled_P_3D_[i].x;
-    query_point[1] = sampled_P_3D_[i].y;
-    query_point[2] = sampled_P_3D_[i].z;
-    ann_tree_->annkSearch(query_point, 2, near_neighbor_index, distances, 0);
-    // We prune out pairs that have too large distance.
-    if (distances[1] < P_diameter_ * kDiameterFraction) {
-      distance += distances[1];
-      number_of_samples++;
-    }
-  }
-
-  annDeallocPt(query_point);
-  delete[] near_neighbor_index;
-  delete[] distances;
-
-  return distance / number_of_samples;
 }
 
 // Verify a given transformation by computing the number of points in P at
@@ -1062,6 +1026,8 @@ void Match4PCSImpl::Initialize(const std::vector<Point3D>& P,
     data_points_[i][2] = sampled_P_3D_[i].z;
   }
   ann_tree_ = new ANNkd_tree(data_points_, number_of_points, 3);
+
+  Base::initKdTree();
 
   // Compute the diameter of P approximately (randomly). This is far from being
   // Guaranteed close to the diameter but gives good results for most common
