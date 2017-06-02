@@ -45,6 +45,7 @@
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
 #include "4pcs.h"
+#include "sampling.h"
 
 #include "Eigen/Core"
 #include "Eigen/Geometry"                 // MatrixBase.homogeneous()
@@ -82,66 +83,11 @@ using namespace std;
 
 namespace {
 
-/*!
- * \brief Class used to subsample a point cloud using hashing functions
- * \todo Extract to Utilities namespace
- */
-class HashTable {
- private:
-  const uint64 MAGIC1 = 100000007;
-  const uint64 MAGIC2 = 161803409;
-  const uint64 MAGIC3 = 423606823;
-  const uint64 NO_DATA = 0xffffffffu;
-  float voxel_;
-  float scale_;
-  vector<vector<int>> voxels_;
-  vector<uint64> data_;
-
- public:
-  HashTable(int maxpoints, float voxel) : voxel_(voxel), scale_(1.0f / voxel) {
-    uint64 n = maxpoints;
-    voxels_.resize(n);
-    data_.resize(n, NO_DATA);
-  }
-  uint64& operator[](const Point3D& p) {
-    vector<int> c(3);
-    c[0] = static_cast<int>(floor(p.x * scale_));
-    c[1] = static_cast<int>(floor(p.y * scale_));
-    c[2] = static_cast<int>(floor(p.z * scale_));
-    uint64 key = (MAGIC1 * c[0] + MAGIC2 * c[1] + MAGIC3 * c[2]) % data_.size();
-    while (1) {
-      if (data_[key] == NO_DATA) {
-        voxels_[key] = c;
-        break;
-      } else if (voxels_[key] == c) {
-        break;
-      }
-      key++;
-      if (key == data_.size()) key = 0;
-    }
-    return data_[key];
-  }
-};
-
 const int kNumberOfDiameterTrials = 1000;
 
 // Local static helpers that do not depend on state.
 
 inline float Square(float x) { return x * x; }
-
-void DistUniformSampling(const std::vector<Point3D>& set, float delta,
-                         std::vector<Point3D>* sample) {
-  int num_input = set.size();
-  sample->clear();
-  HashTable hash(num_input, delta);
-  for (int i = 0; i < num_input; i++) {
-    uint64& ind = hash[set[i]];
-    if (ind >= num_input) {
-      sample->push_back(set[i]);
-      ind = sample->size();
-    }
-  }
-}
 
 inline float PointsDistance(const Point3D& p, const Point3D& q) {
   return cv::norm(p - q);
@@ -1075,7 +1021,7 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
   // prepare P
   if (P.size() > options_.sample_size){
       std::vector<Point3D> uniform_P;
-      DistUniformSampling(P, options_.delta, &uniform_P);
+      Super4PCS::Sampling::DistUniformSampling(P, options_.delta, &uniform_P);
 
       int sample_fraction_P = 1;  // We prefer not to sample P but any number can be
                                   // placed here.
@@ -1098,7 +1044,7 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
   // prepare Q
   if (Q.size() > options_.sample_size){
       std::vector<Point3D> uniform_Q;
-      DistUniformSampling(Q, options_.delta, &uniform_Q);
+      Super4PCS::Sampling::DistUniformSampling(Q, options_.delta, &uniform_Q);
       int sample_fraction_Q =
           max(1, static_cast<int>(uniform_Q.size() / options_.sample_size));
 
