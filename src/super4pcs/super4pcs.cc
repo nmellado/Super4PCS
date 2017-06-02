@@ -46,7 +46,6 @@
 
 #include "4pcs.h"
 #include "match4pcsBase.h"
-#include "sampling.h"
 
 #include "Eigen/Core"
 #include "Eigen/Geometry"                 // MatrixBase.homogeneous()
@@ -80,92 +79,6 @@
 namespace match_4pcs {
 
 using namespace std;
-
-namespace {
-
-const int kNumberOfDiameterTrials = 1000;
-
-// Local static helpers that do not depend on state.
-
-inline float Square(float x) { return x * x; }
-
-inline float PointsDistance(const Point3D& p, const Point3D& q) {
-  return cv::norm(p - q);
-}
-
-// Compute the closest points between two 3D line segments and obtain the two
-// invariants corresponding to the closet points. This is the "intersection"
-// point that determines the invariants. Since the 4 points are not exactly
-// planar, we use the center of the line segment connecting the two closest
-// points as the "intersection".
-float distSegmentToSegment(const cv::Point3f& p1, const cv::Point3f& p2,
-                           const cv::Point3f& q1, const cv::Point3f& q2,
-                           double* invariant1, double* invariant2) {
-  if (invariant1 == 0 || invariant2 == 0) return kLargeNumber;
-  const float kSmallNumber = 0.0001;
-  cv::Point3f u = p2 - p1;
-  cv::Point3f v = q2 - q1;
-  cv::Point3f w = p1 - q1;
-  float a = u.dot(u);
-  float b = u.dot(v);
-  float c = v.dot(v);
-  float d = u.dot(w);
-  float e = v.dot(w);
-  float f = a * c - b * b;
-  // s1,s2 and t1,t2 are the parametric representation of the intersection.
-  // they will be the invariants at the end of this simple computation.
-  float s1 = 0.0;
-  float s2 = f;
-  float t1 = 0.0;
-  float t2 = f;
-
-  if (f < kSmallNumber) {
-    s1 = 0.0;
-    s2 = 1.0;
-    t1 = e;
-    t2 = c;
-  } else {
-    s1 = (b * e - c * d);
-    t1 = (a * e - b * d);
-    if (s1 < 0.0) {
-      s1 = 0.0;
-      t1 = e;
-      t2 = c;
-    } else if (s1 > s2) {
-      s1 = s2;
-      t1 = e + b;
-      t2 = c;
-    }
-  }
-
-  if (t1 < 0.0) {
-    t1 = 0.0;
-    if (-d < 0.0)
-      s1 = 0.0;
-    else if (-d > a)
-      s1 = s2;
-    else {
-      s1 = -d;
-      s2 = a;
-    }
-  } else if (t1 > t2) {
-    t1 = t2;
-    if ((-d + b) < 0.0)
-      s1 = 0;
-    else if ((-d + b) > a)
-      s1 = s2;
-    else {
-      s1 = (-d + b);
-      s2 = a;
-    }
-  }
-  *invariant1 = (abs(s1) < kSmallNumber ? 0.0 : s1 / s2);
-  *invariant2 = (abs(t1) < kSmallNumber ? 0.0 : t1 / t2);
-  cv::Point3f distance = w + (*invariant1 * u) - (*invariant2 * v);
-  return cv::norm(distance);
-}
-
-}  // namespace
 
 
 class MatchSuper4PCSImpl  : public Super4PCS::Match4PCSBase {
@@ -268,20 +181,12 @@ public:
   // the translation vector and (cx,cy,cz) is the center of transformation.template <class MatrixDerived>
   Scalar Verify(const Eigen::Matrix<Scalar, 4, 4>& mat);
 
-  // Computes the mean distance between point in Q and its nearest neighbor.
-  double MeanDistance();
 
   // Selects a quadrilateral from P and returns the corresponding invariants
   // and point indices. Returns true if a quadrilateral has been found, false
   // otherwise.
   bool SelectQuadrilateral(double* invariant1, double* invariant2, int* base1,
                            int* base2, int* base3, int* base4);
-
-  // Select random triangle in P such that its diameter is close to
-  // max_base_diameter_. This enables to increase the probability of having
-  // all three points in the inlier set. Return true on success, false if such a
-  // triangle cannot be found.
-  bool SelectRandomTriangle(int* base1, int* base2, int* base3);
 
   // Takes quadrilateral as a base, computes robust intersection point
   // (approximate as the lines might not intersect) and returns the invariants
@@ -500,45 +405,7 @@ bool MatchSuper4PCSImpl::TryQuadrilateral(double* invariant1, double* invariant2
   return true;
 }
 
-// Selects a random triangle in the set P (then we add another point to keep the
-// base as planar as possible). We apply a simple heuristic that works in most
-// practical cases. The idea is to accept maximum distance, computed by the
-// estimated overlap, multiplied by the diameter of P, and try to have
-// a triangle with all three edges close to this distance. Wide triangles helps
-// to make the transformation robust while too large triangles makes the
-// probability of having all points in the inliers small so we try to trade-off.
-bool MatchSuper4PCSImpl::SelectRandomTriangle(int* base1, int* base2, int* base3) {
-  if (base1 == NULL || base2 == NULL || base3 == NULL) return false;
-  
-  int number_of_points = sampled_P_3D_.size();
-  *base1 = *base2 = *base3 = -1;
 
-  // Pick the first point at random.
-  int first_point = rand() % number_of_points;
-
-  // Try fixed number of times retaining the best other two.
-  float best_wide = 0.0;
-  for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
-    // Pick and compute
-    int second_point = rand() % number_of_points;
-    int third_point = rand() % number_of_points;
-    cv::Point3f u = sampled_P_3D_[second_point] - sampled_P_3D_[first_point];
-    cv::Point3f w = sampled_P_3D_[third_point] - sampled_P_3D_[first_point];
-    // We try to have wide triangles but still not too large.
-    float how_wide = cv::norm(u.cross(w));
-    if (how_wide > best_wide && cv::norm(u) < max_base_diameter_ &&
-        cv::norm(w) < max_base_diameter_) {
-      best_wide = how_wide;
-      *base1 = first_point;
-      *base2 = second_point;
-      *base3 = third_point;
-    }
-  }
-  if (*base1 == -1 || *base2 == -1 || *base3 == -1)
-    return false;
-  else
-    return true;
-}
 
 // Selects a good base from P and computes its invariants. Returns false if
 // a good planar base cannot can be found.
@@ -912,20 +779,7 @@ struct eqstr {
 // Initialize all internal data structures and data members.
 void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
                                const std::vector<Point3D>& Q) {
-
-  const float kSmallError = 0.00001;
-  const int kMinNumberOfTrials = 4;
-  const float kDiameterFraction = 0.3;
-
-  centroid_P_.x = 0;
-  centroid_P_.y = 0;
-  centroid_P_.z = 0;
-  centroid_Q_.x = 0;
-  centroid_Q_.y = 0;
-  centroid_Q_.z = 0;
-
-  sampled_P_3D_.clear();
-  sampled_Q_3D_.clear();
+    Base::init(P,Q);
 
 #ifdef TEST_GLOBAL_TIMINGS
     kdTreeTime = 0;
@@ -933,138 +787,12 @@ void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
     verifyTime = 0;
 #endif
 
-
-  // prepare P
-  if (P.size() > options_.sample_size){
-      std::vector<Point3D> uniform_P;
-      Super4PCS::Sampling::DistUniformSampling(P, options_.delta, &uniform_P);
-
-      int sample_fraction_P = 1;  // We prefer not to sample P but any number can be
-                                  // placed here.
-
-      // Sample the sets P and Q uniformly.
-      for (int i = 0; i < uniform_P.size(); ++i) {
-        if (rand() % sample_fraction_P == 0) {
-          sampled_P_3D_.push_back(uniform_P[i]);
-        }
-      }
-  }
-  else
-  {
-      cout << "(P) More samples requested than available: use whole cloud" << endl;
-      sampled_P_3D_ = P;
-  }
-
-
-
-  // prepare Q
-  if (Q.size() > options_.sample_size){
-      std::vector<Point3D> uniform_Q;
-      Super4PCS::Sampling::DistUniformSampling(Q, options_.delta, &uniform_Q);
-      int sample_fraction_Q =
-          max(1, static_cast<int>(uniform_Q.size() / options_.sample_size));
-
-      for (int i = 0; i < uniform_Q.size(); ++i) {
-        if (rand() % sample_fraction_Q == 0) {
-          sampled_Q_3D_.push_back(uniform_Q[i]);
-        }
-      }
-  }
-  else
-  {
-      cout << "(Q) More samples requested than available: use whole cloud" << endl;
-      sampled_Q_3D_ = Q;
-  }
-
-  // Compute the centroids.
-  for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-    centroid_P_.x += sampled_P_3D_[i].x;
-    centroid_P_.y += sampled_P_3D_[i].y;
-    centroid_P_.z += sampled_P_3D_[i].z;
-  }
-
-  centroid_P_.x /= sampled_P_3D_.size();
-  centroid_P_.y /= sampled_P_3D_.size();
-  centroid_P_.z /= sampled_P_3D_.size();
-
-  for (int i = 0; i < sampled_Q_3D_.size(); ++i) {
-    centroid_Q_.x += sampled_Q_3D_[i].x;
-    centroid_Q_.y += sampled_Q_3D_[i].y;
-    centroid_Q_.z += sampled_Q_3D_[i].z;
-  }
-
-  centroid_Q_.x /= sampled_Q_3D_.size();
-  centroid_Q_.y /= sampled_Q_3D_.size();
-  centroid_Q_.z /= sampled_Q_3D_.size();
-
-  // Move the samples to the centroids to allow robustness in rotation.
-  for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-    sampled_P_3D_[i].x -= centroid_P_.x;
-    sampled_P_3D_[i].y -= centroid_P_.y;
-    sampled_P_3D_[i].z -= centroid_P_.z;
-  }
-  for (int i = 0; i < sampled_Q_3D_.size(); ++i) {
-    sampled_Q_3D_[i].x -= centroid_Q_.x;
-    sampled_Q_3D_[i].y -= centroid_Q_.y;
-    sampled_Q_3D_[i].z -= centroid_Q_.z;
-  }
-
-
-  Base::initKdTree();
-
   pcfunctor_.synch3DContent();
 
-  // Compute the diameter of P approximately (randomly). This is far from being
-  // Guaranteed close to the diameter but gives good results for most common
-  // objects if they are densely sampled.
-  P_diameter_ = 0.0;
-  int nbPoints = pcfunctor_.points.size();
-  for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
-    int at = rand() % nbPoints;
-    int bt = rand() % nbPoints;
-    Scalar l = (pcfunctor_.points[bt] - pcfunctor_.points[at]).norm();
-    if (l > P_diameter_) {
-      P_diameter_ = l;
-    }
-  }
-  //switch from unit space to original space
-  P_diameter_ = pcfunctor_.unitToWorld(P_diameter_);
-
-  // Mean distance and a bit more... We increase the estimation to allow for
-  // noise, wrong estimation and non-uniform sampling.
-  // can be used to automatically select delta
-  //P_mean_distance_ = MeanDistance();
-
-  // Normalize the delta (See the paper) and the maximum base distance.
-  // delta = P_mean_distance_ * delta;
-  max_base_diameter_ = P_diameter_;  // * estimated_overlap_;
-
-  // RANSAC probability and number of needed trials.
-  double first_estimation =
-      log(kSmallError) / log(1.0 - pow(options_.overlap_estimation,
-                                       static_cast<float>(kMinNumberOfTrials)));
-  // We use a simple heuristic to elevate the probability to a reasonable value
-  // given that we don't simply sample from P, but instead, we bound the
-  // distance between the points in the base as a fraction of the diameter.
-  number_of_trials_ =
-      static_cast<int>(first_estimation * (P_diameter_ / kDiameterFraction) /
-                       max_base_diameter_);
-  if (options_.terminate_threshold < 0)
-    options_.terminate_threshold = options_.overlap_estimation;
-  if (number_of_trials_ < kMinNumberOfTrials)
-    number_of_trials_ = kMinNumberOfTrials;
-
-  printf("norm_max_dist: %f\n", options_.delta);
-  current_trial_ = 0;
   transform_ = Eigen::Matrix<Scalar, 4, 4>::Identity();
   best_LCP_ = Verify(transform_);
   printf("Initial LCP: %f\n", best_LCP_);
 
-  Q_copy_ = Q;
-  for (int i = 0; i < 4; ++i) {
-    base_[i] = 0;
-    current_congruent_[i] = 0;
-  }
 }
 
 bool MatchSuper4PCSImpl::ComputeRigidTransformation(const vector< pair<Point3D, Point3D> >& pairs,

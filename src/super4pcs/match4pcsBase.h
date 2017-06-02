@@ -48,6 +48,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "shared4pcs.h"
+#include "sampling.h"
 #include "accelerators/kdtree.h"
 
 namespace Super4PCS{
@@ -67,6 +68,8 @@ public:
     using Point3D = match_4pcs::Point3D;
     using PairsVector =  std::vector< std::pair<int, int> >;
     using Scalar = double;
+
+    static constexpr int kNumberOfDiameterTrials = 1000;
 
 
 protected:
@@ -121,57 +124,29 @@ protected:
     match_4pcs::Match4PCSOptions options_;
 
 
-    inline Match4PCSBase(const match_4pcs::Match4PCSOptions& options)
-        :number_of_trials_(0),
-          max_base_diameter_(-1),
-          P_mean_distance_(1.0),
-          best_LCP_(0.0F),
-          options_(options) {
-        base_3D_.resize(4);
-    }
+    Match4PCSBase(const match_4pcs::Match4PCSOptions& options);
 
 protected:
     // Computes the mean distance between points in Q and their nearest neighbor.
     // We need this for normalization of the user delta (See the paper) to the
     // "scale" of the set.
-    inline Scalar MeanDistance() {
-      const float kDiameterFraction = 0.2;
-      Super4PCS::KdTree<Scalar>::VectorType query_point;
+    Scalar MeanDistance();
 
-      int number_of_samples = 0;
-      Scalar distance = 0.0;
+    void init(const std::vector<Point3D>& P,
+                     const std::vector<Point3D>& Q);
 
-      for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-        query_point << sampled_P_3D_[i].x, sampled_P_3D_[i].y, sampled_P_3D_[i].z;
 
-        Super4PCS::KdTree<Scalar>::Index resId =
-        kd_tree_.doQueryRestrictedClosestIndex(query_point, P_diameter_ * kDiameterFraction, i);
+    // Selects a random triangle in the set P (then we add another point to keep the
+    // base as planar as possible). We apply a simple heuristic that works in most
+    // practical cases. The idea is to accept maximum distance, computed by the
+    // estimated overlap, multiplied by the diameter of P, and try to have
+    // a triangle with all three edges close to this distance. Wide triangles helps
+    // to make the transformation robust while too large triangles makes the
+    // probability of having all points in the inliers small so we try to trade-off.
+    bool SelectRandomTriangle(int* base1, int* base2, int* base3);
 
-        if (resId != Super4PCS::KdTree<Scalar>::invalidIndex()) {
-          distance += cv::norm(sampled_P_3D_[i] - sampled_P_3D_[resId]);
-          number_of_samples++;
-        }
-      }
-
-      return distance / number_of_samples;
-    }
-
-    inline void initKdTree(){
-        int number_of_points = sampled_P_3D_.size();
-
-        // Build the kdtree.
-        kd_tree_ = Super4PCS::KdTree<Scalar>(number_of_points);
-
-        Super4PCS::KdTree<Scalar>::VectorType p;
-        for (int i = 0; i < number_of_points; ++i) {
-            p << sampled_P_3D_[i].x,
-                 sampled_P_3D_[i].y,
-                 sampled_P_3D_[i].z;
-
-            kd_tree_.add(p);
-        }
-        kd_tree_.finalize();
-    }
+private:
+    void initKdTree();
 
 }; // class Match4PCSBase
 } // namespace Super4PCS
