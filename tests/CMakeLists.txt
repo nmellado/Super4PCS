@@ -72,7 +72,7 @@ foreach(subtest_id ${matching_subtests})
 endforeach()
 
 target_link_libraries(quad_extraction ${Chealpix_LIBS} super4pcs_accel super4pcs_algo)
-target_link_libraries(matching super4pcs_io super4pcs_accel super4pcs_algo)
+target_link_libraries(matching super4pcs_io super4pcs_accel super4pcs_algo super4pcs_utils)
 target_link_libraries(matching ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
 TARGET_LINK_LIBRARIES(matching ${ANN_LIBS} )
 TARGET_LINK_LIBRARIES(matching ${Chealpix_LIBS} )

@@ -64,6 +64,7 @@
 #include <boost/filesystem.hpp>
 
 #include "io/io.h"
+#include "utils/geometry.h"
 
 #include "testing.h"
 
@@ -115,36 +116,6 @@ int max_time_seconds = 1e9;
 
 bool use_super4pcs = true;
 
-void CleanInvalidNormals( vector<Point3D> &v, 
-                          vector<cv::Point3f> &normals){
-  if (v.size() == normals.size()){
-    vector<Point3D>::iterator itV = v.begin();
-    vector<cv::Point3f>::iterator itN = normals.begin();
-  
-    float norm;
-    unsigned int nb = 0;
-    for( ; itV != v.end(); ){
-      norm = cv::norm((*itV).normal());
-      if (norm < 0.1){
-        itN = normals.erase(itN);
-        itV = v.erase(itV);
-        nb++;
-      }else{
-        if (norm != 1.){
-          (*itN).x /= norm;
-          (*itN).y /= norm;
-          (*itN).z /= norm;
-        }
-        itV++;
-        itN++;
-      }
-    }
-    
-    if (nb != 0){
-      cout << "Removed " << nb << " invalid points/normals" << endl; 
-    }
-  }
-}
 
 /*!
   Read a configuration file from Standford 3D shape repository and
@@ -222,6 +193,8 @@ void test_model(const vector<Transform> &transforms,
                 vector<Point3D> &mergedset,
                 int i,
                 int param_i){
+    using namespace Super4PCS;
+
     const string input1 = files.at(i-1);
     const string input2 = files.at(i);
 
@@ -239,9 +212,9 @@ void test_model(const vector<Transform> &transforms,
 
     // clean only when we have pset to avoid wrong face to point indexation
     if (tris1.size() == 0)
-        CleanInvalidNormals(set1, normals1);
+        Utils::CleanInvalidNormals(set1, normals1);
     if (tris2.size() == 0)
-        CleanInvalidNormals(set2, normals2);
+        Utils::CleanInvalidNormals(set2, normals2);
 
     // first transform the first mesh to its gt coordinates:
     // we compare only pairwise matching, so we don't want to

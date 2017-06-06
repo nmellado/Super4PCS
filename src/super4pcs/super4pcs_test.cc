@@ -8,6 +8,7 @@
 #include <opencv2/core/eigen.hpp>
 
 #include "io/io.h"
+#include "utils/geometry.h"
 
 #define sqr(x) ((x) * (x))
 
@@ -116,34 +117,8 @@ void getArgs(int argc, char **argv) {
 }
 
 
-void CleanInvalidNormals( vector<Point3D> &v, 
-                          vector<typename Point3D::VectorType> &normals){
-  if (v.size() == normals.size()){
-    vector<Point3D>::iterator itV = v.begin();
-    vector<typename Point3D::VectorType>::iterator itN = normals.begin();
-  
-    unsigned int nb = 0;
-    for( ; itV != v.end(); ){
-
-      if ((*itV).normal().squaredNorm() < 0.01){
-        itN = normals.erase(itN);
-        itV = v.erase(itV);
-        nb++;
-      }else{
-        (*itN).normalize();
-        itV++;
-        itN++;
-      }
-    }
-    
-    if (nb != 0){
-      cout << "Removed " << nb << " invalid points/normals" << endl; 
-    }
-  }
-}
-
-
 int main(int argc, char **argv) {
+  using namespace Super4PCS;
 
   vector<Point3D> set1, set2;
   vector<cv::Point2f> tex_coords1, tex_coords2;
@@ -170,9 +145,9 @@ int main(int argc, char **argv) {
   
   // clean only when we have pset to avoid wrong face to point indexation
   if (tris1.size() == 0)
-    CleanInvalidNormals(set1, normals1);
+    Utils::CleanInvalidNormals(set1, normals1);
   if (tris2.size() == 0)
-    CleanInvalidNormals(set2, normals2);
+    Utils::CleanInvalidNormals(set2, normals2);
 
   // Our matcher.
   Match4PCSOptions options;  
