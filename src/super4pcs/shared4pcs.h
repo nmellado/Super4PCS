@@ -54,6 +54,9 @@
 
 namespace match_4pcs {
 
+
+static const float kLargeNumber = 1e9;
+
 namespace internal{
 inline void RGB2HSV(float r, float g, float b,
                     float &h, float &s, float &v)
@@ -82,24 +85,24 @@ inline void RGB2HSV(float r, float g, float b,
 // The basic 3D point structure. A point potentially contains also directional
 // information and color.
 //template <typename _Scalar = float>
-class Point3D : public cv::Point3f {
+class Point3D : public cv::Point3d {
  public:
-  using Scalar = float; //_Scalar;
+  using Scalar = double; //_Scalar;
   using VectorType = Eigen::Matrix<Scalar, 3, 1>;
 
-  inline Point3D(double x, double y, double z) : cv::Point3f(x, y, z) {}
-  inline Point3D(const cv::Point3f& other): cv::Point3f(other) {}
+  inline Point3D(double x, double y, double z) : cv::Point3d(x, y, z) {}
+  inline Point3D(const cv::Point3d& other): cv::Point3d(other) {}
   inline Point3D(const Point3D& other):
-      cv::Point3f(other),
+      cv::Point3d(other),
       normal_(other.normal_),
       rgb_(other.rgb_)/*,
       hsv_(other.hsv_)*/ {}
   template<typename Scalar>
   explicit inline Point3D(const Eigen::Matrix<Scalar, 3, 1>& other):
-      cv::Point3f(other(0), other(1), other(2)){
+      cv::Point3d(other(0), other(1), other(2)){
   }
 
-  inline Point3D() : cv::Point3f(0.0f, 0.0f, 0.0f) {}
+  inline Point3D() : cv::Point3d(0.0f, 0.0f, 0.0f) {}
   inline const VectorType& rgb() const { return rgb_; }
 //  inline const cv::Vec3f& hsv() const { return hsv_; }
   inline const VectorType& normal() const { return normal_; }
@@ -134,7 +137,6 @@ class Point3D : public cv::Point3f {
 // Largest Common Pointset (LCP), normalized to the size of P thus lies in
 // [0,1] (See the paper for details).
 
-const float kLargeNumber = 1e9;
 
 // Local static helpers that do not depend on state.
 
@@ -149,14 +151,14 @@ static inline float PointsDistance(const Point3D& p, const Point3D& q) {
 // point that determines the invariants. Since the 4 points are not exactly
 // planar, we use the center of the line segment connecting the two closest
 // points as the "intersection".
-static float distSegmentToSegment(const cv::Point3f& p1, const cv::Point3f& p2,
-                           const cv::Point3f& q1, const cv::Point3f& q2,
+static float distSegmentToSegment(const cv::Point3d& p1, const cv::Point3d& p2,
+                           const cv::Point3d& q1, const cv::Point3d& q2,
                            double* invariant1, double* invariant2) {
   if (invariant1 == 0 || invariant2 == 0) return kLargeNumber;
   const float kSmallNumber = 0.0001;
-  cv::Point3f u = p2 - p1;
-  cv::Point3f v = q2 - q1;
-  cv::Point3f w = p1 - q1;
+  cv::Point3d u = p2 - p1;
+  cv::Point3d v = q2 - q1;
+  cv::Point3d w = p1 - q1;
   float a = u.dot(u);
   float b = u.dot(v);
   float c = v.dot(v);
@@ -212,7 +214,7 @@ static float distSegmentToSegment(const cv::Point3f& p1, const cv::Point3f& p2,
   }
   *invariant1 = (abs(s1) < kSmallNumber ? 0.0 : s1 / s2);
   *invariant2 = (abs(t1) < kSmallNumber ? 0.0 : t1 / t2);
-  cv::Point3f distance = w + (*invariant1 * u) - (*invariant2 * v);
+  cv::Point3d distance = w + (*invariant1 * u) - (*invariant2 * v);
   return cv::norm(distance);
 }
 

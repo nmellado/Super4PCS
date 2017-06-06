@@ -67,7 +67,7 @@ class Match4PCS {
   // @return the computed LCP measure.
   // The method updates the coordinates of the second set, Q, applying
   // the found transformation.
-  float ComputeTransformation(const std::vector<Point3D>& P,
+  Point3D::Scalar ComputeTransformation(const std::vector<Point3D>& P,
                               std::vector<Point3D>* Q, cv::Mat* transformation);
 
  private:

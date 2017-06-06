@@ -39,7 +39,7 @@ public:
   std::vector< Primitive > primitives;
 
 private:
-  cv::Point3f segment1;
+  cv::Point3d segment1;
   std::vector<Point3D> base_3D_;
   int base_point1_, base_point2_;
 
@@ -169,7 +169,7 @@ public:
         normals_good = first_norm_distance < norm_threshold;
       }
       if (!normals_good) return;
-      cv::Point3f segment2 = q - p;
+      cv::Point3d segment2 = q - p;
       segment2 *= 1.0 / cv::norm(segment2);
       // Verify restriction on the rotation angle, translation and colors.
       const bool use_rgb = (p.rgb()[0] >= 0 && q.rgb()[0] >= 0 &&

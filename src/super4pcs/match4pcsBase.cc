@@ -45,6 +45,11 @@
 
 #include <vector>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core/eigen.hpp>
+
+#include "Eigen/Core"
+#include "Eigen/Geometry"                 // MatrixBase.homogeneous()
+#include "Eigen/SVD"                      // Transform.computeRotationScaling()
 
 #include "shared4pcs.h"
 #include "sampling.h"
@@ -63,7 +68,7 @@ Match4PCSBase::Match4PCSBase(const match_4pcs::Match4PCSOptions& options)
 
 Match4PCSBase::Scalar
 Match4PCSBase::MeanDistance() {
-  const float kDiameterFraction = 0.2;
+  const Scalar kDiameterFraction = 0.2;
   Super4PCS::KdTree<Scalar>::VectorType query_point;
 
   int number_of_samples = 0;
@@ -185,10 +190,10 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
         for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
           int at = rand() % sampled_Q_3D_.size();
           int bt = rand() % sampled_Q_3D_.size();
-          cv::Point3f u(sampled_Q_3D_[bt].x - sampled_Q_3D_[at].x,
+          cv::Point3d u(sampled_Q_3D_[bt].x - sampled_Q_3D_[at].x,
                         sampled_Q_3D_[bt].y - sampled_Q_3D_[at].y,
                         sampled_Q_3D_[bt].z - sampled_Q_3D_[at].z);
-          double l = cv::norm(u);
+          Scalar l = cv::norm(u);
           if (l > P_diameter_) {
             P_diameter_ = l;
           }
@@ -203,9 +208,9 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
         max_base_diameter_ = P_diameter_;  // * estimated_overlap_;
 
         // RANSAC probability and number of needed trials.
-        double first_estimation =
+        Scalar first_estimation =
             log(kSmallError) / log(1.0 - pow(options_.overlap_estimation,
-                                             static_cast<float>(kMinNumberOfTrials)));
+                                             static_cast<Scalar>(kMinNumberOfTrials)));
         // We use a simple heuristic to elevate the probability to a reasonable value
         // given that we don't simply sample from P, but instead, we bound the
         // distance between the points in the base as a fraction of the diameter.
@@ -226,6 +231,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
           base_[i] = 0;
           current_congruent_[i] = 0;
         }
+        transform_ = Eigen::Matrix<Scalar, 4, 4>::Identity();
     }
 
 
@@ -239,15 +245,15 @@ bool Match4PCSBase::SelectRandomTriangle(int* base1, int* base2, int* base3) {
       int first_point = rand() % number_of_points;
 
       // Try fixed number of times retaining the best other two.
-      float best_wide = 0.0;
+      Scalar best_wide = 0.0;
       for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
         // Pick and compute
         int second_point = rand() % number_of_points;
         int third_point = rand() % number_of_points;
-        cv::Point3f u = sampled_P_3D_[second_point] - sampled_P_3D_[first_point];
-        cv::Point3f w = sampled_P_3D_[third_point] - sampled_P_3D_[first_point];
+        cv::Point3d u = sampled_P_3D_[second_point] - sampled_P_3D_[first_point];
+        cv::Point3d w = sampled_P_3D_[third_point] - sampled_P_3D_[first_point];
         // We try to have wide triangles but still not too large.
-        float how_wide = cv::norm(u.cross(w));
+        Scalar how_wide = cv::norm(u.cross(w));
         if (how_wide > best_wide && cv::norm(u) < max_base_diameter_ &&
             cv::norm(w) < max_base_diameter_) {
           best_wide = how_wide;
@@ -267,7 +273,7 @@ bool Match4PCSBase::SelectRandomTriangle(int* base1, int* base2, int* base3) {
 // Try the current base in P and obtain the best pairing, i.e. the one that
 // gives the smaller distance between the two closest points. The invariants
 // corresponding the the base pairing are computed.
-bool Match4PCSBase::TryQuadrilateral(double* invariant1, double* invariant2,
+bool Match4PCSBase::TryQuadrilateral(Scalar *invariant1, Scalar *invariant2,
                                      int& id1, int& id2, int& id3, int& id4) {
   if (invariant1 == NULL || invariant2 == NULL) return false;
 
@@ -317,7 +323,7 @@ bool Match4PCSBase::TryQuadrilateral(double* invariant1, double* invariant2,
 
 // Selects a good base from P and computes its invariants. Returns false if
 // a good planar base cannot can be found.
-bool Match4PCSBase::SelectQuadrilateral(double* invariant1, double* invariant2,
+bool Match4PCSBase::SelectQuadrilateral(Scalar* invariant1, Scalar* invariant2,
                                         int* base1, int* base2, int* base3,
                                         int* base4) {
   if (invariant1 == NULL || invariant2 == NULL || base1 == NULL ||
@@ -410,6 +416,418 @@ void Match4PCSBase::initKdTree(){
     kd_tree_.add(p);
   }
   kd_tree_.finalize();
+}
+
+bool Match4PCSBase::TryCongruentSet(
+        int base_id1, int base_id2,
+        int base_id3, int base_id4,
+        const std::vector<Super4PCS::Quadrilateral>& congruent_quads){
+    std::array<std::pair<Point3D, Point3D>,4> congruent_points;
+
+    // get references to the basis coordinates
+    const Point3D& b1 = sampled_P_3D_[base_id1];
+    const Point3D& b2 = sampled_P_3D_[base_id2];
+    const Point3D& b3 = sampled_P_3D_[base_id3];
+    const Point3D& b4 = sampled_P_3D_[base_id4];
+
+
+    // Centroid of the basis, computed once and using only the three first points
+    Eigen::Matrix<Scalar, 3, 1> centroid1;
+    // Must be improved when running without opencv
+    centroid1 << (b1.x + b2.x + b3.x) / Scalar(3.),
+                 (b1.y + b2.y + b3.y) / Scalar(3.),
+                 (b1.z + b2.z + b3.z) / Scalar(3.);
+
+    // Centroid of the sets, computed in the loop using only the three first points
+    Eigen::Matrix<Scalar, 3, 1> centroid2;
+
+    // set the basis coordinates in the congruent quad array
+    congruent_points[0].first = b1;
+    congruent_points[1].first = b2;
+    congruent_points[2].first = b3;
+    congruent_points[3].first = b4;
+
+    Eigen::Matrix<Scalar, 4, 4> transform;
+    for (int i = 0; i < congruent_quads.size(); ++i) {
+      int a = congruent_quads[i].vertices[0];
+      int b = congruent_quads[i].vertices[1];
+      int c = congruent_quads[i].vertices[2];
+      int d = congruent_quads[i].vertices[3];
+      congruent_points[0].second = sampled_Q_3D_[a];
+      congruent_points[1].second = sampled_Q_3D_[b];
+      congruent_points[2].second = sampled_Q_3D_[c];
+      congruent_points[3].second = sampled_Q_3D_[d];
+
+  #ifdef STATIC_BASE
+      std::cout << "Ids:" << std::endl;
+      std::cout << base_id1 << "\t"
+                << base_id2 << "\t"
+                << base_id3 << "\t"
+                << base_id4 << std::endl;
+      std::cout << a << "\t"
+                << b << "\t"
+                << c << "\t"
+                << d << std::endl;
+  #endif
+
+      centroid2 << (congruent_points[0].second.x + congruent_points[1].second.x + congruent_points[2].second.x) / Scalar(3.),
+                   (congruent_points[0].second.y + congruent_points[1].second.y + congruent_points[2].second.y) / Scalar(3.),
+                   (congruent_points[0].second.z + congruent_points[1].second.z + congruent_points[2].second.z) / Scalar(3.);
+
+      Scalar rms = -1;
+
+      bool ok =
+      ComputeRigidTransformation(congruent_points,   // input congruent quads
+                                 centroid1,          // input: basis centroid
+                                 centroid2,          // input: candidate quad centroid
+                                 options_.max_angle * M_PI / 180.0, // maximum per-dimension angle, check return value to detect invalid cases
+                                 transform,          // output: transformation
+                                 rms,                // output: rms error of the transformation between the basis and the congruent quad
+                             #ifdef MULTISCALE
+                                 true
+                             #else
+                                 false
+                             #endif
+                                 );             // state: compute scale ratio ?
+
+      if (ok && rms >= Scalar(0.)) {
+
+        // We give more tolerantz in computing the best rigid transformation.
+        if (rms < distance_factor * options_.delta) {
+          // The transformation is computed from the point-clouds centered inn [0,0,0]
+
+          // Verify the rest of the points in Q against P.
+          Scalar lcp = Verify(transform);
+          if (lcp > best_LCP_) {
+            // Retain the best LCP and transformation.
+            base_[0] = base_id1;
+            base_[1] = base_id2;
+            base_[2] = base_id3;
+            base_[3] = base_id4;
+
+            current_congruent_[0] = a;
+            current_congruent_[1] = b;
+            current_congruent_[2] = c;
+            current_congruent_[3] = d;
+
+            best_LCP_    = lcp;
+            transform_   = transform;
+            qcentroid1_  = centroid1;
+            qcentroid2_  = centroid2;
+          }
+          // Terminate if we have the desired LCP already.
+          if (best_LCP_ > options_.terminate_threshold){
+            return true;
+          }
+        }
+      }
+    }
+
+    // If we reached here we do not have yet the desired LCP.
+    return false;
+}
+
+
+bool Match4PCSBase::ComputeRigidTransformation(
+        const std::array< std::pair<Point3D, Point3D>,4>& pairs,
+        const Eigen::Matrix<Scalar, 3, 1>& centroid1,
+        Eigen::Matrix<Scalar, 3, 1> centroid2,
+        Scalar max_angle,
+        Eigen::Matrix<Scalar, 4, 4> &transform,
+        Scalar& rms_,
+        bool computeScale ) {
+
+  rms_ = match_4pcs::kLargeNumber;
+
+  if (pairs.size() == 0 || pairs.size() % 2 != 0)
+      return false;
+
+
+  Scalar kSmallNumber = 1e-6;
+  cv::Mat rotation = cv::Mat::eye(3, 3, CV_64F);
+
+  // We only use the first 3 pairs. This simplifies the process considerably
+  // because it is the planar case.
+
+  const cv::Point3d& p0 = pairs[0].first;
+  const cv::Point3d& p1 = pairs[1].first;
+  const cv::Point3d& p2 = pairs[2].first;
+        cv::Point3d  q0 = pairs[0].second;
+        cv::Point3d  q1 = pairs[1].second;
+        cv::Point3d  q2 = pairs[2].second;
+
+  Scalar scaleEst (1.);
+
+  // Compute scale factor if needed
+  if (computeScale){
+      const cv::Point3d& p3 = pairs[3].first;
+      const cv::Point3d& q3 = pairs[3].second;
+
+      Scalar ratio1 = cv::norm(p1 - p0) / cv::norm(q1 - q0);
+      Scalar ratio2 = cv::norm(p3 - p2) / cv::norm(q3 - q2);
+
+      Scalar ratioDev  = std::abs(ratio1/ratio2 - Scalar(1.));  // deviation between the two
+      Scalar ratioMean = (ratio1+ratio2)/Scalar(2.);            // mean of the two
+
+      if ( ratioDev > Scalar(0.1) )
+          return match_4pcs::kLargeNumber;
+
+//      std::cout << ratio1 << " "
+//                << ratio2 << " "
+//                << ratioDev << " "
+//                << ratioMean << std::endl;
+
+      scaleEst = ratioMean;
+
+      // apply scale factor to q
+      q0 = q0*scaleEst;
+      q1 = q1*scaleEst;
+      q2 = q2*scaleEst;
+      centroid2 *= scaleEst;
+  }
+
+  cv::Point3d vector_p1 = p1 - p0;
+  if (cv::norm(vector_p1) == 0) return match_4pcs::kLargeNumber;
+  vector_p1 = vector_p1 * (1.0 / cv::norm(vector_p1));
+  cv::Point3d vector_p2 = (p2 - p0) - ((p2 - p0).dot(vector_p1)) * vector_p1;
+  if (cv::norm(vector_p2) == 0) return match_4pcs::kLargeNumber;
+  vector_p2 = vector_p2 * (1.0 / cv::norm(vector_p2));
+  cv::Point3d vector_p3 = vector_p1.cross(vector_p2);
+
+  cv::Point3d vector_q1 = q1 - q0;
+  if (cv::norm(vector_q1) == 0) return match_4pcs::kLargeNumber;
+  vector_q1 = vector_q1 * (1.0 / cv::norm(vector_q1));
+  cv::Point3d vector_q2 = (q2 - q0) - ((q2 - q0).dot(vector_q1)) * vector_q1;
+  if (cv::norm(vector_q2) == 0) return match_4pcs::kLargeNumber;
+  vector_q2 = vector_q2 * (1.0 / cv::norm(vector_q2));
+  cv::Point3d vector_q3 = vector_q1.cross(vector_q2);
+
+  cv::Mat rotate_p(3, 3, CV_64F);
+  rotate_p.at<double>(0, 0) = vector_p1.x;
+  rotate_p.at<double>(0, 1) = vector_p1.y;
+  rotate_p.at<double>(0, 2) = vector_p1.z;
+  rotate_p.at<double>(1, 0) = vector_p2.x;
+  rotate_p.at<double>(1, 1) = vector_p2.y;
+  rotate_p.at<double>(1, 2) = vector_p2.z;
+  rotate_p.at<double>(2, 0) = vector_p3.x;
+  rotate_p.at<double>(2, 1) = vector_p3.y;
+  rotate_p.at<double>(2, 2) = vector_p3.z;
+
+  cv::Mat rotate_q(3, 3, CV_64F);
+  rotate_q.at<double>(0, 0) = vector_q1.x;
+  rotate_q.at<double>(0, 1) = vector_q1.y;
+  rotate_q.at<double>(0, 2) = vector_q1.z;
+  rotate_q.at<double>(1, 0) = vector_q2.x;
+  rotate_q.at<double>(1, 1) = vector_q2.y;
+  rotate_q.at<double>(1, 2) = vector_q2.z;
+  rotate_q.at<double>(2, 0) = vector_q3.x;
+  rotate_q.at<double>(2, 1) = vector_q3.y;
+  rotate_q.at<double>(2, 2) = vector_q3.z;
+
+  rotation = rotate_p.t() * rotate_q;
+
+  // Discard singular solutions. The rotation should be orthogonal.
+  cv::Mat unit = rotation * rotation.t();
+  if (std::abs(unit.at<double>(0, 0) - 1.0) > kSmallNumber ||
+      std::abs(unit.at<double>(1, 1) - 1.0) > kSmallNumber ||
+      std::abs(unit.at<double>(2, 2) - 1.0) > kSmallNumber){
+      return false;
+  }
+
+  // Discard too large solutions (todo: lazy evaluation during boolean computation
+  Scalar theta_x = std::abs(std::atan2(rotation.at<double>(2, 1), rotation.at<double>(2, 2)));
+  Scalar theta_y = std::abs(std::atan2(-rotation.at<double>(2, 0),
+                             std::sqrt(std::pow(rotation.at<double>(2, 1),2) +
+                                       std::pow(rotation.at<double>(2, 2),2))));
+  Scalar theta_z = std::abs(atan2(rotation.at<double>(1, 0), rotation.at<double>(0, 0)));
+  if (theta_x > max_angle ||
+      theta_y > max_angle ||
+      theta_z > max_angle)
+      return false;
+
+
+  // Compute rms and return it.
+  rms_ = Scalar(0.0);
+  {
+      cv::Mat first(3, 1, CV_64F), transformed;
+      for (int i = 0; i < 3; ++i) {
+          first.at<double>(0, 0) = scaleEst*pairs[i].second.x - centroid2(0);
+          first.at<double>(1, 0) = scaleEst*pairs[i].second.y - centroid2(1);
+          first.at<double>(2, 0) = scaleEst*pairs[i].second.z - centroid2(2);
+          transformed = rotation * first;
+          rms_ += sqrt(std::pow(transformed.at<double>(0, 0) -
+                              (pairs[i].first.x - centroid1(0)), 2) +
+                       std::pow(transformed.at<double>(1, 0) -
+                              (pairs[i].first.y - centroid1(1)), 2) +
+                       std::pow(transformed.at<double>(2, 0) -
+                              (pairs[i].first.z - centroid1(2)), 2));
+      }
+  }
+
+  rms_ /= Scalar(pairs.size());
+
+  Eigen::Transform<Scalar, 3, Eigen::Affine> etrans (Eigen::Transform<Scalar, 3, Eigen::Affine>::Identity());
+
+  // compute rotation and translation
+  {
+      Eigen::Matrix<Scalar, 3, 3> rot;
+      cv::cv2eigen(rotation, rot);
+
+      //std::cout << scaleEst << endl;
+
+      etrans.scale(scaleEst);       // apply scale factor
+      etrans.translate(centroid1);  // translation between quads
+      etrans.rotate(rot);           // rotate to align frames
+      etrans.translate(-centroid2); // move to congruent quad frame
+
+      transform = etrans.matrix();
+  }
+
+  return true;
+}
+
+
+
+// Verify a given transformation by computing the number of points in P at
+// distance at most (normalized) delta from some point in Q. In the paper
+// we describe randomized verification. We apply deterministic one here with
+// early termination. It was found to be fast in practice.
+Match4PCSBase::Scalar
+Match4PCSBase::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
+
+#ifdef TEST_GLOBAL_TIMINGS
+    Timer t_verify (true);
+#endif
+
+  // We allow factor 2 scaling in the normalization.
+  Scalar epsilon = options_.delta;
+  int good_points = 0;
+  int number_of_points = sampled_Q_3D_.size();
+  int terminate_value = best_LCP_ * number_of_points;
+
+  Scalar sq_eps = epsilon*epsilon;
+  typename Point3D::VectorType p;
+
+  for (int i = 0; i < number_of_points; ++i) {
+
+    // Use the kdtree to get the nearest neighbor
+#ifdef TEST_GLOBAL_TIMINGS
+    Timer t (true);
+#endif
+
+    auto pos = sampled_Q_3D_[i];
+    p << pos.x, pos.y, pos.z;
+
+    Super4PCS::KdTree<Scalar>::Index resId =
+    kd_tree_.doQueryRestrictedClosestIndex(
+                (mat * p.homogeneous()).head<3>(),
+                sq_eps);
+
+
+#ifdef TEST_GLOBAL_TIMINGS
+    kdTreeTime += Scalar(t.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
+#endif
+
+    if ( resId != Super4PCS::KdTree<Scalar>::invalidIndex() ) {
+//      Point3D& q = sampled_P_3D_[near_neighbor_index[0]];
+//      bool rgb_good =
+//          (p.rgb()[0] >= 0 && q.rgb()[0] >= 0)
+//              ? cv::norm(p.rgb() - q.rgb()) < options_.max_color_distance
+//              : true;
+//      bool norm_good = norm(p.normal()) > 0 && norm(q.normal()) > 0
+//                           ? fabs(p.normal().ddot(q.normal())) >= cos_dist
+//                           : true;
+//      if (rgb_good && norm_good) {
+        good_points++;
+//      }
+    }
+
+    // We can terminate if there is no longer chance to get better than the
+    // current best LCP.
+    if (number_of_points - i + good_points < terminate_value) {
+      break;
+    }
+  }
+
+#ifdef TEST_GLOBAL_TIMINGS
+  verifyTime += Scalar(t_verify.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
+#endif
+  return Scalar(good_points) / number_of_points;
+}
+
+
+
+
+// Performs N RANSAC iterations and compute the best transformation. Also,
+// transforms the set Q by this optimal transformation.
+bool Match4PCSBase::Perform_N_steps(int n, cv::Mat* transformation,
+                                    std::vector<Point3D>* Q) {
+  if (transformation == NULL || Q == NULL) return false;
+
+#ifdef TEST_GLOBAL_TIMINGS
+    Timer t (true);
+#endif
+
+  Scalar last_best_LCP = best_LCP_;
+  bool ok;
+  int64 t0 = clock();
+  for (int i = current_trial_; i < current_trial_ + n; ++i) {
+    ok = TryOneBase();
+
+    Scalar fraction_try  = Scalar(i) / Scalar(number_of_trials_);
+    Scalar fraction_time = Scalar(clock() - t0) / CLOCKS_PER_SEC /
+                          options_.max_time_seconds;
+    Scalar fraction = std::max(fraction_time, fraction_try);
+    printf("done: %d%c best: %f                  \r",
+           static_cast<int>(fraction * 100), '%', best_LCP_);
+    fflush(stdout);
+    // ok means that we already have the desired LCP.
+    if (ok || i > number_of_trials_ || fraction >= 0.99 || best_LCP_ == 1.0) break;
+  }
+
+  current_trial_ += n;
+  if (best_LCP_ > last_best_LCP) {
+    *Q = Q_copy_;
+
+      // The transformation has been computed between the two point clouds centered
+    // at the origin, we need to recompute the translation to apply it to the original clouds
+    {
+        Eigen::Matrix<Scalar, 3,1> centroid_P,centroid_Q;
+        cv::Mat first(3, 1, CV_64F);
+        first.at<double>(0, 0) = centroid_P_.x;
+        first.at<double>(1, 0) = centroid_P_.y;
+        first.at<double>(2, 0) = centroid_P_.z;
+        cv::cv2eigen(first, centroid_P);
+        first.at<double>(0, 0) = centroid_Q_.x;
+        first.at<double>(1, 0) = centroid_Q_.y;
+        first.at<double>(2, 0) = centroid_Q_.z;
+        cv::cv2eigen(first, centroid_Q);
+
+        Eigen::Matrix<Scalar, 3, 3> rot, scale;
+        Eigen::Transform<Scalar, 3, Eigen::Affine> (transform_).computeRotationScaling(&rot, &scale);
+        transform_.col(3) = (qcentroid1_ + centroid_P - ( rot * scale * (qcentroid2_ + centroid_Q))).homogeneous();
+    }
+
+    cv::eigen2cv( transform_, *transformation );
+
+    // Transforms Q by the new transformation.
+    for (unsigned int i = 0; i < Q->size(); ++i) {
+      cv::Mat first(4, 1, CV_64F), transformed;
+      first.at<double>(0, 0) = (*Q)[i].x;
+      first.at<double>(1, 0) = (*Q)[i].y;
+      first.at<double>(2, 0) = (*Q)[i].z;
+      first.at<double>(3, 0) = 1;
+      transformed = *transformation * first;
+      (*Q)[i].x = transformed.at<double>(0, 0);
+      (*Q)[i].y = transformed.at<double>(1, 0);
+      (*Q)[i].z = transformed.at<double>(2, 0);
+    }
+  }
+#ifdef TEST_GLOBAL_TIMINGS
+    totalTime += Scalar(t.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
+#endif
+
+  return ok || current_trial_ >= number_of_trials_;
 }
 
 } // namespace Super4PCS

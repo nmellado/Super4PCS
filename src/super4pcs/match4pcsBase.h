@@ -67,9 +67,10 @@ class Match4PCSBase {
 public:
     using Point3D = match_4pcs::Point3D;
     using PairsVector =  std::vector< std::pair<int, int> >;
-    using Scalar = double;
+    using Scalar = typename Point3D::Scalar;
 
     static constexpr int kNumberOfDiameterTrials = 1000;
+    static constexpr Scalar distance_factor = 2.0;
 
 
 protected:
@@ -89,11 +90,18 @@ protected:
     // in P. It is used temporarily and makes the transformations more robust to
     // noise. At the end, the direct transformation applied as a 4x4 matrix on
     // every points in Q is computed and returned.
-    cv::Point3f centroid_;
+    cv::Point3d centroid_;
     // The translation vector by which we move Q to match P.
-    cv::Point3f translate_;
+    cv::Point3d translate_;
     // The rotation matrix by which we rotate Q to match P.
     cv::Mat rotate_;
+    // The transformation matrix by wich we transform Q to P
+    Eigen::Matrix<Scalar, 4, 4> transform_;
+    // Quad centroids in first and second clouds
+    // They are used temporarily and makes the transformations more robust to
+    // noise. At the end, the direct transformation applied as a 4x4 matrix on
+    // every points in Q is computed and returned.
+    Eigen::Matrix<Scalar, 3, 1> qcentroid1_, qcentroid2_;
     // The points in the base (indices to P). It is being updated in every
     // RANSAC iteration.
     int base_[4];
@@ -111,9 +119,9 @@ protected:
     // transformed version.
     std::vector<Point3D> Q_copy_;
     // The centroid of P.
-    cv::Point3f centroid_P_;
+    cv::Point3d centroid_P_;
     // The centroid of Q.
-    cv::Point3f centroid_Q_;
+    cv::Point3d centroid_Q_;
     // The best LCP (Largest Common Point) fraction so far.
     float best_LCP_;
     // Current trial.
@@ -149,16 +157,52 @@ protected:
     // (approximate as the lines might not intersect) and returns the invariants
     // corresponding to the two selected lines. The method also updates the order
     // of the base base_3D_.
-    bool TryQuadrilateral(double* invariant1, double* invariant2, int &base1, int &base2, int &base3, int &base4);
+    bool TryQuadrilateral(Scalar* invariant1, Scalar* invariant2, int &base1, int &base2, int &base3, int &base4);
 
 
     // Selects a quadrilateral from P and returns the corresponding invariants
     // and point indices. Returns true if a quadrilateral has been found, false
     // otherwise.
-    bool SelectQuadrilateral(double* invariant1, double* invariant2, int* base1,
+    bool SelectQuadrilateral(Scalar *invariant1, Scalar *invariant2, int* base1,
                              int* base2, int* base3, int* base4);
 
 
+    // Computes the best rigid transformation between three corresponding pairs.
+    // The transformation is characterized by rotation matrix, translation vector
+    // and a center about which we rotate. The set of pairs is potentially being
+    // updated by the best permutation of the second set. Returns the RMS of the
+    // fit. The method is being called with 4 points but it applies the fit for
+    // only 3 after the best permutation is selected in the second set (see
+    // bellow). This is done because the solution for planar points is much
+    // simpler.
+    // The method is the closed-form solution by Horn:
+    // people.csail.mit.edu/bkph/papers/Absolute_Orientation.pdf
+    bool ComputeRigidTransformation(const std::array< std::pair<Point3D, Point3D>,4 >& pairs,
+                                    const Eigen::Matrix<Scalar, 3, 1>& centroid1,
+                                    Eigen::Matrix<Scalar, 3, 1> centroid2,
+                                    Scalar max_angle,
+                                    Eigen::Matrix<Scalar, 4, 4> &transform,
+                                    Scalar& rms_,
+                                    bool computeScale );
+    bool TryCongruentSet(int base_id1, int base_id2, int base_id3, int base_id4,
+                         const std::vector<Super4PCS::Quadrilateral> &congruent_quads);
+
+    // For each randomly picked base, verifies the computed transformation by
+    // computing the number of points that this transformation brings near points
+    // in Q. Returns the current LCP. R is the rotation matrix, (tx,ty,tz) is
+    // the translation vector and (cx,cy,cz) is the center of transformation.template <class MatrixDerived>
+    Scalar Verify(const Eigen::Matrix<Scalar, 4, 4>& mat);
+
+    // Performs n RANSAC iterations, each one of them containing base selection,
+    // finding congruent sets and verification. Returns true if the process can be
+    // terminated (the target LCP was obtained or the maximum number of trials has
+    // been reached), false otherwise.
+    bool Perform_N_steps(int n, cv::Mat* transformation, std::vector<Point3D>* Q);
+
+    // Tries one base and finds the best transformation for this base.
+    // Returns true if the achieved LCP is greater than terminate_threshold_,
+    // else otherwise.
+    virtual bool TryOneBase() = 0;
 private:
     void initKdTree();
 
