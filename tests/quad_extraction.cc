@@ -92,14 +92,14 @@ namespace Utilities{
 
 /*!
  * \brief Generate a set of random points and spheres, and test the pair extraction
- 
+
    Two tests are operated here:
     - Check the validity of the sphere to point intersection test
-    - Check the rendering 
-    
-   Note here that rendering timings are not optimal because we have a volume 
+    - Check the rendering
+
+   Note here that rendering timings are not optimal because we have a volume
    uniformly sampled and not a surface.
-   
+
  */
 template<typename Scalar,
          int Dim,
@@ -109,9 +109,10 @@ void testFunction( Scalar epsilon,
                    unsigned int nbPoints){
 
   using PairFunctor = Super4PCS::Accelerators::PairExtraction::
-    BruteForceFunctor<Point, Dim, Scalar>;
+    BruteForceFunctor<Super4PCS::Accelerators::PairExtraction::DummyPrimitive,
+    Point, Dim, Scalar>;
 
-  Utilities::Timer t; 
+  //Utilities::Timer t;
 
   auto getRandomPoint = [](Scalar factor = Scalar(1)){
       static const Point half (Point::Ones()/Scalar(2));
@@ -221,7 +222,7 @@ void testFunction( Scalar epsilon,
 //      }
   }
 
-  
+
 //  // Init random Spheres
 //  std::vector<Primitive> primitives;
 //  for(unsigned int i = 0; i != nbPrimitives; i++){
@@ -229,7 +230,7 @@ void testFunction( Scalar epsilon,
 
 //    primitives.push_back(Primitive(p, r));
 //  }
-  
+
 //  // Test test intersection procedure
 //  // Here we compare the brute force pair extraction and the sphere to point
 //  // intersection procedure
@@ -241,18 +242,18 @@ void testFunction( Scalar epsilon,
 //              SQR((p - sphere.center()).norm()- sphere.radius()) < SQR(epsilon));
 //    }
 //  }
-  
-    
+
+
 //  // Test Rendering process
 //  {
 //    Functor IF;
-    
+
 //    // Extract pairs using rendering process
 //    Utilities::startTimer(t);
 //    IF.process(primitives, points, epsilon, 20, functor);
 //    Utilities::stopTimer(t);
-           
-     
+
+
 //    // Extract pairs using brute force
 //    Utilities::startTimer(t);
 //    for(unsigned int i = 0; i != nbPoints; i++)
@@ -260,26 +261,34 @@ void testFunction( Scalar epsilon,
 //         if (primitives[j].intersectPoint(points[i], epsilon))
 //          p2.push_back(std::pair<unsigned int, unsigned int>(i,j));
 //    Utilities::stopTimer(t);
-    
+
 //    // Check we get the same set size
 //    VERIFY( functor.pairs.size() == p2.size());
 //  }
 }
 
+template <typename Scalar, int Dim>
+struct EigenPoint : public Eigen::Matrix<Scalar, Dim, 1> {
+    using Base = Eigen::Matrix<Scalar, Dim, 1>;
 
-template<typename Scalar, 
+    using Base::Base; // inherit constructors
+    inline bool intersectPoint( const EigenPoint<Scalar, Dim>& pos, Scalar epsilon ) const
+    {
+      return (pos - EigenPoint<Scalar, Dim>(*this)).squaredNorm() < epsilon*epsilon;
+    }
+};
+
+template<typename Scalar,
          int Dim>
 void callSubTests()
 {
-    typedef  Eigen::Matrix<Scalar, Dim, 1> EigenPoint;
-
     Scalar eps = 0.125/8.; // epsilon value
-    
+
     unsigned int nbPoint = 1000;  // size of Q point cloud
 
     using NormalSet0 = Super4PCS::IndexedNormalHealSet;
-    using NormalSet1 = Super4PCS::IndexedNormalSet <EigenPoint, Dim, 6, Scalar>;
-    
+    using NormalSet1 = Super4PCS::IndexedNormalSet <EigenPoint<Scalar, Dim>, Dim, 6, Scalar>;
+
     for(int i = 0; i < g_repeat; ++i)
     {
 //        CALL_SUBTEST(( testFunction<Scalar,
@@ -287,7 +296,7 @@ void callSubTests()
 //                                    NormalSet0>(eps, nbPoint) ));
         CALL_SUBTEST(( testFunction<Scalar,
                                     Dim,
-                                    EigenPoint,
+                                    EigenPoint<Scalar, Dim>,
                                     NormalSet1>(eps, nbPoint) ));
     }
 }
