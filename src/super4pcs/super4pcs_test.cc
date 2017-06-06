@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
   vector<std::string> mtls1, mtls2;
 
   getArgs(argc, argv);
-  
+
   IOManager iomananger;
 
   // Read the inputs.
@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
     perror("Can't read input set2");
     exit(-1);
   }
-  
+
   // clean only when we have pset to avoid wrong face to point indexation
   if (tris1.size() == 0)
     Utils::CleanInvalidNormals(set1, normals1);
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
     Utils::CleanInvalidNormals(set2, normals2);
 
   // Our matcher.
-  Match4PCSOptions options;  
+  Match4PCSOptions options;
 
   // Set parameters.
   cv::Mat mat = cv::Mat::eye(4, 4, CV_64F);
@@ -160,14 +160,14 @@ int main(int argc, char **argv) {
   options.max_color_distance = max_color;
   options.max_time_seconds = max_time_seconds;
   options.delta = delta;
-  // Match and return the score (estimated overlap or the LCP).  
+  // Match and return the score (estimated overlap or the LCP).
   float score = 0;
-  
+
   try {
 
-	  if (use_super4pcs) {
-		  MatchSuper4PCS matcher(options);
-		  cout << "Use Super4PCS" << endl;
+      if (use_super4pcs) {
+          MatchSuper4PCS matcher(options);
+          cout << "Use Super4PCS" << endl;
           score = matcher.ComputeTransformation(set1, &set2, &mat);
 
           if(! outputSampled1.empty() ){
@@ -194,22 +194,22 @@ int main(int argc, char **argv) {
                                      vector<string>());
               std::cout << "DONE" << std::endl;
           }
-	  }
-	  else {
-		  Match4PCS matcher(options);
-		  cout << "Use old 4PCS" << endl;
+      }
+      else {
+          Match4PCS matcher(options);
+          cout << "Use old 4PCS" << endl;
           score = matcher.ComputeTransformation(set1, &set2, &mat);
       }
 
   }
   catch (const std::exception& e) {
-	  std::cout << "[Error]: " << e.what() << '\n';
-	  std::cout << "Aborting with code -2 ..." << std::endl;
-	  return -2;
+      std::cout << "[Error]: " << e.what() << '\n';
+      std::cout << "Aborting with code -2 ..." << std::endl;
+      return -2;
   }
   catch (...) {
-	  std::cout << "[Unknown Error]: Aborting with code -3 ..." << std::endl;
-	  return -3;
+      std::cout << "[Unknown Error]: Aborting with code -3 ..." << std::endl;
+      return -3;
   }
 
   cout << "Score: " << score << endl;
@@ -234,7 +234,7 @@ int main(int argc, char **argv) {
       iomananger.WriteMatrix(outputMat, mat, IOManager::POLYWORKS);
       std::cout << "DONE" << std::endl;
   }
-  
+
   if (! output.empty() ){
       if(tris2.size() == 0) {
         output = defaultPlyOutput;

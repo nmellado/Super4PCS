@@ -68,6 +68,8 @@
 
 #include "testing.h"
 
+#define WRITE_OUTPUT_FILES
+
 #define sqr(x) ((x) * (x))
 
 using namespace std;
@@ -91,8 +93,8 @@ std::array<std::string, nbSet> confFiles = {
 };
 
 std::array<Scalar, nbSet> deltas  = {
-    0.001,
-    0.001,
+    0.002,
+    0.002,
 };
 
 std::array<Scalar, nbSet> overlaps = {
@@ -101,8 +103,8 @@ std::array<Scalar, nbSet> overlaps = {
 };
 
 std::array<Scalar, nbSet> n_points = {
-    900,
-    700,
+    500,
+    500,
 };
 
 // Maximum norm of RGB values between corresponded points. 1e9 means don't use.
@@ -202,13 +204,13 @@ void test_model(const vector<Transform> &transforms,
 
     vector<Point3D> set1, set2;
     vector<cv::Point2f> tex_coords1, tex_coords2;
-    vector<cv::Point3f> normals1, normals2;
+    vector<typename Point3D::VectorType> normals1, normals2;
     vector<tripple> tris1, tris2;
     vector<std::string> mtls1, mtls2;
 
-    IOManager iomananger;
-    VERIFY(iomananger.ReadObject((char *)input1.c_str(), set1, tex_coords1, normals1, tris1, mtls1));
-    VERIFY(iomananger.ReadObject((char *)input2.c_str(), set2, tex_coords2, normals2, tris2, mtls2));
+    IOManager iomanager;
+    VERIFY(iomanager.ReadObject((char *)input1.c_str(), set1, tex_coords1, normals1, tris1, mtls1));
+    VERIFY(iomanager.ReadObject((char *)input2.c_str(), set2, tex_coords2, normals2, tris2, mtls2));
 
     // clean only when we have pset to avoid wrong face to point indexation
     if (tris1.size() == 0)
@@ -286,7 +288,7 @@ void test_model(const vector<Transform> &transforms,
     stringstream iss;
     iss << input2;
     iss << "_aligned.ply";
-    iomananger.WriteObject(iss.str().c_str(),
+    iomanager.WriteObject(iss.str().c_str(),
                            set2,
                            tex_coords2,
                            normals2,
@@ -330,10 +332,10 @@ void test_model(const vector<Transform> &transforms,
     stringstream iss2;
     iss2 << input1;
     iss2 << "_merged.ply";
-    iomananger.WriteObject(iss2.str().c_str(),
+    iomanager.WriteObject(iss2.str().c_str(),
                            mergedset,
                            vector<cv::Point2f>(),
-                           vector<cv::Point3f>(),
+                           vector<typename Point3D::VectorType>(),
                            vector<tripple>(),
                            vector<std::string>());
 #endif
