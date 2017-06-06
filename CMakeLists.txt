@@ -4,9 +4,9 @@ project (Super4PCS)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 set(SRC_DIR ${PROJECT_SOURCE_DIR}/src/super4pcs/)
- 
+
 ################################################################################
-## Configuration file 
+## Configuration file
 ################################################################################
 set (Super4PCS_VERSION_MAJOR 0)
 set (Super4PCS_VERSION_MINOR 1)
@@ -20,7 +20,7 @@ set (Super4PCS_VERSION_MINOR 1)
 # Set option to enable timing recording
 set (ENABLE_TIMING 0)
 
- 
+
 # add the binary tree to the search path for include files
 include_directories("${PROJECT_BINARY_DIR}")
 
@@ -53,7 +53,7 @@ endif()
 
 if (MSVC)
   if (MSVC_VERSION LESS 1900)
-	message(FATAL_ERROR "Requires Microsoft Visual Studio Compiler version 14.0 or above.")
+        message(FATAL_ERROR "Requires Microsoft Visual Studio Compiler version 14.0 or above.")
   endif()
 endif()
 
@@ -69,7 +69,7 @@ if (NOT MSVC)
   elseif(COMPILER_SUPPORTS_CXX0X)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
   else()
-	message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
   endif()
 endif()
 
@@ -91,7 +91,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/chealpix EXCLUDE_FROM_ALL)
 include_directories(${Chealpix_INCLUDE_DIR})
 
 find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR}) 
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 find_package( OpenCV REQUIRED core highgui)
 
@@ -107,11 +107,11 @@ find_path(ANN_DIR ann_1.1.2)
 IF(DEFINED ANN_DIR)
   set(ANN_INCLUDE_DIR "${ANN_DIR}/include")
   include_directories( ${ANN_INCLUDE_DIR} )
-  
+
   if (MSVC)
-	set(ANN_LIBS "${ANN_DIR}/lib/libANN.dll")
+        set(ANN_LIBS "${ANN_DIR}/lib/libANN.dll")
   else()
-	set(ANN_LIBS "${ANN_DIR}/lib/libANN.a")
+        set(ANN_LIBS "${ANN_DIR}/lib/libANN.a")
   endif()
 ENDIF(DEFINED ANN_DIR)
 
@@ -120,10 +120,10 @@ ENDIF(DEFINED ANN_DIR)
 ## Tests
 ################################################################################
 
-if(DEFINED ${SUPER4PCS_BUILD_TEST})
-	include(cmake/ConfigureTesting.cmake)
-	add_subdirectory(tests EXCLUDE_FROM_ALL)
-endif(DEFINED ${SUPER4PCS_BUILD_TEST})
+if(DEFINED SUPER4PCS_BUILD_TEST)
+        include(cmake/ConfigureTesting.cmake)
+        add_subdirectory(tests EXCLUDE_FROM_ALL)
+endif(DEFINED SUPER4PCS_BUILD_TEST)
 
 ################################################################################
 ## Project files
@@ -145,15 +145,16 @@ set(Super4PCS_INCLUDE
 )
 
 add_subdirectory(${SRC_DIR}/io)
+add_subdirectory(${SRC_DIR}/utils)
 add_subdirectory(${SRC_DIR}/accelerators)
 
 add_library(super4pcs_algo  ${Super4PCS_SRC} ${Super4PCS_INCLUDE})
- 
+
 # add the executable
 add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs_test.cc)
 
 TARGET_LINK_LIBRARIES(super4pcs_algo super4pcs_io super4pcs_accel)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} super4pcs_algo)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} super4pcs_algo super4pcs_utils)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OpenCV_LIBS} )
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${ANN_LIBS} )
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Chealpix_LIBS} )
