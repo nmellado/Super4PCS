@@ -145,6 +145,20 @@ protected:
     // probability of having all points in the inliers small so we try to trade-off.
     bool SelectRandomTriangle(int* base1, int* base2, int* base3);
 
+    // Takes quadrilateral as a base, computes robust intersection point
+    // (approximate as the lines might not intersect) and returns the invariants
+    // corresponding to the two selected lines. The method also updates the order
+    // of the base base_3D_.
+    bool TryQuadrilateral(double* invariant1, double* invariant2, int &base1, int &base2, int &base3, int &base4);
+
+
+    // Selects a quadrilateral from P and returns the corresponding invariants
+    // and point indices. Returns true if a quadrilateral has been found, false
+    // otherwise.
+    bool SelectQuadrilateral(double* invariant1, double* invariant2, int* base1,
+                             int* base2, int* base3, int* base4);
+
+
 private:
     void initKdTree();
 

@@ -16,32 +16,32 @@
 //
 // Authors: Nicolas Mellado, Dror Aiger
 //
-// An implementation of the Super 4-points Congruent Sets (Super 4PCS) 
+// An implementation of the Super 4-points Congruent Sets (Super 4PCS)
 // algorithm presented in:
 //
 // Super 4PCS: Fast Global Pointcloud Registration via Smart Indexing
 // Nicolas Mellado, Dror Aiger, Niloy J. Mitra
 // Symposium on Geometry Processing 2014.
 //
-// Data acquisition in large-scale scenes regularly involves accumulating 
-// information across multiple scans. A common approach is to locally align scan 
-// pairs using Iterative Closest Point (ICP) algorithm (or its variants), but 
-// requires static scenes and small motion between scan pairs. This prevents 
+// Data acquisition in large-scale scenes regularly involves accumulating
+// information across multiple scans. A common approach is to locally align scan
+// pairs using Iterative Closest Point (ICP) algorithm (or its variants), but
+// requires static scenes and small motion between scan pairs. This prevents
 // accumulating data across multiple scan sessions and/or different acquisition
 // modalities (e.g., stereo, depth scans). Alternatively, one can use a global
-// registration algorithm allowing scans to be in arbitrary initial poses. The 
+// registration algorithm allowing scans to be in arbitrary initial poses. The
 // state-of-the-art global registration algorithm, 4PCS, however has a quadratic
-// time complexity in the number of data points. This vastly limits its 
+// time complexity in the number of data points. This vastly limits its
 // applicability to acquisition of large environments. We present Super 4PCS for
-// global pointcloud registration that is optimal, i.e., runs in linear time (in 
-// the number of data points) and is also output sensitive in the complexity of 
-// the alignment problem based on the (unknown) overlap across scan pairs. 
-// Technically, we map the algorithm as an 'instance problem' and solve it 
-// efficiently using a smart indexing data organization. The algorithm is 
+// global pointcloud registration that is optimal, i.e., runs in linear time (in
+// the number of data points) and is also output sensitive in the complexity of
+// the alignment problem based on the (unknown) overlap across scan pairs.
+// Technically, we map the algorithm as an 'instance problem' and solve it
+// efficiently using a smart indexing data organization. The algorithm is
 // simple, memory-efficient, and fast. We demonstrate that Super 4PCS results in
-// significant speedup over alternative approaches and allows unstructured 
-// efficient acquisition of scenes at scales previously not possible. Complete 
-// source code and datasets are available for research use at 
+// significant speedup over alternative approaches and allows unstructured
+// efficient acquisition of scenes at scales previously not possible. Complete
+// source code and datasets are available for research use at
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
 #include "4pcs.h"
@@ -181,19 +181,6 @@ public:
   // the translation vector and (cx,cy,cz) is the center of transformation.template <class MatrixDerived>
   Scalar Verify(const Eigen::Matrix<Scalar, 4, 4>& mat);
 
-
-  // Selects a quadrilateral from P and returns the corresponding invariants
-  // and point indices. Returns true if a quadrilateral has been found, false
-  // otherwise.
-  bool SelectQuadrilateral(double* invariant1, double* invariant2, int* base1,
-                           int* base2, int* base3, int* base4);
-
-  // Takes quadrilateral as a base, computes robust intersection point
-  // (approximate as the lines might not intersect) and returns the invariants
-  // corresponding to the two selected lines. The method also updates the order
-  // of the base base_3D_.
-  bool TryQuadrilateral(double* invariant1, double* invariant2, int &base1, int &base2, int &base3, int &base4);
-
   // Finds congruent candidates in the set Q, given the invariants and threshold
   // distances. Returns true if a non empty set can be found, false otherwise.
   // @param invariant1 [in] The first invariant corresponding to the set P_pairs
@@ -269,7 +256,7 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
   const Scalar eps = pcfunctor_.getNormalizedEpsilon(
     std::min(distance_threshold1, distance_threshold2));
   typedef Super4PCS::IndexedNormalHealSet IndexedNormalSet3D;
-  
+
   // Use the following definition to get ride of Healpix
 //  typedef  IndexedNormalSet
 //                  < Point,   //! \brief Point type used internally
@@ -353,138 +340,6 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
   }
 
   return quadrilaterals->size() != 0;
-}
-
-// Try the current base in P and obtain the best pairing, i.e. the one that
-// gives the smaller distance between the two closest points. The invariants
-// corresponding the the base pairing are computed.
-bool MatchSuper4PCSImpl::TryQuadrilateral(double* invariant1, double* invariant2,
-                                          int& id1, int& id2, int& id3, int& id4) {
-  if (invariant1 == NULL || invariant2 == NULL) return false;
-
-  float min_distance = FLT_MAX;
-  int best1, best2, best3, best4;
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
-      if (i == j) continue;
-      int k = 0;
-      while (k == i || k == j) k++;
-      int l = 0;
-      while (l == i || l == j || l == k) l++;
-      double local_invariant1;
-      double local_invariant2;
-      // Compute the closest points on both segments, the corresponding
-      // invariants and the distance between the closest points.
-      float segment_distance = distSegmentToSegment(
-          base_3D_[i], base_3D_[j], base_3D_[k], base_3D_[l], &local_invariant1,
-          &local_invariant2);
-      // Retail the smallest distance and the best order so far.
-      if (segment_distance < min_distance) {
-        min_distance = segment_distance;
-        best1 = i;
-        best2 = j;
-        best3 = k;
-        best4 = l;
-        *invariant1 = local_invariant1;
-        *invariant2 = local_invariant2;
-      }
-    }
-  }
-  vector<Point3D> tmp = base_3D_;
-  base_3D_[0] = tmp[best1];
-  base_3D_[1] = tmp[best2];
-  base_3D_[2] = tmp[best3];
-  base_3D_[3] = tmp[best4];
-
-  std::array<int, 4> tmpId = {id1, id2, id3, id4};
-  id1 = tmpId[best1];
-  id2 = tmpId[best2];
-  id3 = tmpId[best3];
-  id4 = tmpId[best4];
-
-  return true;
-}
-
-
-
-// Selects a good base from P and computes its invariants. Returns false if
-// a good planar base cannot can be found.
-bool MatchSuper4PCSImpl::SelectQuadrilateral(double* invariant1, double* invariant2,
-                                        int* base1, int* base2, int* base3,
-                                        int* base4) {
-  if (invariant1 == NULL || invariant2 == NULL || base1 == NULL ||
-      base2 == NULL || base3 == NULL || base4 == NULL)
-    return false;
-
-  const float kBaseTooSmall = 0.2;
-  int current_trial = 0;
-
-  // Try fix number of times.
-  while (current_trial < kNumberOfDiameterTrials) {
-    // Select a triangle if possible. otherwise fail.
-    if (!SelectRandomTriangle(base1, base2, base3)){
-      return false;
-    }
-
-    base_3D_[0] = sampled_P_3D_[*base1];
-    base_3D_[1] = sampled_P_3D_[*base2];
-    base_3D_[2] = sampled_P_3D_[*base3];
-
-    // The 4th point will be a one that is close to be planar to the other 3
-    // while still not too close to them.
-    const double& x1 = base_3D_[0].x;
-    const double& y1 = base_3D_[0].y;
-    const double& z1 = base_3D_[0].z;
-    const double& x2 = base_3D_[1].x;
-    const double& y2 = base_3D_[1].y;
-    const double& z2 = base_3D_[1].z;
-    const double& x3 = base_3D_[2].x;
-    const double& y3 = base_3D_[2].y;
-    const double& z3 = base_3D_[2].z;
-
-    // Fit a plan.
-    double denom = (-x3 * y2 * z1 + x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 -
-                    x2 * y1 * z3 + x1 * y2 * z3);
-
-    if (denom != 0) {
-      double A =
-          (-y2 * z1 + y3 * z1 + y1 * z2 - y3 * z2 - y1 * z3 + y2 * z3) / denom;
-      double B =
-          (x2 * z1 - x3 * z1 - x1 * z2 + x3 * z2 + x1 * z3 - x2 * z3) / denom;
-      double C =
-          (-x2 * y1 + x3 * y1 + x1 * y2 - x3 * y2 - x1 * y3 + x2 * y3) / denom;
-      *base4 = -1;
-      double best_distance = FLT_MAX;
-      // Go over all points in P.
-      for (unsigned int i = 0; i < sampled_P_3D_.size(); ++i) {
-        double d1 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base1]);
-        double d2 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base2]);
-        double d3 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base3]);
-        float too_small = max_base_diameter_ * kBaseTooSmall;
-        if (d1 >= too_small && d2 >= too_small && d3 >= too_small) {
-          // Not too close to any of the first 3.
-          double distance =
-              std::abs(A * sampled_P_3D_[i].x + B * sampled_P_3D_[i].y +
-                   C * sampled_P_3D_[i].z - 1.0);
-          // Search for the most planar.
-          if (distance < best_distance) {
-            best_distance = distance;
-            *base4 = int(i);
-          }
-        }
-      }
-      // If we have a good one we can quit.
-      if (*base4 != -1) {
-        base_3D_[3] = sampled_P_3D_[*base4];
-        TryQuadrilateral(invariant1, invariant2, *base1, *base2, *base3, *base4);
-        return true;
-      }
-    }
-    current_trial++;
-  }
-  
-  // We failed to find good enough base..
-  return false;
 }
 
 
@@ -765,7 +620,7 @@ bool MatchSuper4PCSImpl::TryOneBase() {
       }
     }
   }
-  
+
   // If we reached here we do not have yet the desired LCP.
   return false;
 }

@@ -260,7 +260,140 @@ bool Match4PCSBase::SelectRandomTriangle(int* base1, int* base2, int* base3) {
         return false;
       else
         return true;
+}
+
+
+
+// Try the current base in P and obtain the best pairing, i.e. the one that
+// gives the smaller distance between the two closest points. The invariants
+// corresponding the the base pairing are computed.
+bool Match4PCSBase::TryQuadrilateral(double* invariant1, double* invariant2,
+                                     int& id1, int& id2, int& id3, int& id4) {
+  if (invariant1 == NULL || invariant2 == NULL) return false;
+
+  float min_distance = FLT_MAX;
+  int best1, best2, best3, best4;
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      if (i == j) continue;
+      int k = 0;
+      while (k == i || k == j) k++;
+      int l = 0;
+      while (l == i || l == j || l == k) l++;
+      double local_invariant1;
+      double local_invariant2;
+      // Compute the closest points on both segments, the corresponding
+      // invariants and the distance between the closest points.
+      float segment_distance = distSegmentToSegment(
+          base_3D_[i], base_3D_[j], base_3D_[k], base_3D_[l], &local_invariant1,
+          &local_invariant2);
+      // Retail the smallest distance and the best order so far.
+      if (segment_distance < min_distance) {
+        min_distance = segment_distance;
+        best1 = i;
+        best2 = j;
+        best3 = k;
+        best4 = l;
+        *invariant1 = local_invariant1;
+        *invariant2 = local_invariant2;
+      }
     }
+  }
+  std::vector<Point3D> tmp = base_3D_;
+  base_3D_[0] = tmp[best1];
+  base_3D_[1] = tmp[best2];
+  base_3D_[2] = tmp[best3];
+  base_3D_[3] = tmp[best4];
+
+  std::array<int, 4> tmpId = {id1, id2, id3, id4};
+  id1 = tmpId[best1];
+  id2 = tmpId[best2];
+  id3 = tmpId[best3];
+  id4 = tmpId[best4];
+
+  return true;
+}
+
+
+// Selects a good base from P and computes its invariants. Returns false if
+// a good planar base cannot can be found.
+bool Match4PCSBase::SelectQuadrilateral(double* invariant1, double* invariant2,
+                                        int* base1, int* base2, int* base3,
+                                        int* base4) {
+  if (invariant1 == NULL || invariant2 == NULL || base1 == NULL ||
+      base2 == NULL || base3 == NULL || base4 == NULL)
+    return false;
+
+  const float kBaseTooSmall = 0.2;
+  int current_trial = 0;
+
+  // Try fix number of times.
+  while (current_trial < kNumberOfDiameterTrials) {
+    // Select a triangle if possible. otherwise fail.
+    if (!SelectRandomTriangle(base1, base2, base3)){
+      return false;
+    }
+
+    base_3D_[0] = sampled_P_3D_[*base1];
+    base_3D_[1] = sampled_P_3D_[*base2];
+    base_3D_[2] = sampled_P_3D_[*base3];
+
+    // The 4th point will be a one that is close to be planar to the other 3
+    // while still not too close to them.
+    const double& x1 = base_3D_[0].x;
+    const double& y1 = base_3D_[0].y;
+    const double& z1 = base_3D_[0].z;
+    const double& x2 = base_3D_[1].x;
+    const double& y2 = base_3D_[1].y;
+    const double& z2 = base_3D_[1].z;
+    const double& x3 = base_3D_[2].x;
+    const double& y3 = base_3D_[2].y;
+    const double& z3 = base_3D_[2].z;
+
+    // Fit a plan.
+    double denom = (-x3 * y2 * z1 + x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 -
+                    x2 * y1 * z3 + x1 * y2 * z3);
+
+    if (denom != 0) {
+      double A =
+          (-y2 * z1 + y3 * z1 + y1 * z2 - y3 * z2 - y1 * z3 + y2 * z3) / denom;
+      double B =
+          (x2 * z1 - x3 * z1 - x1 * z2 + x3 * z2 + x1 * z3 - x2 * z3) / denom;
+      double C =
+          (-x2 * y1 + x3 * y1 + x1 * y2 - x3 * y2 - x1 * y3 + x2 * y3) / denom;
+      *base4 = -1;
+      double best_distance = FLT_MAX;
+      // Go over all points in P.
+      for (unsigned int i = 0; i < sampled_P_3D_.size(); ++i) {
+        double d1 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base1]);
+        double d2 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base2]);
+        double d3 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base3]);
+        float too_small = max_base_diameter_ * kBaseTooSmall;
+        if (d1 >= too_small && d2 >= too_small && d3 >= too_small) {
+          // Not too close to any of the first 3.
+          double distance =
+              std::abs(A * sampled_P_3D_[i].x + B * sampled_P_3D_[i].y +
+                   C * sampled_P_3D_[i].z - 1.0);
+          // Search for the most planar.
+          if (distance < best_distance) {
+            best_distance = distance;
+            *base4 = int(i);
+          }
+        }
+      }
+      // If we have a good one we can quit.
+      if (*base4 != -1) {
+        base_3D_[3] = sampled_P_3D_[*base4];
+        TryQuadrilateral(invariant1, invariant2, *base1, *base2, *base3, *base4);
+        return true;
+      }
+    }
+    current_trial++;
+  }
+
+  // We failed to find good enough base..
+  return false;
+}
 
 void Match4PCSBase::initKdTree(){
   int number_of_points = sampled_P_3D_.size();

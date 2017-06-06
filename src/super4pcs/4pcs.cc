@@ -292,19 +292,6 @@ class Match4PCSImpl : public Super4PCS::Match4PCSBase {
   double Verify(const cv::Mat& rotation, const cv::Point3f& center,
                 const cv::Point3f& translate);
 
-
-  // Selects a quadrilateral from P and returns the corresponding invariants
-  // and point indices. Returns true if a quadrilateral has been found, false
-  // otherwise.
-  bool SelectQuadrilateral(double* invariant1, double* invariant2, int* base1,
-                           int* base2, int* base3, int* base4);
-
-  // Takes quadrilateral as a base, computes robust intersection point
-  // (approximate as the lines might not intersect) and returns the invariants
-  // corresponding to the two selected lines. The method also updates the order
-  // of the base base_3D_.
-  bool TryQuadrilateral(double* invariant1, double* invariant2);
-
   // Finds congruent candidates in the set Q, given the invariants and threshold
   // distances. Returns true if a non empty set can be found, false otherwise.
   // @param invariant1 [in] The first invariant corresponding to the set P_pairs
@@ -382,18 +369,18 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
     query_point[0] = p1.x + invariant2 * (p2.x - p1.x);
     query_point[1] = p1.y + invariant2 * (p2.y - p1.y);
     query_point[2] = p1.z + invariant2 * (p2.z - p1.z);
-    
+
     tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
                        near_neighbor_index, distances, 0);
 
     // This is a new candidate of a quadrilateral.
     for (int j = 0; j < number_of_points; ++j) {
       if (distances[j] != ANN_DIST_INF) {
-        int id = near_neighbor_index[j] / 2;  
+        int id = near_neighbor_index[j] / 2;
 
         const Point3D& pp1 = sampled_Q_3D_[P_pairs[id].first];
-        const Point3D& pp2 = sampled_Q_3D_[P_pairs[id].second];         
-                    
+        const Point3D& pp2 = sampled_Q_3D_[P_pairs[id].second];
+
         quadrilaterals->push_back(
             Super4PCS::Quadrilateral(P_pairs[id].first, P_pairs[id].second,
                           Q_pairs[i].first, Q_pairs[i].second));
@@ -405,7 +392,7 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
     query_point[0] = p1.x + (1.0-invariant2) * (p2.x - p1.x);
     query_point[1] = p1.y + (1.0-invariant2) * (p2.y - p1.y);
     query_point[2] = p1.z + (1.0-invariant2) * (p2.z - p1.z);
-    
+
     tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
                        near_neighbor_index, distances, 0);
 
@@ -414,8 +401,8 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
         int id = near_neighbor_index[j] / 2;
 
         const Point3D& pp1 = sampled_Q_3D_[P_pairs[id].first];
-        const Point3D& pp2 = sampled_Q_3D_[P_pairs[id].second];   
-        
+        const Point3D& pp2 = sampled_Q_3D_[P_pairs[id].second];
+
         quadrilaterals->push_back(
             Super4PCS::Quadrilateral(P_pairs[id].first, P_pairs[id].second,
                           Q_pairs[i].first, Q_pairs[i].second));
@@ -431,129 +418,6 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
   delete tree;
 
   return quadrilaterals->size() != 0;
-}
-
-// Try the current base in P and obtain the best pairing, i.e. the one that
-// gives the smaller distance between the two closest points. The invariants
-// corresponding the the base pairing are computed.
-bool Match4PCSImpl::TryQuadrilateral(double* invariant1, double* invariant2) {
-  if (invariant1 == NULL || invariant2 == NULL) return false;
-
-  float min_distance = FLT_MAX;
-  int best1, best2, best3, best4;
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 4; ++j) {
-      if (i == j) continue;
-      int k = 0;
-      while (k == i || k == j) k++;
-      int l = 0;
-      while (l == i || l == j || l == k) l++;
-      double local_invariant1;
-      double local_invariant2;
-      // Compute the closest points on both segments, the corresponding
-      // invariants and the distance between the closest points.
-      float segment_distance = distSegmentToSegment(
-          base_3D_[i], base_3D_[j], base_3D_[k], base_3D_[l], &local_invariant1,
-          &local_invariant2);
-      // Retail the smallest distance and the best order so far.
-      if (segment_distance < min_distance) {
-        min_distance = segment_distance;
-        best1 = i;
-        best2 = j;
-        best3 = k;
-        best4 = l;
-        *invariant1 = local_invariant1;
-        *invariant2 = local_invariant2;
-      }
-    }
-  }
-  vector<Point3D> tmp = base_3D_;
-  base_3D_[0] = tmp[best1];
-  base_3D_[1] = tmp[best2];
-  base_3D_[2] = tmp[best3];
-  base_3D_[3] = tmp[best4];
-
-  return true;
-}
-
-// Selects a good base from P and computes its invariants. Returns false if
-// a good planar base cannot can be found.
-bool Match4PCSImpl::SelectQuadrilateral(double* invariant1, double* invariant2,
-                                        int* base1, int* base2, int* base3,
-                                        int* base4) {
-  if (invariant1 == NULL || invariant2 == NULL || base1 == NULL ||
-      base2 == NULL || base3 == NULL || base4 == NULL)
-    return false;
-
-  const float kBaseTooSmall = 0.2;
-  int current_trial = 0;
-
-  // Try fix number of times.
-  while (current_trial < kNumberOfDiameterTrials) {
-    // Select a triangle if possible. otherwise fail.
-    if (!SelectRandomTriangle(base1, base2, base3)){
-      return false;
-    }
-
-    base_3D_[0] = sampled_P_3D_[*base1];
-    base_3D_[1] = sampled_P_3D_[*base2];
-    base_3D_[2] = sampled_P_3D_[*base3];
-
-    // The 4th point will be a one that is close to be planar to the other 3
-    // while still not too close to them.
-    const double& x1 = base_3D_[0].x;
-    const double& y1 = base_3D_[0].y;
-    const double& z1 = base_3D_[0].z;
-    const double& x2 = base_3D_[1].x;
-    const double& y2 = base_3D_[1].y;
-    const double& z2 = base_3D_[1].z;
-    const double& x3 = base_3D_[2].x;
-    const double& y3 = base_3D_[2].y;
-    const double& z3 = base_3D_[2].z;
-
-    // Fit a plan.
-    double denom = (-x3 * y2 * z1 + x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 -
-                    x2 * y1 * z3 + x1 * y2 * z3);
-
-    if (denom != 0) {
-      double A =
-          (-y2 * z1 + y3 * z1 + y1 * z2 - y3 * z2 - y1 * z3 + y2 * z3) / denom;
-      double B =
-          (x2 * z1 - x3 * z1 - x1 * z2 + x3 * z2 + x1 * z3 - x2 * z3) / denom;
-      double C =
-          (-x2 * y1 + x3 * y1 + x1 * y2 - x3 * y2 - x1 * y3 + x2 * y3) / denom;
-      *base4 = -1;
-      double best_distance = FLT_MAX;
-      // Go over all points in P.
-      for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-        double d1 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base1]);
-        double d2 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base2]);
-        double d3 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base3]);
-        float too_small = max_base_diameter_ * kBaseTooSmall;
-        if (d1 >= too_small && d2 >= too_small && d3 >= too_small) {
-          // Not too close to any of the first 3.
-          double distance =
-              fabs(A * sampled_P_3D_[i].x + B * sampled_P_3D_[i].y +
-                   C * sampled_P_3D_[i].z - 1.0);
-          // Search for the most planar.
-          if (distance < best_distance) {
-            best_distance = distance;
-            *base4 = i;
-          }
-        }
-      }
-      // If we have a good one we can quit.
-      if (*base4 != -1) {
-        base_3D_[3] = sampled_P_3D_[*base4];
-        TryQuadrilateral(invariant1, invariant2);
-        
-        return true;
-      }
-    }
-    current_trial++;
-  }
-  // We failed to find good enough base..
-  return false;
 }
 
 // Verify a given transformation by computing the number of points in P at
@@ -580,7 +444,7 @@ double Match4PCSImpl::Verify(const cv::Mat& rotation, const cv::Point3f& center,
       options_.max_normal_difference > 90
           ? 0
           : cos(min(90.0, options_.max_normal_difference) * M_PI / 180.0);
-          
+
   for (int i = 0; i < number_of_points; ++i) {
     Point3D p = sampled_Q_3D_[i];
     Transform(rotation, center, translate, &p);
@@ -609,7 +473,7 @@ double Match4PCSImpl::Verify(const cv::Mat& rotation, const cv::Point3f& center,
       break;
     }
   }
-  
+
   annDeallocPt(query_point);
   delete[] near_neighbor_index;
   delete[] distances;
@@ -733,7 +597,7 @@ bool Match4PCSImpl::TryOneBase() {
                                    pairs2, &congruent_quads)) {
     return false;
   }
-  
+
   //cout << "congruent_quads.size() = " << congruent_quads.size()  << endl;
 
   cv::Mat rotation(3, 3, CV_64F);
@@ -751,7 +615,7 @@ bool Match4PCSImpl::TryOneBase() {
     congruent_points[2].second = sampled_Q_3D_[c];
     congruent_points[3].first = sampled_P_3D_[base_id4];
     congruent_points[3].second = sampled_Q_3D_[d];
-    
+
 
     cv::Point3f center;
     cv::Point3f translate;
@@ -759,21 +623,21 @@ bool Match4PCSImpl::TryOneBase() {
                                           &translate, &center);
 
     float theta_x =
-        fabs(atan2(rotation.at<double>(2, 1), rotation.at<double>(2, 2)));
-    float theta_y = fabs(atan2(-rotation.at<double>(2, 0),
+        std::abs(atan2(rotation.at<double>(2, 1), rotation.at<double>(2, 2)));
+    float theta_y = std::abs(atan2(-rotation.at<double>(2, 0),
                                sqrt(Square(rotation.at<double>(2, 1)) +
                                     Square(rotation.at<double>(2, 2)))));
     float theta_z =
-        fabs(atan2(rotation.at<double>(1, 0), rotation.at<double>(0, 0)));
+        std::abs(atan2(rotation.at<double>(1, 0), rotation.at<double>(0, 0)));
 
     // Check angle limitation.
     if (theta_x <= options_.max_angle * M_PI / 180.0 &&
         theta_y <= options_.max_angle * M_PI / 180.0 &&
         theta_z <= options_.max_angle * M_PI / 180.0) {
-        
+
 
       // We give more tolerantz in computing the best rigid transformation.
-      if (f < distance_factor * options_.delta) {   
+      if (f < distance_factor * options_.delta) {
         // Verify the rest of the points in Q against P.
         f = Verify(rotation, center, translate);
         if (f > best_LCP_) {
@@ -794,7 +658,7 @@ bool Match4PCSImpl::TryOneBase() {
           translate_ = translate;
         }
         // Terminate if we have the desired LCP already.
-        if (best_LCP_ > options_.terminate_threshold){    
+        if (best_LCP_ > options_.terminate_threshold){
           return true;
         }
       }
@@ -848,9 +712,9 @@ bool Match4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
   ofstream myfile;
   myfile.open ("convergence.txt", ios::out | ios::app);
   float last_best_LCPTrace = best_LCP_;
-  
+
   myfile << 0 << " " << best_LCP_ << " " << 0 << endl;
-#endif  
+#endif
 
   float last_best_LCP = best_LCP_;
   //vector<Point3D> cpy = sampled_Q_3D_;
@@ -858,7 +722,7 @@ bool Match4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
   int64 t0 = clock();
   for (int i = current_trial_; i < current_trial_ + n; ++i) {
     ok = TryOneBase();
-    
+
     float fraction_try =
         static_cast<float>(i) / static_cast<float>(number_of_trials_);
     float fraction_time = static_cast<float>(clock() - t0) / 1000000.0 /
@@ -870,11 +734,11 @@ bool Match4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
 #ifdef TEST_RECORD_CONVERGENCE
     if (best_LCP_ > last_best_LCPTrace){
       last_best_LCPTrace = best_LCP_;
-     
+
       // We are better than the last LCP. Update the matrix and transform Q.
       Point3D p(centroid_.x + centroid_Q_.x, centroid_.y + centroid_Q_.y,
                 centroid_.z + centroid_Q_.z);
-                
+
       cv::Mat t (4, 4, CV_64F, cv::Scalar(0.0));
       Transform(rotate_, cv::Point3f(0, 0, 0), cv::Point3f(0, 0, 0), &p);
       t.at<double>(0, 0) = rotate_.at<double>(0, 0);
@@ -895,20 +759,20 @@ bool Match4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
       t.at<double>(3, 0) = 0;
       t.at<double>(3, 1) = 0;
       t.at<double>(3, 2) = 0;
-      t.at<double>(3, 3) = 1;    
-      
-      myfile << i << " " 
-             << best_LCP_ << " " 
+      t.at<double>(3, 3) = 1;
+
+      myfile << i << " "
+             << best_LCP_ << " "
              << (clock() - t0)/ 1000000.0 << " "
              // We suppose here that we look for the identity tranformation
-             << std::abs(cv::sum(t)[0] - 4.) << " " 
+             << std::abs(cv::sum(t)[0] - 4.) << " "
              << endl;
     }
-#endif   
+#endif
     // ok means that we already have the desired LCP.
     if (ok || i > number_of_trials_ || fraction > 0.99) break;
   }
-  
+
   current_trial_ += n;
   if (best_LCP_ > last_best_LCP) {
     // We are better than the last LCP. Update the matrix and transform Q.
@@ -951,7 +815,7 @@ bool Match4PCSImpl::Perform_N_steps(int n, cv::Mat* transformation,
   }
 #ifdef TEST_RECORD_CONVERGENCE
   myfile.close();
-#endif  
+#endif
 
   return ok || current_trial_ >= number_of_trials_;
 }
@@ -966,7 +830,7 @@ float Match4PCSImpl::ComputeTransformation(const std::vector<Point3D>& P,
   *transformation = cv::Mat(4, 4, CV_64F, cv::Scalar(0.0));
   for (int i = 0; i < 4; ++i) transformation->at<double>(i, i) = 1.0;
   Perform_N_steps(number_of_trials_, transformation, Q);
-  
+
   return best_LCP_;
 }
 
