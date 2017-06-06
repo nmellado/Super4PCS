@@ -239,8 +239,8 @@ NdNode< Point, _dim, Scalar, _PointContainer, _IdContainer>::split(
 
   // Remove childs not containing any element
   if (!childs.empty()) {
-	  childs.erase(std::remove_if(childs.begin(), childs.end()-1, [](const Node& c)
-	  {return c.rangeLength() == 0; }));
+      childs.erase(std::remove_if(childs.begin(), childs.end(), [](const Node& c)
+      { return c.rangeLength() == 0; }), childs.end());
   }
 }
 
