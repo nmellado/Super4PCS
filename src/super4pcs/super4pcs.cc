@@ -141,9 +141,7 @@ public:
 
   PairCreationFunctor<Scalar> pcfunctor_;
 
-  // Private member functions.
-  bool TryOneBase() override;
-
+protected:
   // Constructs pairs of points in Q, corresponding to a single pair in the
   // in basein P.
   // @param [in] pair_distance The distance between the pairs in P that we have
@@ -161,7 +159,7 @@ public:
   ExtractPairs(Scalar pair_distance, Scalar pair_normals_angle,
                        Scalar pair_distance_epsilon, int base_point1,
                        int base_point2,
-                       PairsVector* pairs);
+                       PairsVector* pairs) override;
 
   // Finds congruent candidates in the set Q, given the invariants and threshold
   // distances. Returns true if a non empty set can be found, false otherwise.
@@ -174,18 +172,16 @@ public:
   // to the invariants (See the paper for e1, e2).
   // @param [in] P_pairs The first set of pairs.
   // @param [in] Q_pairs The second set of pairs.
-  // @param [in] Q_pointsFirst Point coordinates for the pairs first id
-  // @param [in] Q_pointsSecond Point coordinates for the pairs second id
   // @param [out] quadrilaterals The set of congruent quadrilateral. In fact,
   // it's a super set from which we extract the real congruent set.
-  bool FindCongruentQuadrilateralsFast(Scalar invariant1, Scalar invariant2,
-                                       Scalar distance_threshold1,
-                                       Scalar distance_threshold2,
-                                       const PairsVector& P_pairs,
-                                       const PairsVector& Q_pairs,
-                                       const std::vector<Point3D>& Q_points,
-                                       std::vector<Super4PCS::Quadrilateral>* quadrilaterals);
+  bool FindCongruentQuadrilaterals(Scalar invariant1, Scalar invariant2,
+                                   Scalar distance_threshold1,
+                                   Scalar distance_threshold2,
+                                   const PairsVector& P_pairs,
+                                   const PairsVector& Q_pairs,
+                                   std::vector<Super4PCS::Quadrilateral>* quadrilaterals) override;
 
+private:
   // Initializes the data structures and needed values before the match
   // computation.
   // @param [in] point_P First input set.
@@ -197,11 +193,10 @@ public:
 
 // Finds congruent candidates in the set Q, given the invariants and threshold
 // distances.
-bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
+bool MatchSuper4PCSImpl::FindCongruentQuadrilaterals(
     Scalar invariant1, Scalar invariant2, Scalar distance_threshold1,
     Scalar distance_threshold2, const std::vector<std::pair<int, int>>& P_pairs,
     const std::vector<std::pair<int, int>>& Q_pairs,
-    const std::vector<Point3D>& Q_points,
     std::vector<Super4PCS::Quadrilateral>* quadrilaterals) {
 
   // Compute the angle formed by the two vectors of the basis
@@ -250,8 +245,8 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
     const Point& p1 = pcfunctor_.points[Q_pairs[i].first];
     const Point& p2 = pcfunctor_.points[Q_pairs[i].second];
 
-    const Point3D& pq1 = Q_points[Q_pairs[i].first];
-    const Point3D& pq2 = Q_points[Q_pairs[i].second];
+    const Point3D& pq1 = sampled_Q_3D_[Q_pairs[i].first];
+    const Point3D& pq2 = sampled_Q_3D_[Q_pairs[i].second];
 
     nei.clear();
 
@@ -274,8 +269,8 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilateralsFast(
     for (unsigned int k = 0; k != nei.size(); k++){
       int id = nei[k];
 
-      const Point3D& pp1 = Q_points[P_pairs[id].first];
-      const Point3D& pp2 = Q_points[P_pairs[id].second];
+      const Point3D& pp1 = sampled_Q_3D_[P_pairs[id].first];
+      const Point3D& pp2 = sampled_Q_3D_[P_pairs[id].second];
 
       invPoint = pp1 + (pp2 - pp1) * invariant1;
 
@@ -346,83 +341,8 @@ MatchSuper4PCSImpl::ExtractPairs(Scalar pair_distance,
                        pcfunctor_);
 }
 
-// Pick one base, finds congruent 4-points in Q, verifies for all
-// transformations, and retains the best transformation and LCP. This is
-// a complete RANSAC iteration.
-bool MatchSuper4PCSImpl::TryOneBase() {
-  Scalar invariant1, invariant2;
-  int base_id1, base_id2, base_id3, base_id4;
-
-//#define STATIC_BASE
-
-#ifdef STATIC_BASE
-  static bool first_time = true;
-
-  if (first_time){
-      base_id1 = 0;
-      base_id2 = 3;
-      base_id3 = 1;
-      base_id4 = 4;
-
-      base_3D_[0] = sampled_P_3D_ [base_id1];
-      base_3D_[1] = sampled_P_3D_ [base_id2];
-      base_3D_[2] = sampled_P_3D_ [base_id3];
-      base_3D_[3] = sampled_P_3D_ [base_id4];
-
-      TryQuadrilateral(&invariant1, &invariant2, base_id1, base_id2, base_id3, base_id4);
-
-      first_time = false;
-  }
-  else
-      return false;
-
-#else
-
-  if (!SelectQuadrilateral(&invariant1, &invariant2, &base_id1, &base_id2,
-                           &base_id3, &base_id4)) {
-    return false;
-  }
-#endif
-
-  // Computes distance between pairs.
-  Scalar distance1 = PointsDistance(base_3D_[0], base_3D_[1]);
-  Scalar distance2 = PointsDistance(base_3D_[2], base_3D_[3]);
-
-  vector<pair<int, int>> pairs1, pairs2;
-  vector<Super4PCS::Quadrilateral> congruent_quads;
-
-  // Compute normal angles.
-  Scalar normal_angle1 = (base_3D_[0].normal() - base_3D_[1].normal()).norm();
-  Scalar normal_angle2 = (base_3D_[2].normal() - base_3D_[3].normal()).norm();
-
-  ExtractPairs(distance1, normal_angle1, distance_factor * options_.delta, 0,
-                  1, &pairs1);
-  ExtractPairs(distance2, normal_angle2, distance_factor * options_.delta, 2,
-                  3, &pairs2);
-
-  if (pairs1.size() == 0 || pairs2.size() == 0) {
-    return false;
-  }
 
 
-  if (!FindCongruentQuadrilateralsFast(invariant1, invariant2,
-                                   distance_factor * options_.delta,
-                                   distance_factor * options_.delta,
-                                   pairs1,
-                                   pairs2,
-                                   sampled_Q_3D_,
-                                   &congruent_quads)) {
-    return false;
-  }
-
-  return TryCongruentSet(base_id1, base_id2, base_id3, base_id4, congruent_quads);
-}
-
-struct eqstr {
-  bool operator()(const char* s1, const char* s2) const {
-    return strcmp(s1, s2) == 0;
-  }
-};
 
 // Initialize all internal data structures and data members.
 void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,

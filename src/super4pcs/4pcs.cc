@@ -84,17 +84,7 @@ class Match4PCSImpl : public Super4PCS::Match4PCSBase {
   Scalar ComputeTransformation(const std::vector<Point3D>& P,
                               std::vector<Point3D>* Q, cv::Mat* transformation);
 
- private:
-  // Private data contains parameters and internal variables that are computed
-  // and change during the match computation. All parameters have default
-  // values.
-
-  // Internal data members.
-
-  // Private member functions.
-
-  bool TryOneBase() override;
-
+ protected:
   // Constructs pairs of points in Q, corresponding to a single pair in the
   // in basein P.
   // @param [in] pair_distance The distance between the pairs in P that we have
@@ -108,9 +98,9 @@ class Match4PCSImpl : public Super4PCS::Match4PCSBase {
   // @param [in] base_point2 The index of the second point in P.
   // @param [out] pairs A set of pairs in Q that match the pair in P with
   // respect to distance and normals, up to the given tolerance.
-  void BruteForcePairs(double pair_distance, double pair_normals_angle,
+  void ExtractPairs(double pair_distance, double pair_normals_angle,
                        double pair_distance_epsilon, int base_point1,
-                       int base_point2, Base::PairsVector* pairs);
+                       int base_point2, Base::PairsVector* pairs) override;
 
   // Finds congruent candidates in the set Q, given the invariants and threshold
   // distances. Returns true if a non empty set can be found, false otherwise.
@@ -130,8 +120,9 @@ class Match4PCSImpl : public Super4PCS::Match4PCSBase {
                                    double distance_threshold2,
                                    const PairsVector& P_pairs,
                                    const PairsVector& Q_pairs,
-                                   std::vector<Super4PCS::Quadrilateral>* quadrilaterals);
+                                   std::vector<Super4PCS::Quadrilateral>* quadrilaterals) override;
 
+private:
   // Initializes the data structures and needed values before the match
   // computation.
   // @param [in] point_P First input set.
@@ -237,7 +228,7 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
 // Constructs two sets of pairs in Q, each corresponds to one pair in the base
 // in P, by having the same distance (up to some tolerantz) and optionally the
 // same angle between normals and same color.
-void Match4PCSImpl::BruteForcePairs(double pair_distance,
+void Match4PCSImpl::ExtractPairs(double pair_distance,
                                     double pair_normals_angle,
                                     double pair_distance_epsilon,
                                     int base_point1, int base_point2,
@@ -309,48 +300,6 @@ void Match4PCSImpl::BruteForcePairs(double pair_distance,
       }
     }
   }
-}
-
-// Pick one base, finds congruent 4-points in Q, verifies for all
-// transformations, and retains the best transformation and LCP. This is
-// a complete RANSAC iteration.
-bool Match4PCSImpl::TryOneBase() {
-  Scalar invariant1, invariant2;
-  int base_id1, base_id2, base_id3, base_id4;
-  Scalar distance_factor = 2.0;
-
-  if (!SelectQuadrilateral(&invariant1, &invariant2, &base_id1, &base_id2,
-                           &base_id3, &base_id4)) {
-    return false;
-  }
-
-  // Computes distance between pairs.
-  double distance1 = PointsDistance(base_3D_[0], base_3D_[1]);
-  double distance2 = PointsDistance(base_3D_[2], base_3D_[3]);
-
-  vector<pair<int, int>> pairs1, pairs2;
-  vector<Super4PCS::Quadrilateral> congruent_quads;
-
-  // Compute normal angles.
-  Scalar normal_angle1 = (base_3D_[0].normal() - base_3D_[1].normal()).norm();
-  Scalar normal_angle2 = (base_3D_[2].normal() - base_3D_[3].normal()).norm();
-
-  BruteForcePairs(distance1, normal_angle1, distance_factor * options_.delta, 0,
-                  1, &pairs1);
-  BruteForcePairs(distance2, normal_angle2, distance_factor * options_.delta, 2,
-                  3, &pairs2);
-  if (pairs1.size() == 0 || pairs2.size() == 0) {
-    return false;
-  }
-  //cout << pairs1.size() << " " << pairs1.size() << endl;
-  if (!FindCongruentQuadrilaterals(invariant1, invariant2,
-                                   distance_factor * options_.delta,
-                                   distance_factor * options_.delta, pairs1,
-                                   pairs2, &congruent_quads)) {
-    return false;
-  }
-
-  return TryCongruentSet(base_id1, base_id2, base_id3, base_id4, congruent_quads);
 }
 
 struct eqstr {

@@ -202,7 +202,47 @@ protected:
     // Tries one base and finds the best transformation for this base.
     // Returns true if the achieved LCP is greater than terminate_threshold_,
     // else otherwise.
-    virtual bool TryOneBase() = 0;
+    bool TryOneBase();
+
+    // Constructs pairs of points in Q, corresponding to a single pair in the
+    // in basein P.
+    // @param [in] pair_distance The distance between the pairs in P that we have
+    // to match in the pairs we select from Q.
+    // @param [in] pair_normal_distance The angle between the normals of the pair
+    // in P.
+    // @param [in] pair_distance_epsilon Tolerance on the pair distance. We allow
+    // candidate pair in Q to have distance of
+    // pair_distance+-pair_distance_epsilon.
+    // @param [in] base_point1 The index of the first point in P.
+    // @param [in] base_point2 The index of the second point in P.
+    // @param [out] pairs A set of pairs in Q that match the pair in P with
+    // respect to distance and normals, up to the given tolerance.
+    virtual void
+    ExtractPairs(Scalar pair_distance, Scalar pair_normals_angle,
+                         Scalar pair_distance_epsilon, int base_point1,
+                         int base_point2,
+                         PairsVector* pairs) = 0;
+
+    // Finds congruent candidates in the set Q, given the invariants and threshold
+    // distances. Returns true if a non empty set can be found, false otherwise.
+    // @param invariant1 [in] The first invariant corresponding to the set P_pairs
+    // of pairs, previously extracted from Q.
+    // @param invariant2 [in] The second invariant corresponding to the set
+    // Q_pairs of pairs, previously extracted from Q.
+    // @param [in] distance_threshold1 The distance for verification.
+    // @param [in] distance_threshold2 The distance for matching middle points due
+    // to the invariants (See the paper for e1, e2).
+    // @param [in] P_pairs The first set of pairs.
+    // @param [in] Q_pairs The second set of pairs.
+    // @param [out] quadrilaterals The set of congruent quadrilateral. In fact,
+    // it's a super set from which we extract the real congruent set.
+    virtual bool
+    FindCongruentQuadrilaterals(Scalar invariant1, Scalar invariant2,
+                                Scalar distance_threshold1,
+                                Scalar distance_threshold2,
+                                const PairsVector& P_pairs,
+                                const PairsVector& Q_pairs,
+                                std::vector<Super4PCS::Quadrilateral>* quadrilaterals) = 0;
 private:
     void initKdTree();
 

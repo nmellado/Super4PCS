@@ -830,5 +830,76 @@ bool Match4PCSBase::Perform_N_steps(int n, cv::Mat* transformation,
   return ok || current_trial_ >= number_of_trials_;
 }
 
+// Pick one base, finds congruent 4-points in Q, verifies for all
+// transformations, and retains the best transformation and LCP. This is
+// a complete RANSAC iteration.
+bool Match4PCSBase::TryOneBase() {
+  Scalar invariant1, invariant2;
+  int base_id1, base_id2, base_id3, base_id4;
+
+//#define STATIC_BASE
+
+#ifdef STATIC_BASE
+  static bool first_time = true;
+
+  if (first_time){
+      base_id1 = 0;
+      base_id2 = 3;
+      base_id3 = 1;
+      base_id4 = 4;
+
+      base_3D_[0] = sampled_P_3D_ [base_id1];
+      base_3D_[1] = sampled_P_3D_ [base_id2];
+      base_3D_[2] = sampled_P_3D_ [base_id3];
+      base_3D_[3] = sampled_P_3D_ [base_id4];
+
+      TryQuadrilateral(&invariant1, &invariant2, base_id1, base_id2, base_id3, base_id4);
+
+      first_time = false;
+  }
+  else
+      return false;
+
+#else
+
+  if (!SelectQuadrilateral(&invariant1, &invariant2, &base_id1, &base_id2,
+                           &base_id3, &base_id4)) {
+    return false;
+  }
+#endif
+
+  // Computes distance between pairs.
+  Scalar distance1 = PointsDistance(base_3D_[0], base_3D_[1]);
+  Scalar distance2 = PointsDistance(base_3D_[2], base_3D_[3]);
+
+  std::vector<std::pair<int, int>> pairs1, pairs2;
+  std::vector<Super4PCS::Quadrilateral> congruent_quads;
+
+  // Compute normal angles.
+  Scalar normal_angle1 = (base_3D_[0].normal() - base_3D_[1].normal()).norm();
+  Scalar normal_angle2 = (base_3D_[2].normal() - base_3D_[3].normal()).norm();
+
+  ExtractPairs(distance1, normal_angle1, distance_factor * options_.delta, 0,
+                  1, &pairs1);
+  ExtractPairs(distance2, normal_angle2, distance_factor * options_.delta, 2,
+                  3, &pairs2);
+
+  if (pairs1.size() == 0 || pairs2.size() == 0) {
+    return false;
+  }
+
+
+  if (!FindCongruentQuadrilaterals(invariant1, invariant2,
+                                   distance_factor * options_.delta,
+                                   distance_factor * options_.delta,
+                                   pairs1,
+                                   pairs2,
+                                   &congruent_quads)) {
+    return false;
+  }
+
+  return TryCongruentSet(base_id1, base_id2, base_id3, base_id4, congruent_quads);
+}
+
 } // namespace Super4PCS
 
