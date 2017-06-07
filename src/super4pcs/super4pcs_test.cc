@@ -1,4 +1,5 @@
-#include "4pcs.h"
+#include "algorithms/4pcs.h"
+#include "algorithms/super4pcs.h"
 #include "Eigen/Dense"
 
 #include <fstream>

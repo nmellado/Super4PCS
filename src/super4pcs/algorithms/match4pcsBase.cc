@@ -42,6 +42,7 @@
 // and applications.
 
 #include "match4pcsBase.h"
+#include "shared4pcs.h"
 
 #include <vector>
 #include <opencv2/highgui/highgui.hpp>
@@ -91,148 +92,161 @@ Match4PCSBase::MeanDistance() {
 
 void Match4PCSBase::init(const std::vector<Point3D>& P,
                          const std::vector<Point3D>& Q){
-        const Scalar kSmallError = 0.00001;
-        const int kMinNumberOfTrials = 4;
-        const Scalar kDiameterFraction = 0.3;
 
-        centroid_P_.x = 0;
-        centroid_P_.y = 0;
-        centroid_P_.z = 0;
-        centroid_Q_.x = 0;
-        centroid_Q_.y = 0;
-        centroid_Q_.z = 0;
+#ifdef TEST_GLOBAL_TIMINGS
+    kdTreeTime = 0;
+    totalTime  = 0;
+    verifyTime = 0;
+#endif
 
-        sampled_P_3D_.clear();
-        sampled_Q_3D_.clear();
+    const Scalar kSmallError = 0.00001;
+    const int kMinNumberOfTrials = 4;
+    const Scalar kDiameterFraction = 0.3;
 
-        int sample_fraction_P = 1;  // We prefer not to sample P but any number can be
-                                    // placed here.
+    centroid_P_.x = 0;
+    centroid_P_.y = 0;
+    centroid_P_.z = 0;
+    centroid_Q_.x = 0;
+    centroid_Q_.y = 0;
+    centroid_Q_.z = 0;
 
-        // prepare P
-        if (P.size() > options_.sample_size){
-            std::vector<Point3D> uniform_P;
-            Super4PCS::Sampling::DistUniformSampling(P, options_.delta, &uniform_P);
+    sampled_P_3D_.clear();
+    sampled_Q_3D_.clear();
 
-            // Sample the sets P and Q uniformly.
-            for (int i = 0; i < uniform_P.size(); ++i) {
-              if (rand() % sample_fraction_P == 0) {
+    int sample_fraction_P = 1;  // We prefer not to sample P but any number can be
+    // placed here.
+
+    // prepare P
+    if (P.size() > options_.sample_size){
+        std::vector<Point3D> uniform_P;
+        Super4PCS::Sampling::DistUniformSampling(P, options_.delta, &uniform_P);
+
+        // Sample the sets P and Q uniformly.
+        for (int i = 0; i < uniform_P.size(); ++i) {
+            if (rand() % sample_fraction_P == 0) {
                 sampled_P_3D_.push_back(uniform_P[i]);
-              }
             }
         }
-        else
-        {
-            std::cout << "(P) More samples requested than available: use whole cloud" << std::endl;
-            sampled_P_3D_ = P;
-        }
+    }
+    else
+    {
+        std::cout << "(P) More samples requested than available: use whole cloud" << std::endl;
+        sampled_P_3D_ = P;
+    }
 
 
 
-        // prepare Q
-        if (Q.size() > options_.sample_size){
-            std::vector<Point3D> uniform_Q;
-            Super4PCS::Sampling::DistUniformSampling(Q, options_.delta, &uniform_Q);
-            int sample_fraction_Q =
+    // prepare Q
+    if (Q.size() > options_.sample_size){
+        std::vector<Point3D> uniform_Q;
+        Super4PCS::Sampling::DistUniformSampling(Q, options_.delta, &uniform_Q);
+        int sample_fraction_Q =
                 std::max(1, static_cast<int>(uniform_Q.size() / options_.sample_size));
 
-            for (int i = 0; i < uniform_Q.size(); ++i) {
-              if (rand() % sample_fraction_Q == 0) {
+        for (int i = 0; i < uniform_Q.size(); ++i) {
+            if (rand() % sample_fraction_Q == 0) {
                 sampled_Q_3D_.push_back(uniform_Q[i]);
-              }
             }
         }
-        else
-        {
-            std::cout << "(Q) More samples requested than available: use whole cloud" << std::endl;
-            sampled_Q_3D_ = Q;
-        }
+    }
+    else
+    {
+        std::cout << "(Q) More samples requested than available: use whole cloud" << std::endl;
+        sampled_Q_3D_ = Q;
+    }
 
 
-        // Compute the centroids.
-        for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-          centroid_P_.x += sampled_P_3D_[i].x;
-          centroid_P_.y += sampled_P_3D_[i].y;
-          centroid_P_.z += sampled_P_3D_[i].z;
-        }
+    // Compute the centroids.
+    for (int i = 0; i < sampled_P_3D_.size(); ++i) {
+        centroid_P_.x += sampled_P_3D_[i].x;
+        centroid_P_.y += sampled_P_3D_[i].y;
+        centroid_P_.z += sampled_P_3D_[i].z;
+    }
 
-        centroid_P_.x /= sampled_P_3D_.size();
-        centroid_P_.y /= sampled_P_3D_.size();
-        centroid_P_.z /= sampled_P_3D_.size();
+    centroid_P_.x /= sampled_P_3D_.size();
+    centroid_P_.y /= sampled_P_3D_.size();
+    centroid_P_.z /= sampled_P_3D_.size();
 
-        for (int i = 0; i < sampled_Q_3D_.size(); ++i) {
-          centroid_Q_.x += sampled_Q_3D_[i].x;
-          centroid_Q_.y += sampled_Q_3D_[i].y;
-          centroid_Q_.z += sampled_Q_3D_[i].z;
-        }
+    for (int i = 0; i < sampled_Q_3D_.size(); ++i) {
+        centroid_Q_.x += sampled_Q_3D_[i].x;
+        centroid_Q_.y += sampled_Q_3D_[i].y;
+        centroid_Q_.z += sampled_Q_3D_[i].z;
+    }
 
-        centroid_Q_.x /= sampled_Q_3D_.size();
-        centroid_Q_.y /= sampled_Q_3D_.size();
-        centroid_Q_.z /= sampled_Q_3D_.size();
+    centroid_Q_.x /= sampled_Q_3D_.size();
+    centroid_Q_.y /= sampled_Q_3D_.size();
+    centroid_Q_.z /= sampled_Q_3D_.size();
 
-        // Move the samples to the centroids to allow robustness in rotation.
-        for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-          sampled_P_3D_[i].x -= centroid_P_.x;
-          sampled_P_3D_[i].y -= centroid_P_.y;
-          sampled_P_3D_[i].z -= centroid_P_.z;
-        }
-        for (int i = 0; i < sampled_Q_3D_.size(); ++i) {
-          sampled_Q_3D_[i].x -= centroid_Q_.x;
-          sampled_Q_3D_[i].y -= centroid_Q_.y;
-          sampled_Q_3D_[i].z -= centroid_Q_.z;
-        }
+    // Move the samples to the centroids to allow robustness in rotation.
+    for (int i = 0; i < sampled_P_3D_.size(); ++i) {
+        sampled_P_3D_[i].x -= centroid_P_.x;
+        sampled_P_3D_[i].y -= centroid_P_.y;
+        sampled_P_3D_[i].z -= centroid_P_.z;
+    }
+    for (int i = 0; i < sampled_Q_3D_.size(); ++i) {
+        sampled_Q_3D_[i].x -= centroid_Q_.x;
+        sampled_Q_3D_[i].y -= centroid_Q_.y;
+        sampled_Q_3D_[i].z -= centroid_Q_.z;
+    }
 
 
-        initKdTree();
-        // Compute the diameter of P approximately (randomly). This is far from being
-        // Guaranteed close to the diameter but gives good results for most common
-        // objects if they are densely sampled.
-        P_diameter_ = 0.0;
-        for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
-          int at = rand() % sampled_Q_3D_.size();
-          int bt = rand() % sampled_Q_3D_.size();
-          cv::Point3d u(sampled_Q_3D_[bt].x - sampled_Q_3D_[at].x,
-                        sampled_Q_3D_[bt].y - sampled_Q_3D_[at].y,
-                        sampled_Q_3D_[bt].z - sampled_Q_3D_[at].z);
-          Scalar l = cv::norm(u);
-          if (l > P_diameter_) {
+    initKdTree();
+    // Compute the diameter of P approximately (randomly). This is far from being
+    // Guaranteed close to the diameter but gives good results for most common
+    // objects if they are densely sampled.
+    P_diameter_ = 0.0;
+    for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
+        int at = rand() % sampled_Q_3D_.size();
+        int bt = rand() % sampled_Q_3D_.size();
+        cv::Point3d u(sampled_Q_3D_[bt].x - sampled_Q_3D_[at].x,
+                      sampled_Q_3D_[bt].y - sampled_Q_3D_[at].y,
+                      sampled_Q_3D_[bt].z - sampled_Q_3D_[at].z);
+        Scalar l = cv::norm(u);
+        if (l > P_diameter_) {
             P_diameter_ = l;
-          }
         }
+    }
 
-        // Mean distance and a bit more... We increase the estimation to allow for
-        // noise, wrong estimation and non-uniform sampling.
-        P_mean_distance_ = MeanDistance();
+    // Mean distance and a bit more... We increase the estimation to allow for
+    // noise, wrong estimation and non-uniform sampling.
+    P_mean_distance_ = MeanDistance();
 
-        // Normalize the delta (See the paper) and the maximum base distance.
-        // delta = P_mean_distance_ * delta;
-        max_base_diameter_ = P_diameter_;  // * estimated_overlap_;
+    // Normalize the delta (See the paper) and the maximum base distance.
+    // delta = P_mean_distance_ * delta;
+    max_base_diameter_ = P_diameter_;  // * estimated_overlap_;
 
-        // RANSAC probability and number of needed trials.
-        Scalar first_estimation =
+    // RANSAC probability and number of needed trials.
+    Scalar first_estimation =
             log(kSmallError) / log(1.0 - pow(options_.overlap_estimation,
                                              static_cast<Scalar>(kMinNumberOfTrials)));
-        // We use a simple heuristic to elevate the probability to a reasonable value
-        // given that we don't simply sample from P, but instead, we bound the
-        // distance between the points in the base as a fraction of the diameter.
-        number_of_trials_ =
+    // We use a simple heuristic to elevate the probability to a reasonable value
+    // given that we don't simply sample from P, but instead, we bound the
+    // distance between the points in the base as a fraction of the diameter.
+    number_of_trials_ =
             static_cast<int>(first_estimation * (P_diameter_ / kDiameterFraction) /
                              max_base_diameter_);
-        if (options_.terminate_threshold < 0)
-          options_.terminate_threshold = options_.overlap_estimation;
-        if (number_of_trials_ < kMinNumberOfTrials)
-          number_of_trials_ = kMinNumberOfTrials;
+    if (options_.terminate_threshold < 0)
+        options_.terminate_threshold = options_.overlap_estimation;
+    if (number_of_trials_ < kMinNumberOfTrials)
+        number_of_trials_ = kMinNumberOfTrials;
 
-        printf("norm_max_dist: %f\n", options_.delta);
-        current_trial_ = 0;
-        best_LCP_ = 0.0;
+    printf("norm_max_dist: %f\n", options_.delta);
+    current_trial_ = 0;
+    best_LCP_ = 0.0;
 
-        Q_copy_ = Q;
-        for (int i = 0; i < 4; ++i) {
-          base_[i] = 0;
-          current_congruent_[i] = 0;
-        }
-        transform_ = Eigen::Matrix<Scalar, 4, 4>::Identity();
+    Q_copy_ = Q;
+    for (int i = 0; i < 4; ++i) {
+        base_[i] = 0;
+        current_congruent_[i] = 0;
     }
+    transform_ = Eigen::Matrix<Scalar, 4, 4>::Identity();
+
+    // call Virtual handler
+    Initialize(P, Q);
+
+    best_LCP_ = Verify(transform_);
+    printf("Initial LCP: %f\n", best_LCP_);
+}
 
 
 bool Match4PCSBase::SelectRandomTriangle(int* base1, int* base2, int* base3) {
@@ -756,6 +770,30 @@ Match4PCSBase::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
 }
 
 
+
+// The main 4PCS function. Computes the best rigid transformation and transfoms
+// Q toward P by this transformation.
+Match4PCSBase::Scalar
+Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
+                                     std::vector<Point3D>* Q,
+                                     cv::Mat* transformation) {
+
+  if (Q == nullptr || transformation == nullptr) return match_4pcs::kLargeNumber;
+  init(P, *Q);
+
+  *transformation = cv::Mat(4, 4, CV_64F, cv::Scalar(0.0));
+  for (int i = 0; i < 4; ++i) transformation->at<double>(i, i) = 1.0;
+  Perform_N_steps(number_of_trials_, transformation, Q);
+
+#ifdef TEST_GLOBAL_TIMINGS
+  cout << "----------- Timings (msec) -------------"           << endl;
+  cout << " Total computation time  : " << totalTime           << endl;
+  cout << " Total verify time       : " << verifyTime          << endl;
+  cout << "    Kdtree query         : " << kdTreeTime          << endl;
+#endif
+
+  return best_LCP_;
+}
 
 
 // Performs N RANSAC iterations and compute the best transformation. Also,

@@ -5,6 +5,10 @@
 #include <vector>
 #include "shared4pcs.h"
 
+#include "accelerators/pairExtraction/bruteForceFunctor.h"
+#include "accelerators/pairExtraction/intersectionFunctor.h"
+#include "accelerators/pairExtraction/intersectionPrimitive.h"
+
 template <typename _Scalar>
 struct PairCreationFunctor{
 
@@ -133,7 +137,7 @@ public:
   }
 
   inline void setBase( int base_point1, int base_point2,
-                       std::vector<Point3D>& base_3D){
+                       const std::vector<Point3D>& base_3D){
     base_3D_     = base_3D;
     base_point1_ = base_point1;
     base_point2_ = base_point2;

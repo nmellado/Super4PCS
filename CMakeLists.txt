@@ -131,16 +131,17 @@ endif(DEFINED SUPER4PCS_BUILD_TEST)
 
 include_directories(${SRC_DIR})
 set(Super4PCS_SRC
-    ${SRC_DIR}/match4pcsBase.cc
-    ${SRC_DIR}/4pcs.cc
-    ${SRC_DIR}/super4pcs.cc
+    ${SRC_DIR}/algorithms/match4pcsBase.cc
+    ${SRC_DIR}/algorithms/4pcs.cc
+    ${SRC_DIR}/algorithms/super4pcs.cc
 )
 set(Super4PCS_INCLUDE
     ${SRC_DIR}/sampling.h
-    ${SRC_DIR}/match4pcsBase.h
     ${SRC_DIR}/shared4pcs.h
     ${SRC_DIR}/pairExtraction.h
-    ${SRC_DIR}/4pcs.h
+    ${SRC_DIR}/algorithms/match4pcsBase.h
+    ${SRC_DIR}/algorithms/4pcs.h
+    ${SRC_DIR}/algorithms/super4pcs.h
     ${SRC_DIR}/pairCreationFunctor.h
 )
 

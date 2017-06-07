@@ -44,8 +44,7 @@
 // source code and datasets are available for research use at
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
-#include "4pcs.h"
-#include "match4pcsBase.h"
+#include "super4pcs.h"
 
 #include "Eigen/Core"
 #include "Eigen/Geometry"                 // MatrixBase.homogeneous()
@@ -54,156 +53,42 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/eigen.hpp>
 
-#include "accelerators/pairExtraction/bruteForceFunctor.h"
-#include "accelerators/pairExtraction/intersectionFunctor.h"
-#include "accelerators/pairExtraction/intersectionPrimitive.h"
 #include "accelerators/normalset.h"
 #include "accelerators/normalHealSet.h"
 #include "accelerators/bbox.h"
-
-#include "pairCreationFunctor.h"
 
 #include <fstream>
 #include <array>
 #include <time.h>
 
-#define sqr(x) ((x)*(x))
-#define norm2(p) (sqr(p.x)+sqr(p.y)+sqr(p.z))
-
-#ifdef TEST_GLOBAL_TIMINGS
-#   include "utils/timer.h"
-#endif
 
 //#define MULTISCALE
 
 namespace match_4pcs {
 
-using namespace std;
 
+MatchSuper4PCS::MatchSuper4PCS(const Match4PCSOptions& options)
+    : Base(options),
+      pcfunctor_(options_, sampled_Q_3D_) { }
 
-class MatchSuper4PCSImpl  : public Super4PCS::Match4PCSBase {
-public:
-    using Base = Super4PCS::Match4PCSBase;
-    using Scalar = Base::Scalar;
-
-    typedef PairCreationFunctor<Scalar>::PairsVector PairsVector;
-
-#ifdef TEST_GLOBAL_TIMINGS
-
-    Scalar totalTime;
-    Scalar kdTreeTime;
-    Scalar verifyTime;
-
-    using Timer = Super4PCS::Utils::Timer;
-
-#endif
- public:
-  explicit MatchSuper4PCSImpl(const Match4PCSOptions& options)
-      : Base(options),
-        pcfunctor_(options_, sampled_Q_3D_) { }
-
-  ~MatchSuper4PCSImpl() {
-    Clear();
-  }
-
-  void Clear() {
-  }
-  // Computes an approximation of the best LCP (directional) from Q to P
-  // and the rigid transformation that realizes it. The input sets may or may
-  // not contain normal information for any point.
-  // @param [in] P The first input set.
-  // @param [in] Q The second input set.
-  // as a fraction of the size of P ([0..1]).
-  // @param [out] transformation Rigid transformation matrix (4x4) that brings
-  // Q to the (approximate) optimal LCP.
-  // @return the computed LCP measure.
-  // The method updates the coordinates of the second set, Q, applying
-  // the found transformation.
-  float ComputeTransformation(const std::vector<Point3D>& P,
-                              std::vector<Point3D>* Q, cv::Mat* transformation);
-
-  // Read access to the sampled clouds used for the registration
-  inline const std::vector<Point3D>& getFirstSampled() const {
-      return sampled_P_3D_;
-  }
-
-  // Read access to the sampled clouds used for the registration
-  inline const std::vector<Point3D>& getSecondSampled() const {
-      return sampled_Q_3D_;
-  }
-
- private:
-  // Private data contains parameters and internal variables that are computed
-  // and change during the match computation. All parameters have default
-  // values.
-
-  // Internal data members.
-
-  PairCreationFunctor<Scalar> pcfunctor_;
-
-protected:
-  // Constructs pairs of points in Q, corresponding to a single pair in the
-  // in basein P.
-  // @param [in] pair_distance The distance between the pairs in P that we have
-  // to match in the pairs we select from Q.
-  // @param [in] pair_normal_distance The angle between the normals of the pair
-  // in P.
-  // @param [in] pair_distance_epsilon Tolerance on the pair distance. We allow
-  // candidate pair in Q to have distance of
-  // pair_distance+-pair_distance_epsilon.
-  // @param [in] base_point1 The index of the first point in P.
-  // @param [in] base_point2 The index of the second point in P.
-  // @param [out] pairs A set of pairs in Q that match the pair in P with
-  // respect to distance and normals, up to the given tolerance.
-  void
-  ExtractPairs(Scalar pair_distance, Scalar pair_normals_angle,
-                       Scalar pair_distance_epsilon, int base_point1,
-                       int base_point2,
-                       PairsVector* pairs) override;
-
-  // Finds congruent candidates in the set Q, given the invariants and threshold
-  // distances. Returns true if a non empty set can be found, false otherwise.
-  // @param invariant1 [in] The first invariant corresponding to the set P_pairs
-  // of pairs, previously extracted from Q.
-  // @param invariant2 [in] The second invariant corresponding to the set
-  // Q_pairs of pairs, previously extracted from Q.
-  // @param [in] distance_threshold1 The distance for verification.
-  // @param [in] distance_threshold2 The distance for matching middle points due
-  // to the invariants (See the paper for e1, e2).
-  // @param [in] P_pairs The first set of pairs.
-  // @param [in] Q_pairs The second set of pairs.
-  // @param [out] quadrilaterals The set of congruent quadrilateral. In fact,
-  // it's a super set from which we extract the real congruent set.
-  bool FindCongruentQuadrilaterals(Scalar invariant1, Scalar invariant2,
-                                   Scalar distance_threshold1,
-                                   Scalar distance_threshold2,
-                                   const PairsVector& P_pairs,
-                                   const PairsVector& Q_pairs,
-                                   std::vector<Super4PCS::Quadrilateral>* quadrilaterals) override;
-
-private:
-  // Initializes the data structures and needed values before the match
-  // computation.
-  // @param [in] point_P First input set.
-  // @param [in] point_Q Second input set.
-  // expected to be in the inliers.
-  void Initialize(const std::vector<Point3D>& P, const std::vector<Point3D>& Q);
-
-};
+MatchSuper4PCS::~MatchSuper4PCS() { }
 
 // Finds congruent candidates in the set Q, given the invariants and threshold
 // distances.
-bool MatchSuper4PCSImpl::FindCongruentQuadrilaterals(
-    Scalar invariant1, Scalar invariant2, Scalar distance_threshold1,
-    Scalar distance_threshold2, const std::vector<std::pair<int, int>>& P_pairs,
-    const std::vector<std::pair<int, int>>& Q_pairs,
-    std::vector<Super4PCS::Quadrilateral>* quadrilaterals) {
+bool
+MatchSuper4PCS::FindCongruentQuadrilaterals(
+        Scalar invariant1,
+        Scalar invariant2,
+        Scalar distance_threshold1,
+        Scalar distance_threshold2,
+        const std::vector<std::pair<int, int>>& P_pairs,
+        const std::vector<std::pair<int, int>>& Q_pairs,
+        std::vector<Super4PCS::Quadrilateral>* quadrilaterals) const {
 
 
   if (quadrilaterals == NULL) return false;
-  quadrilaterals->clear();
 
-  int number_of_points = 2 * P_pairs.size();
+  quadrilaterals->clear();
 
   // Compute the angle formed by the two vectors of the basis
   Point3D b1 = base_3D_[1] - base_3D_[0];  b1.normalize();
@@ -227,7 +112,7 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilaterals(
 
   IndexedNormalSet3D nset (eps, 2.);
 
-  for (unsigned int i = 0; i < P_pairs.size(); ++i) {
+  for (unsigned int i = 0; i <  P_pairs.size(); ++i) {
     const Point& p1 = pcfunctor_.points[P_pairs[i].first];
     const Point& p2 = pcfunctor_.points[P_pairs[i].second];
     Point  n  = (p2 - p1).normalized();
@@ -306,11 +191,12 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilaterals(
 // in P, by having the same distance (up to some tolerantz) and optionally the
 // same angle between normals and same color.
 void
-MatchSuper4PCSImpl::ExtractPairs(Scalar pair_distance,
-                                    Scalar pair_normals_angle,
-                                    Scalar pair_distance_epsilon,
-                                    int base_point1, int base_point2,
-                                    PairsVector* pairs) {
+MatchSuper4PCS::ExtractPairs(Scalar pair_distance,
+                             Scalar pair_normals_angle,
+                             Scalar pair_distance_epsilon,
+                             int base_point1,
+                             int base_point2,
+                             PairsVector* pairs) const {
 
   using namespace Super4PCS::Accelerators::PairExtraction;
 
@@ -351,67 +237,11 @@ MatchSuper4PCSImpl::ExtractPairs(Scalar pair_distance,
 
 
 // Initialize all internal data structures and data members.
-void MatchSuper4PCSImpl::Initialize(const std::vector<Point3D>& P,
-                               const std::vector<Point3D>& Q) {
-    Base::init(P,Q);
-
-#ifdef TEST_GLOBAL_TIMINGS
-    kdTreeTime = 0;
-    totalTime  = 0;
-    verifyTime = 0;
-#endif
-
+void
+MatchSuper4PCS::Initialize(const std::vector<Point3D>& /*P*/,
+                           const std::vector<Point3D>& /*Q*/) {
   pcfunctor_.synch3DContent();
-
-  best_LCP_ = Verify(transform_);
-  printf("Initial LCP: %f\n", best_LCP_);
-
 }
 
-// The main 4PCS function. Computes the best rigid transformation and transfoms
-// Q toward P by this transformation.
-float MatchSuper4PCSImpl::ComputeTransformation(const std::vector<Point3D>& P,
-                                           std::vector<Point3D>* Q,
-                                           cv::Mat* transformation) {
 
-  if (Q == nullptr || transformation == nullptr) return kLargeNumber;
-  Initialize(P, *Q);
-
-  *transformation = cv::Mat(4, 4, CV_64F, cv::Scalar(0.0));
-  for (int i = 0; i < 4; ++i) transformation->at<double>(i, i) = 1.0;
-  Perform_N_steps(number_of_trials_, transformation, Q);
-
-#ifdef TEST_GLOBAL_TIMINGS
-  cout << "----------- Timings (msec) -------------"           << endl;
-  cout << " Total computation time  : " << totalTime           << endl;
-  cout << " Total verify time       : " << verifyTime          << endl;
-  cout << "    Kdtree query         : " << kdTreeTime          << endl;
-#endif
-
-  return best_LCP_;
-}
-
-MatchSuper4PCS::MatchSuper4PCS(const Match4PCSOptions& options)
-    : pimpl_{new MatchSuper4PCSImpl{options}} {}
-
-MatchSuper4PCS::~MatchSuper4PCS() {}
-
-float
-MatchSuper4PCS::ComputeTransformation(const std::vector<Point3D>& P,
-                                       std::vector<Point3D>* Q,
-                                       cv::Mat* transformation) {
-  return pimpl_->ComputeTransformation(P, Q, transformation);
-}
-
-const std::vector<Point3D>&
-MatchSuper4PCS::getFirstSampled() const{
-  return pimpl_->getFirstSampled();
-}
-
-const std::vector<Point3D>&
-MatchSuper4PCS::getSecondSampled() const{
-  return pimpl_->getSecondSampled();
-}
-
-}
-
+} // namespace match_4pcs

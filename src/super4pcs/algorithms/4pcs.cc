@@ -54,90 +54,21 @@
 
 namespace match_4pcs {
 
-using namespace std;
+Match4PCS::Match4PCS(const Match4PCSOptions& options)
+    : Base(options) { }
 
-
-class Match4PCSImpl : public Super4PCS::Match4PCSBase {
- public:
-  using Base = Super4PCS::Match4PCSBase;
-  explicit Match4PCSImpl(const Match4PCSOptions& options)
-        : Base (options) {}
-
-  ~Match4PCSImpl() {
-    // Release the ANN data structure and points.
-    Clear();
-  }
-
-  void Clear() {
-  }
-  // Computes an approximation of the best LCP (directional) from Q to P
-  // and the rigid transformation that realizes it. The input sets may or may
-  // not contain normal information for any point.
-  // @param [in] P The first input set.
-  // @param [in] Q The second input set.
-  // as a fraction of the size of P ([0..1]).
-  // @param [out] transformation Rigid transformation matrix (4x4) that brings
-  // Q to the (approximate) optimal LCP.
-  // @return the computed LCP measure.
-  // The method updates the coordinates of the second set, Q, applying
-  // the found transformation.
-  Scalar ComputeTransformation(const std::vector<Point3D>& P,
-                              std::vector<Point3D>* Q, cv::Mat* transformation);
-
- protected:
-  // Constructs pairs of points in Q, corresponding to a single pair in the
-  // in basein P.
-  // @param [in] pair_distance The distance between the pairs in P that we have
-  // to match in the pairs we select from Q.
-  // @param [in] pair_normal_distance The angle between the normals of the pair
-  // in P.
-  // @param [in] pair_distance_epsilon Tolerance on the pair distance. We allow
-  // candidate pair in Q to have distance of
-  // pair_distance+-pair_distance_epsilon.
-  // @param [in] base_point1 The index of the first point in P.
-  // @param [in] base_point2 The index of the second point in P.
-  // @param [out] pairs A set of pairs in Q that match the pair in P with
-  // respect to distance and normals, up to the given tolerance.
-  void ExtractPairs(double pair_distance, double pair_normals_angle,
-                       double pair_distance_epsilon, int base_point1,
-                       int base_point2, Base::PairsVector* pairs) override;
-
-  // Finds congruent candidates in the set Q, given the invariants and threshold
-  // distances. Returns true if a non empty set can be found, false otherwise.
-  // @param invariant1 [in] The first invariant corresponding to the set P_pairs
-  // of pairs, previously extracted from Q.
-  // @param invariant2 [in] The second invariant corresponding to the set
-  // Q_pairs of pairs, previously extracted from Q.
-  // @param [in] distance_threshold1 The distance for verification.
-  // @param [in] distance_threshold2 The distance for matching middle points due
-  // to the invariants (See the paper for e1, e2).
-  // @param [in] P_pairs The first set of pairs.
-  // @param [in] Q_pairs The second set of pairs.
-  // @param [out] quadrilaterals The set of congruent quadrilateral. In fact,
-  // it's a super set from which we extract the real congruent set.
-  bool FindCongruentQuadrilaterals(double invariant1, double invariant2,
-                                   double distance_threshold1,
-                                   double distance_threshold2,
-                                   const PairsVector& P_pairs,
-                                   const PairsVector& Q_pairs,
-                                   std::vector<Super4PCS::Quadrilateral>* quadrilaterals) override;
-
-private:
-  // Initializes the data structures and needed values before the match
-  // computation.
-  // @param [in] point_P First input set.
-  // @param [in] point_Q Second input set.
-  // expected to be in the inliers.
-  void Initialize(const std::vector<Point3D>& P, const std::vector<Point3D>& Q);
-};
+Match4PCS::~Match4PCS() { }
 
 // Finds congruent candidates in the set Q, given the invariants and threshold
 // distances.
-bool Match4PCSImpl::FindCongruentQuadrilaterals(
-    double invariant1, double invariant2, double distance_threshold1,
-    double distance_threshold2, const std::vector<std::pair<int, int>>& P_pairs,
-    const std::vector<std::pair<int, int>>& Q_pairs,
-    std::vector<Super4PCS::Quadrilateral>* quadrilaterals) {
+bool Match4PCS::FindCongruentQuadrilaterals(
+        Scalar invariant1,
+        Scalar invariant2,
+        Scalar /*distance_threshold1*/,
+        Scalar distance_threshold2,
+        const std::vector<std::pair<int, int>>& P_pairs,
+        const std::vector<std::pair<int, int>>& Q_pairs,
+        std::vector<Super4PCS::Quadrilateral>* quadrilaterals) const {
   if (quadrilaterals == NULL) return false;
 
   int number_of_points = 2 * P_pairs.size();
@@ -153,7 +84,7 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
   quadrilaterals->clear();
 
   // Build the ANN tree using the invariants on P_pairs.
-  for (int i = 0; i < number_of_points; ++i) {
+  for (int i = 0; i < P_pairs.size(); ++i) {
     const Point3D& p1 = sampled_Q_3D_[P_pairs[i].first];
     const Point3D& p2 = sampled_Q_3D_[P_pairs[i].second];
     data_points[i * 2][0] = p1.x + invariant1 * (p2.x - p1.x);
@@ -228,11 +159,13 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
 // Constructs two sets of pairs in Q, each corresponds to one pair in the base
 // in P, by having the same distance (up to some tolerantz) and optionally the
 // same angle between normals and same color.
-void Match4PCSImpl::ExtractPairs(double pair_distance,
-                                    double pair_normals_angle,
-                                    double pair_distance_epsilon,
-                                    int base_point1, int base_point2,
-                                    vector<pair<int, int>>* pairs) {
+void
+Match4PCS::ExtractPairs(Scalar pair_distance,
+                        Scalar pair_normals_angle,
+                        Scalar pair_distance_epsilon,
+                        int base_point1,
+                        int base_point2,
+                        PairsVector* pairs) const {
   if (pairs == NULL) return;
 
   pairs->clear();
@@ -255,7 +188,7 @@ void Match4PCSImpl::ExtractPairs(double pair_distance,
       // checked independent of the full rotation angles which are not yet
       // defined by segment matching alone..
       const Scalar distance = cv::norm(q - p);
-      if (fabs(distance - pair_distance) > pair_distance_epsilon) continue;
+      if (std::abs(distance - pair_distance) > pair_distance_epsilon) continue;
       const bool use_normals = q.normal().squaredNorm() > 0 && p.normal().squaredNorm() > 0;
       bool normals_good = true;
       if (use_normals) {
@@ -263,8 +196,8 @@ void Match4PCSImpl::ExtractPairs(double pair_distance,
         const double second_normal_angle = (q.normal() + p.normal()).norm();
         // Take the smaller normal distance.
         const Scalar first_norm_distance =
-            min(fabs(first_normal_angle - pair_normals_angle),
-                fabs(second_normal_angle - pair_normals_angle));
+            std::min(std::abs(first_normal_angle - pair_normals_angle),
+                std::abs(second_normal_angle - pair_normals_angle));
         // Verify appropriate angle between normals and distance.
         normals_good = first_norm_distance < norm_threshold;
       }
@@ -288,7 +221,7 @@ void Match4PCSImpl::ExtractPairs(double pair_distance,
       if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0 &&
           dist_good && rgb_good) {
         // Add ordered pair.
-        pairs->push_back(pair<int, int>(j, i));
+        pairs->push_back(std::make_pair(j, i));
       }
       // The same for the second order.
       segment2 = p - q;
@@ -296,50 +229,15 @@ void Match4PCSImpl::ExtractPairs(double pair_distance,
       if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0 &&
           dist_good && rgb_good) {
         // Add ordered pair.
-        pairs->push_back(pair<int, int>(i, j));
+        pairs->push_back(std::make_pair(i, j));
       }
     }
   }
 }
 
-struct eqstr {
-  bool operator()(const char* s1, const char* s2) const {
-    return strcmp(s1, s2) == 0;
-  }
-};
 
 // Initialize all internal data structures and data members.
-void Match4PCSImpl::Initialize(const std::vector<Point3D>& P,
-                               const std::vector<Point3D>& Q) {
+void Match4PCS::Initialize(const std::vector<Point3D>& /*P*/,
+                               const std::vector<Point3D>& /*Q*/) {}
 
-  Base::init(P, Q);
-  best_LCP_ = Verify(transform_);
-  printf("Initial LCP: %f\n", best_LCP_);
-}
-
-
-// The main 4PCS function. Computes the best rigid transformation and transfoms
-// Q toward P by this transformation.
-Match4PCSImpl::Scalar Match4PCSImpl::ComputeTransformation(const std::vector<Point3D>& P,
-                                           std::vector<Point3D>* Q,
-                                           cv::Mat* transformation) {
-  if (Q == nullptr || transformation == nullptr) return kLargeNumber;
-  Initialize(P, *Q);
-  *transformation = cv::Mat(4, 4, CV_64F, cv::Scalar(0.0));
-  for (int i = 0; i < 4; ++i) transformation->at<double>(i, i) = 1.0;
-  Perform_N_steps(number_of_trials_, transformation, Q);
-
-  return best_LCP_;
-}
-
-Match4PCS::Match4PCS(const Match4PCSOptions& options)
-    : pimpl_{new Match4PCSImpl{options}} {}
-
-Match4PCS::~Match4PCS() {}
-
-Point3D::Scalar Match4PCS::ComputeTransformation(const std::vector<Point3D>& P,
-                                       std::vector<Point3D>* Q,
-                                       cv::Mat* transformation) {
-  return pimpl_->ComputeTransformation(P, Q, transformation);
-}
 }

@@ -251,40 +251,6 @@ struct Match4PCSOptions {
   int max_time_seconds = 60;
 };
 
-class MatchShared4PCSImpl;
-
-
-
-class MatchSuper4PCSImpl;
-
-// Class for the computation of the 4PCS algorithm.
-class MatchSuper4PCS {
- public:
-  explicit MatchSuper4PCS(const Match4PCSOptions& options);
-
-  ~MatchSuper4PCS();
-
-  // Computes an approximation of the best LCP (directional) from Q to P
-  // and the rigid transformation that realizes it. The input sets may or may
-  // not contain normal information for any point.
-  // @param [in] P The first input set.
-  // @param [in] Q The second input set.
-  // as a fraction of the size of P ([0..1]).
-  // @param [out] transformation Rigid transformation matrix (4x4) that brings
-  // Q to the (approximate) optimal LCP.
-  // @return the computed LCP measure.
-  // The method updates the coordinates of the second set, Q, applying
-  // the found transformation.
-  float ComputeTransformation(const std::vector<Point3D>& P,
-                              std::vector<Point3D>* Q, cv::Mat* transformation);
-
-  const std::vector<Point3D>& getFirstSampled() const;
-  const std::vector<Point3D>& getSecondSampled() const;
-
- private:
-  std::unique_ptr<MatchSuper4PCSImpl> pimpl_;
-};
-
 } // namespace match_4pcs
 
 

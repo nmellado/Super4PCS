@@ -51,6 +51,10 @@
 #include "sampling.h"
 #include "accelerators/kdtree.h"
 
+#ifdef TEST_GLOBAL_TIMINGS
+#   include "utils/timer.h"
+#endif
+
 namespace Super4PCS{
 
 // Holds a base from P. The base contains 4 points (indices) from the set P.
@@ -71,6 +75,32 @@ public:
 
     static constexpr int kNumberOfDiameterTrials = 1000;
     static constexpr Scalar distance_factor = 2.0;
+
+    // Read access to the sampled clouds used for the registration
+    inline const std::vector<Point3D>& getFirstSampled() const {
+        return sampled_P_3D_;
+    }
+
+    // Read access to the sampled clouds used for the registration
+    inline const std::vector<Point3D>& getSecondSampled() const {
+        return sampled_Q_3D_;
+    }
+
+    // Computes an approximation of the best LCP (directional) from Q to P
+    // and the rigid transformation that realizes it. The input sets may or may
+    // not contain normal information for any point.
+    // @param [in] P The first input set.
+    // @param [in] Q The second input set.
+    // as a fraction of the size of P ([0..1]).
+    // @param [out] transformation Rigid transformation matrix (4x4) that brings
+    // Q to the (approximate) optimal LCP.
+    // @return the computed LCP measure.
+    // The method updates the coordinates of the second set, Q, applying
+    // the found transformation.
+    Scalar
+    ComputeTransformation(const std::vector<Point3D>& P,
+                          std::vector<Point3D>* Q,
+                          cv::Mat* transformation);
 
 
 protected:
@@ -131,17 +161,28 @@ protected:
     // Parameters.
     match_4pcs::Match4PCSOptions options_;
 
+#ifdef TEST_GLOBAL_TIMINGS
+
+    Scalar totalTime;
+    Scalar kdTreeTime;
+    Scalar verifyTime;
+
+    using Timer = Super4PCS::Utils::Timer;
+
+#endif
+
+protected:
 
     Match4PCSBase(const match_4pcs::Match4PCSOptions& options);
 
-protected:
+
     // Computes the mean distance between points in Q and their nearest neighbor.
     // We need this for normalization of the user delta (See the paper) to the
     // "scale" of the set.
     Scalar MeanDistance();
 
     void init(const std::vector<Point3D>& P,
-                     const std::vector<Point3D>& Q);
+              const std::vector<Point3D>& Q);
 
 
     // Selects a random triangle in the set P (then we add another point to keep the
@@ -204,6 +245,20 @@ protected:
     // else otherwise.
     bool TryOneBase();
 
+    // Initializes the data structures and needed values before the match
+    // computation.
+    // @param [in] point_P First input set.
+    // @param [in] point_Q Second input set.
+    // expected to be in the inliers.
+    // This method is called once the internal state of the Base class as been
+    // set.
+    virtual void
+    Initialize(const std::vector<Point3D>& P,
+               const std::vector<Point3D>& Q) = 0;
+
+    // Public virtual methods.
+    // Set as public for testing and debug purpose.
+public:
     // Constructs pairs of points in Q, corresponding to a single pair in the
     // in basein P.
     // @param [in] pair_distance The distance between the pairs in P that we have
@@ -218,10 +273,11 @@ protected:
     // @param [out] pairs A set of pairs in Q that match the pair in P with
     // respect to distance and normals, up to the given tolerance.
     virtual void
-    ExtractPairs(Scalar pair_distance, Scalar pair_normals_angle,
-                         Scalar pair_distance_epsilon, int base_point1,
-                         int base_point2,
-                         PairsVector* pairs) = 0;
+    ExtractPairs( Scalar pair_distance,
+                  Scalar pair_normals_angle,
+                  Scalar pair_distance_epsilon, int base_point1,
+                  int base_point2,
+                  PairsVector* pairs) const = 0;
 
     // Finds congruent candidates in the set Q, given the invariants and threshold
     // distances. Returns true if a non empty set can be found, false otherwise.
@@ -242,7 +298,7 @@ protected:
                                 Scalar distance_threshold2,
                                 const PairsVector& P_pairs,
                                 const PairsVector& Q_pairs,
-                                std::vector<Super4PCS::Quadrilateral>* quadrilaterals) = 0;
+                                std::vector<Super4PCS::Quadrilateral>* quadrilaterals) const = 0;
 private:
     void initKdTree();
 
