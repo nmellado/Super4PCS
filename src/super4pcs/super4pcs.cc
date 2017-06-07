@@ -199,6 +199,12 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilaterals(
     const std::vector<std::pair<int, int>>& Q_pairs,
     std::vector<Super4PCS::Quadrilateral>* quadrilaterals) {
 
+
+  if (quadrilaterals == NULL) return false;
+  quadrilaterals->clear();
+
+  int number_of_points = 2 * P_pairs.size();
+
   // Compute the angle formed by the two vectors of the basis
   Point3D b1 = base_3D_[1] - base_3D_[0];  b1.normalize();
   Point3D b2 = base_3D_[3] - base_3D_[2];  b2.normalize();
@@ -276,7 +282,7 @@ bool MatchSuper4PCSImpl::FindCongruentQuadrilaterals(
 
        // use also distance_threshold2 for inv 1 and 2 in 4PCS
       if (cv::norm(queryQ-invPoint) <= distance_threshold2){
-          comb.insert(std::pair<unsigned int, unsigned int>(id, i));
+          comb.insert(std::make_pair(id, i));
       }
     }
   }

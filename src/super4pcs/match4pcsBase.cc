@@ -884,6 +884,10 @@ bool Match4PCSBase::TryOneBase() {
   ExtractPairs(distance2, normal_angle2, distance_factor * options_.delta, 2,
                   3, &pairs2);
 
+//  std::cout << "Pair creation output: \n"
+//            << pairs1.size() << " - "
+//            << pairs2.size() << std::endl;
+
   if (pairs1.size() == 0 || pairs2.size() == 0) {
     return false;
   }
@@ -897,6 +901,10 @@ bool Match4PCSBase::TryOneBase() {
                                    &congruent_quads)) {
     return false;
   }
+
+//  std::cout << "Congruent quads: "
+//            << congruent_quads.size()
+//            << std::endl;
 
   return TryCongruentSet(base_id1, base_id2, base_id3, base_id4, congruent_quads);
 }

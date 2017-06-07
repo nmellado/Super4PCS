@@ -153,7 +153,7 @@ bool Match4PCSImpl::FindCongruentQuadrilaterals(
   quadrilaterals->clear();
 
   // Build the ANN tree using the invariants on P_pairs.
-  for (int i = 0; i < P_pairs.size(); ++i) {
+  for (int i = 0; i < number_of_points; ++i) {
     const Point3D& p1 = sampled_Q_3D_[P_pairs[i].first];
     const Point3D& p2 = sampled_Q_3D_[P_pairs[i].second];
     data_points[i * 2][0] = p1.x + invariant1 * (p2.x - p1.x);
