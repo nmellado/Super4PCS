@@ -47,7 +47,6 @@
 #include "match4pcsBase.h"
 
 namespace match_4pcs {
-class Match4PCSImpl;
 
 // Class for the computation of the 4PCS algorithm.
 class Match4PCS : public Super4PCS::Match4PCSBase {
