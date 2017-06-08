@@ -949,6 +949,7 @@ bool Match4PCSBase::TryOneBase() {
     return false;
   }
 
+  size_t nb = 0;
 //  std::cout << "Congruent quads: "
 //            << congruent_quads.size()
 //            << std::endl;
