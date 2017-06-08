@@ -49,8 +49,11 @@
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
 #include "algorithms/4pcs.h"
+#include "algorithms/super4pcs.h"
 
 #include "Eigen/Dense"
+
+#include <opencv2/core/eigen.hpp>
 
 #include <fstream>
 #include <iostream>
@@ -75,7 +78,7 @@
 
 using namespace match_4pcs;
 
-struct PairCreationFunctor{
+struct MyPairCreationFunctor{
   typedef std::pair<unsigned int, unsigned int>ResPair;
   std::vector< ResPair >pairs;
 
@@ -115,7 +118,7 @@ void testFunction( Scalar r, Scalar epsilon,
   std::vector< std::pair<unsigned int, unsigned int> > p2;
   p2.reserve(nbPoints*nbPoints);
 
-  PairCreationFunctor functor;
+  MyPairCreationFunctor functor;
   functor.ids.clear();
   for(unsigned int i = 0; i < nbPoints; i++)
     functor.ids.push_back(i);
@@ -213,8 +216,8 @@ void callSubTests()
 
     Scalar   r = 0.5; // radius of the spheres
     Scalar eps = GetRoundedEpsilonValue(0.125/16.); // epsilon value
-    unsigned int nbPoint = 5000;  // size of Q point cloud
-    int minNodeSize = 100;
+    unsigned int nbPoint = 2500;  // size of Q point cloud
+    int minNodeSize = 50;
 
     for(int i = 0; i < g_repeat; ++i)
     {
@@ -223,6 +226,114 @@ void callSubTests()
                                     Sphere,
                                     Functor>(r, eps, nbPoint, minNodeSize) ));
     }
+}
+
+template <typename MatchType>
+void callMatchSubTests()
+{
+    using Scalar = typename MatchType::Scalar;
+    using PairsVector = typename MatchType::PairsVector;
+
+    match_4pcs::Match4PCSOptions opt;
+    opt.delta = 0.1;
+    opt.overlap_estimation = 0.5;
+
+    const size_t nbPointP = 200;
+    const size_t nbPointQ = 150;
+    // Computes distance between pairs.
+    Scalar distance1 = 0.3;
+    Scalar distance2 = 0.5;
+    Scalar normal_angle1 = 0.6;
+    Scalar normal_angle2 = 0.4;
+
+    Scalar pair_distance_epsilon = MatchType::distance_factor * opt.delta;
+
+    auto generateCloud = [](std::vector<Point3D>& cloud, size_t len){
+        cloud.resize(len);
+        for(auto& p : cloud)
+        {
+            typename Point3D::VectorType eigenpos =
+                    Point3D::VectorType::Random().normalized();
+            p = Point3D(eigenpos);
+            p.normalize();
+        }
+    };
+
+    // generate input point cloud
+    std::vector<Point3D> P, Q;
+    generateCloud(P, nbPointP);
+    generateCloud(Q, nbPointQ);
+
+
+    // extract pairs using brute force
+    auto extractPairs = [&Q] (
+            Scalar pair_distance,
+            Scalar pair_distance_epsilon,
+            PairsVector& pairs){
+        pairs.clear();
+        pairs.reserve(2 * Q.size());
+
+        // extract pairs using full search
+        // Go over all ordered pairs in Q.
+        for (int j = 0; j < Q.size(); ++j) {
+            const Point3D& p = Q[j];
+            for (int i = j + 1; i < Q.size(); ++i) {
+                const Point3D& q = Q[i];
+                const Scalar distance = cv::norm(q - p);
+                if (std::abs(distance - pair_distance) <= pair_distance_epsilon) {
+                    pairs.push_back(std::make_pair(j, i));
+                    pairs.push_back(std::make_pair(i, j));
+                }
+            }
+        }
+    };
+
+
+    std::vector<std::pair<int, int>> gtpairs1, gtpairs2;
+    extractPairs(distance1, pair_distance_epsilon, gtpairs1);
+    extractPairs(distance2, pair_distance_epsilon, gtpairs2);
+
+    std::sort(gtpairs1.begin(), gtpairs1.end());
+    std::sort(gtpairs2.begin(), gtpairs2.end());
+
+
+    // extract point using matcher
+    MatchType match (opt);
+    match.init(P, Q);
+
+    std::vector<std::pair<int, int>> pairs1, pairs2;
+    match.ExtractPairs(distance1,
+                       normal_angle1,
+                       pair_distance_epsilon,
+                       0,
+                       1,
+                       &pairs1);
+    match.ExtractPairs(distance2,
+                       normal_angle2,
+                       pair_distance_epsilon,
+                       2,
+                       3,
+                       &pairs2);
+
+    std::sort(pairs1.begin(), pairs1.end());
+    std::sort(pairs2.begin(), pairs2.end());
+
+    // Check we get the same set size
+    std::cout << "Size check 1 (" << (pairs1.size() == gtpairs1.size()
+                                    ? "PASSED" : "NOT PASSED")
+              << "): \t Functor: " << pairs1.size()
+              << " \t GT: " << gtpairs1.size() << std::endl;
+    std::cout << "Size check 2 (" << (pairs2.size() == gtpairs2.size()
+                                    ? "PASSED" : "NOT PASSED")
+              << "): \t Functor: " << pairs2.size()
+              << " \t GT: " << gtpairs2.size() << std::endl;
+
+    VERIFY( gtpairs1.size() == pairs1.size() );
+    VERIFY( std::equal(pairs1.begin(), pairs1.end(), gtpairs1.begin()));
+
+    VERIFY( gtpairs2.size() == pairs2.size() );
+    VERIFY( std::equal(pairs2.begin(), pairs2.end(), gtpairs2.begin()));
+
 }
 
 int main(int argc, const char **argv) {
@@ -234,6 +345,7 @@ int main(int argc, const char **argv) {
     using std::cout;
     using std::endl;
     using namespace Super4PCS::Accelerators::PairExtraction;
+
 
     cout << "Extract pairs in 2 dimensions (BRUTE FORCE)..." << endl;
     callSubTests<float, 2, BruteForceFunctor>();
@@ -269,6 +381,14 @@ int main(int argc, const char **argv) {
     callSubTests<float, 4, IntersectionFunctor>();
     callSubTests<double, 4, IntersectionFunctor>();
     callSubTests<long double, 4, IntersectionFunctor>();
+    cout << "Ok..." << endl;
+
+    cout << "Extract pairs using Match4PCS" << endl;
+    callMatchSubTests<Match4PCS>();
+    cout << "Ok..." << endl;
+
+    cout << "Extract pairs using Match4PCS" << endl;
+    callMatchSubTests<MatchSuper4PCS>();
     cout << "Ok..." << endl;
 
     return EXIT_SUCCESS;
