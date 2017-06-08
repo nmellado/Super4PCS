@@ -433,9 +433,12 @@ void Match4PCSBase::initKdTree(){
 }
 
 bool Match4PCSBase::TryCongruentSet(
-        int base_id1, int base_id2,
-        int base_id3, int base_id4,
-        const std::vector<Super4PCS::Quadrilateral>& congruent_quads){
+        int base_id1,
+        int base_id2,
+        int base_id3,
+        int base_id4,
+        const std::vector<Super4PCS::Quadrilateral>& congruent_quads,
+        size_t &nbCongruent){
     std::array<std::pair<Point3D, Point3D>,4> congruent_points;
 
     // get references to the basis coordinates
@@ -460,6 +463,8 @@ bool Match4PCSBase::TryCongruentSet(
     congruent_points[1].first = b2;
     congruent_points[2].first = b3;
     congruent_points[3].first = b4;
+
+    nbCongruent = 0;
 
     Eigen::Matrix<Scalar, 4, 4> transform;
     for (int i = 0; i < congruent_quads.size(); ++i) {
@@ -508,6 +513,8 @@ bool Match4PCSBase::TryCongruentSet(
 
         // We give more tolerantz in computing the best rigid transformation.
         if (rms < distance_factor * options_.delta) {
+
+          nbCongruent++;
           // The transformation is computed from the point-clouds centered inn [0,0,0]
 
           // Verify the rest of the points in Q against P.
@@ -644,20 +651,22 @@ bool Match4PCSBase::ComputeRigidTransformation(
   cv::Mat unit = rotation * rotation.t();
   if (std::abs(unit.at<double>(0, 0) - 1.0) > kSmallNumber ||
       std::abs(unit.at<double>(1, 1) - 1.0) > kSmallNumber ||
-      std::abs(unit.at<double>(2, 2) - 1.0) > kSmallNumber){
+          std::abs(unit.at<double>(2, 2) - 1.0) > kSmallNumber){
       return false;
   }
 
-  // Discard too large solutions (todo: lazy evaluation during boolean computation
-  Scalar theta_x = std::abs(std::atan2(rotation.at<double>(2, 1), rotation.at<double>(2, 2)));
-  Scalar theta_y = std::abs(std::atan2(-rotation.at<double>(2, 0),
-                             std::sqrt(std::pow(rotation.at<double>(2, 1),2) +
-                                       std::pow(rotation.at<double>(2, 2),2))));
-  Scalar theta_z = std::abs(atan2(rotation.at<double>(1, 0), rotation.at<double>(0, 0)));
-  if (theta_x > max_angle ||
-      theta_y > max_angle ||
-      theta_z > max_angle)
-      return false;
+  if (max_angle >= 0) {
+      // Discard too large solutions (todo: lazy evaluation during boolean computation
+      Scalar theta_x = std::abs(std::atan2(rotation.at<double>(2, 1), rotation.at<double>(2, 2)));
+      Scalar theta_y = std::abs(std::atan2(-rotation.at<double>(2, 0),
+                                           std::sqrt(std::pow(rotation.at<double>(2, 1),2) +
+                                                     std::pow(rotation.at<double>(2, 2),2))));
+      Scalar theta_z = std::abs(atan2(rotation.at<double>(1, 0), rotation.at<double>(0, 0)));
+      if (theta_x > max_angle ||
+              theta_y > max_angle ||
+              theta_z > max_angle)
+          return false;
+  }
 
 
   // Compute rms and return it.
@@ -944,7 +953,10 @@ bool Match4PCSBase::TryOneBase() {
 //            << congruent_quads.size()
 //            << std::endl;
 
-  return TryCongruentSet(base_id1, base_id2, base_id3, base_id4, congruent_quads);
+  bool match = TryCongruentSet(base_id1, base_id2, base_id3, base_id4,
+                               congruent_quads,
+                               nb);
+  return match;
 }
 
 } // namespace Super4PCS

@@ -181,9 +181,6 @@ protected:
     // "scale" of the set.
     Scalar MeanDistance();
 
-    void init(const std::vector<Point3D>& P,
-              const std::vector<Point3D>& Q);
-
 
     // Selects a random triangle in the set P (then we add another point to keep the
     // base as planar as possible). We apply a simple heuristic that works in most
@@ -225,8 +222,16 @@ protected:
                                     Eigen::Matrix<Scalar, 4, 4> &transform,
                                     Scalar& rms_,
                                     bool computeScale );
-    bool TryCongruentSet(int base_id1, int base_id2, int base_id3, int base_id4,
-                         const std::vector<Super4PCS::Quadrilateral> &congruent_quads);
+
+    // Loop over the set of congruent 4-points and test compatiliby with the
+    // input base.
+    // \param [out] Nb Number of quads corresponding to valid configurations
+    bool TryCongruentSet(int base_id1,
+                         int base_id2,
+                         int base_id3,
+                         int base_id4,
+                         const std::vector<Super4PCS::Quadrilateral> &congruent_quads,
+                         size_t &nbCongruent);
 
     // For each randomly picked base, verifies the computed transformation by
     // computing the number of points that this transformation brings near points
@@ -259,6 +264,10 @@ protected:
     // Public virtual methods.
     // Set as public for testing and debug purpose.
 public:
+    void init(const std::vector<Point3D>& P,
+              const std::vector<Point3D>& Q);
+
+
     // Constructs pairs of points in Q, corresponding to a single pair in the
     // in basein P.
     // @param [in] pair_distance The distance between the pairs in P that we have
