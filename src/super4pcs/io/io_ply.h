@@ -188,7 +188,7 @@ readBinary1Body (const std::string & filename,
             fread (v, 4, numOfVertexProperties, in);
         if (bigEndian == true)
             bigLittleEndianSwap (v, numOfVertexProperties);
-        vertex.push_back( Point3D(v[0],v[1],v[2]) );
+        vertex.emplace_back( Point3D(v[0],v[1],v[2]) );
 
         if (numOfVertexProperties == 6){
             if (haveColor){
@@ -196,7 +196,7 @@ readBinary1Body (const std::string & filename,
                 vertex.back().set_rgb(rgb);
             }else{
                 n << v[3], v[4], v[5];
-                normal.push_back (n);
+                normal.emplace_back (n);
                 vertex.back().set_normal(n);
             }
         }else if (numOfVertexProperties == 7){
@@ -205,7 +205,7 @@ readBinary1Body (const std::string & filename,
         }else if (numOfVertexProperties == 9 || numOfVertexProperties == 10){
             n << v[3], v[4], v[5];
             rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
-            normal.push_back (n);
+            normal.emplace_back (n);
             vertex.back().set_normal(n);
             vertex.back().set_rgb(rgb);
         }
@@ -228,7 +228,7 @@ readBinary1Body (const std::string & filename,
             /*count = */fread (f, 4, 3, in);
             if (bigEndian == true)
                 bigLittleEndianSwap (f, 3);
-            face.push_back(tripple(f[0],f[1],f[2]));
+            face.emplace_back(tripple(f[0],f[1],f[2]));
         }
     }
 
@@ -293,8 +293,8 @@ readASCII1Body (const std::string & filename,
         else
             for (unsigned int j = 0;  j < numOfVertexProperties;  j++)
                 fscanf (in, "%f", &v[j]);
-        
-        vertex.push_back( Point3D(v[0],v[1],v[2]) );
+
+        vertex.emplace_back( Point3D(v[0],v[1],v[2]) );
 
         if (numOfVertexProperties == 6){
             if (haveColor){
@@ -303,7 +303,7 @@ readASCII1Body (const std::string & filename,
 
             }else{
                 n << v[3], v[4], v[5];
-                normal.push_back (n);
+                normal.emplace_back (n);
                 vertex.back().set_normal(n);
             }
         }else if (numOfVertexProperties == 7){
@@ -312,7 +312,7 @@ readASCII1Body (const std::string & filename,
         }else if (numOfVertexProperties == 9 || numOfVertexProperties == 10){
             n << v[3], v[4], v[5];
             rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
-            normal.push_back (n);
+            normal.emplace_back (n);
             vertex.back().set_normal(n);
             vertex.back().set_rgb(rgb);
         }
@@ -331,7 +331,7 @@ readASCII1Body (const std::string & filename,
             int f[3];
             int polygonSize;
             /*count = */fscanf (in, "%d %d %d %d", &polygonSize, &f[0], &f[1], &f[2]);
-            face.push_back(tripple(f[0],f[1],f[2]));
+            face.emplace_back(tripple(f[0],f[1],f[2]));
         }
     }
 

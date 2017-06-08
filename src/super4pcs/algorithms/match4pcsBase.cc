@@ -124,7 +124,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
         // Sample the sets P and Q uniformly.
         for (int i = 0; i < uniform_P.size(); ++i) {
             if (rand() % sample_fraction_P == 0) {
-                sampled_P_3D_.push_back(uniform_P[i]);
+                sampled_P_3D_.emplace_back(uniform_P[i]);
             }
         }
     }
@@ -145,7 +145,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
 
         for (int i = 0; i < uniform_Q.size(); ++i) {
             if (rand() % sample_fraction_Q == 0) {
-                sampled_Q_3D_.push_back(uniform_Q[i]);
+                sampled_Q_3D_.emplace_back(uniform_Q[i]);
             }
         }
     }
@@ -249,11 +249,9 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
 }
 
 
-bool Match4PCSBase::SelectRandomTriangle(int* base1, int* base2, int* base3) {
-      if (base1 == NULL || base2 == NULL || base3 == NULL) return false;
-
+bool Match4PCSBase::SelectRandomTriangle(int &base1, int &base2, int &base3) {
       int number_of_points = sampled_P_3D_.size();
-      *base1 = *base2 = *base3 = -1;
+      base1 = base2 = base3 = -1;
 
       // Pick the first point at random.
       int first_point = rand() % number_of_points;
@@ -262,24 +260,22 @@ bool Match4PCSBase::SelectRandomTriangle(int* base1, int* base2, int* base3) {
       Scalar best_wide = 0.0;
       for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
         // Pick and compute
-        int second_point = rand() % number_of_points;
-        int third_point = rand() % number_of_points;
-        cv::Point3d u = sampled_P_3D_[second_point] - sampled_P_3D_[first_point];
-        cv::Point3d w = sampled_P_3D_[third_point] - sampled_P_3D_[first_point];
+        const int second_point = rand() % number_of_points;
+        const int third_point = rand() % number_of_points;
+        const cv::Point3d u = sampled_P_3D_[second_point] - sampled_P_3D_[first_point];
+        const cv::Point3d w = sampled_P_3D_[third_point] - sampled_P_3D_[first_point];
         // We try to have wide triangles but still not too large.
         Scalar how_wide = cv::norm(u.cross(w));
-        if (how_wide > best_wide && cv::norm(u) < max_base_diameter_ &&
-            cv::norm(w) < max_base_diameter_) {
+        if (how_wide > best_wide &&
+                cv::norm(u) < max_base_diameter_ &&
+                cv::norm(w) < max_base_diameter_) {
           best_wide = how_wide;
-          *base1 = first_point;
-          *base2 = second_point;
-          *base3 = third_point;
+          base1 = first_point;
+          base2 = second_point;
+          base3 = third_point;
         }
       }
-      if (*base1 == -1 || *base2 == -1 || *base3 == -1)
-        return false;
-      else
-        return true;
+      return base1 != -1 && base2 != -1 && base3 != -1;
 }
 
 
@@ -287,12 +283,12 @@ bool Match4PCSBase::SelectRandomTriangle(int* base1, int* base2, int* base3) {
 // Try the current base in P and obtain the best pairing, i.e. the one that
 // gives the smaller distance between the two closest points. The invariants
 // corresponding the the base pairing are computed.
-bool Match4PCSBase::TryQuadrilateral(Scalar *invariant1, Scalar *invariant2,
+bool Match4PCSBase::TryQuadrilateral(Scalar &invariant1, Scalar &invariant2,
                                      int& id1, int& id2, int& id3, int& id4) {
-  if (invariant1 == NULL || invariant2 == NULL) return false;
 
   float min_distance = FLT_MAX;
   int best1, best2, best3, best4;
+  best1 = best2 = best3 = best4 = -1;
   for (int i = 0; i < 4; ++i) {
     for (int j = 0; j < 4; ++j) {
       if (i == j) continue;
@@ -305,8 +301,8 @@ bool Match4PCSBase::TryQuadrilateral(Scalar *invariant1, Scalar *invariant2,
       // Compute the closest points on both segments, the corresponding
       // invariants and the distance between the closest points.
       float segment_distance = distSegmentToSegment(
-          base_3D_[i], base_3D_[j], base_3D_[k], base_3D_[l], &local_invariant1,
-          &local_invariant2);
+                  base_3D_[i], base_3D_[j], base_3D_[k], base_3D_[l],
+                  local_invariant1, local_invariant2);
       // Retail the smallest distance and the best order so far.
       if (segment_distance < min_distance) {
         min_distance = segment_distance;
@@ -314,11 +310,14 @@ bool Match4PCSBase::TryQuadrilateral(Scalar *invariant1, Scalar *invariant2,
         best2 = j;
         best3 = k;
         best4 = l;
-        *invariant1 = local_invariant1;
-        *invariant2 = local_invariant2;
+        invariant1 = local_invariant1;
+        invariant2 = local_invariant2;
       }
     }
   }
+
+  if(best1 < 0 || best2 < 0 || best3 < 0 || best4 < 0 ) return false;
+
   std::vector<Point3D> tmp = base_3D_;
   base_3D_[0] = tmp[best1];
   base_3D_[1] = tmp[best2];
@@ -337,12 +336,9 @@ bool Match4PCSBase::TryQuadrilateral(Scalar *invariant1, Scalar *invariant2,
 
 // Selects a good base from P and computes its invariants. Returns false if
 // a good planar base cannot can be found.
-bool Match4PCSBase::SelectQuadrilateral(Scalar* invariant1, Scalar* invariant2,
-                                        int* base1, int* base2, int* base3,
-                                        int* base4) {
-  if (invariant1 == NULL || invariant2 == NULL || base1 == NULL ||
-      base2 == NULL || base3 == NULL || base4 == NULL)
-    return false;
+bool Match4PCSBase::SelectQuadrilateral(Scalar& invariant1, Scalar& invariant2,
+                                        int& base1, int& base2, int& base3,
+                                        int& base4) {
 
   const float kBaseTooSmall = 0.2;
   int current_trial = 0;
@@ -354,9 +350,9 @@ bool Match4PCSBase::SelectQuadrilateral(Scalar* invariant1, Scalar* invariant2,
       return false;
     }
 
-    base_3D_[0] = sampled_P_3D_[*base1];
-    base_3D_[1] = sampled_P_3D_[*base2];
-    base_3D_[2] = sampled_P_3D_[*base3];
+    base_3D_[0] = sampled_P_3D_[base1];
+    base_3D_[1] = sampled_P_3D_[base2];
+    base_3D_[2] = sampled_P_3D_[base3];
 
     // The 4th point will be a one that is close to be planar to the other 3
     // while still not too close to them.
@@ -371,41 +367,40 @@ bool Match4PCSBase::SelectQuadrilateral(Scalar* invariant1, Scalar* invariant2,
     const double& z3 = base_3D_[2].z;
 
     // Fit a plan.
-    double denom = (-x3 * y2 * z1 + x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 -
+    Scalar denom = (-x3 * y2 * z1 + x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 -
                     x2 * y1 * z3 + x1 * y2 * z3);
 
     if (denom != 0) {
-      double A =
+      Scalar A =
           (-y2 * z1 + y3 * z1 + y1 * z2 - y3 * z2 - y1 * z3 + y2 * z3) / denom;
-      double B =
+      Scalar B =
           (x2 * z1 - x3 * z1 - x1 * z2 + x3 * z2 + x1 * z3 - x2 * z3) / denom;
-      double C =
+      Scalar C =
           (-x2 * y1 + x3 * y1 + x1 * y2 - x3 * y2 - x1 * y3 + x2 * y3) / denom;
-      *base4 = -1;
-      double best_distance = FLT_MAX;
+      base4 = -1;
+      Scalar best_distance = FLT_MAX;
       // Go over all points in P.
       for (unsigned int i = 0; i < sampled_P_3D_.size(); ++i) {
-        double d1 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base1]);
-        double d2 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base2]);
-        double d3 = PointsDistance(sampled_P_3D_[i], sampled_P_3D_[*base3]);
-        float too_small = max_base_diameter_ * kBaseTooSmall;
-        if (d1 >= too_small && d2 >= too_small && d3 >= too_small) {
+        const Scalar too_small = max_base_diameter_ * kBaseTooSmall;
+        if (PointsDistance(sampled_P_3D_[i], sampled_P_3D_[base1]) >= too_small &&
+            PointsDistance(sampled_P_3D_[i], sampled_P_3D_[base2]) >= too_small &&
+            PointsDistance(sampled_P_3D_[i], sampled_P_3D_[base3]) >= too_small) {
           // Not too close to any of the first 3.
-          double distance =
+          const Scalar distance =
               std::abs(A * sampled_P_3D_[i].x + B * sampled_P_3D_[i].y +
                    C * sampled_P_3D_[i].z - 1.0);
           // Search for the most planar.
           if (distance < best_distance) {
             best_distance = distance;
-            *base4 = int(i);
+            base4 = int(i);
           }
         }
       }
       // If we have a good one we can quit.
-      if (*base4 != -1) {
-        base_3D_[3] = sampled_P_3D_[*base4];
-        TryQuadrilateral(invariant1, invariant2, *base1, *base2, *base3, *base4);
-        return true;
+      if (base4 != -1) {
+        base_3D_[3] = sampled_P_3D_[base4];
+        if(TryQuadrilateral(invariant1, invariant2, base1, base2, base3, base4))
+            return true;
       }
     }
     current_trial++;
@@ -416,13 +411,13 @@ bool Match4PCSBase::SelectQuadrilateral(Scalar* invariant1, Scalar* invariant2,
 }
 
 void Match4PCSBase::initKdTree(){
-  int number_of_points = sampled_P_3D_.size();
+  size_t number_of_points = sampled_P_3D_.size();
 
   // Build the kdtree.
   kd_tree_ = Super4PCS::KdTree<Scalar>(number_of_points);
 
   Super4PCS::KdTree<Scalar>::VectorType p;
-  for (int i = 0; i < number_of_points; ++i) {
+  for (size_t i = 0; i < number_of_points; ++i) {
     p << sampled_P_3D_[i].x,
         sampled_P_3D_[i].y,
         sampled_P_3D_[i].z;
@@ -467,11 +462,11 @@ bool Match4PCSBase::TryCongruentSet(
     nbCongruent = 0;
 
     Eigen::Matrix<Scalar, 4, 4> transform;
-    for (int i = 0; i < congruent_quads.size(); ++i) {
-      int a = congruent_quads[i].vertices[0];
-      int b = congruent_quads[i].vertices[1];
-      int c = congruent_quads[i].vertices[2];
-      int d = congruent_quads[i].vertices[3];
+    for (size_t i = 0; i < congruent_quads.size(); ++i) {
+      const int a = congruent_quads[i].vertices[0];
+      const int b = congruent_quads[i].vertices[1];
+      const int c = congruent_quads[i].vertices[2];
+      const int d = congruent_quads[i].vertices[3];
       congruent_points[0].second = sampled_Q_3D_[a];
       congruent_points[1].second = sampled_Q_3D_[b];
       congruent_points[2].second = sampled_Q_3D_[c];
@@ -495,7 +490,7 @@ bool Match4PCSBase::TryCongruentSet(
 
       Scalar rms = -1;
 
-      bool ok =
+      const bool ok =
       ComputeRigidTransformation(congruent_points,   // input congruent quads
                                  centroid1,          // input: basis centroid
                                  centroid2,          // input: candidate quad centroid
@@ -584,11 +579,11 @@ bool Match4PCSBase::ComputeRigidTransformation(
       const cv::Point3d& p3 = pairs[3].first;
       const cv::Point3d& q3 = pairs[3].second;
 
-      Scalar ratio1 = cv::norm(p1 - p0) / cv::norm(q1 - q0);
-      Scalar ratio2 = cv::norm(p3 - p2) / cv::norm(q3 - q2);
+      const Scalar ratio1 = cv::norm(p1 - p0) / cv::norm(q1 - q0);
+      const Scalar ratio2 = cv::norm(p3 - p2) / cv::norm(q3 - q2);
 
-      Scalar ratioDev  = std::abs(ratio1/ratio2 - Scalar(1.));  // deviation between the two
-      Scalar ratioMean = (ratio1+ratio2)/Scalar(2.);            // mean of the two
+      const Scalar ratioDev  = std::abs(ratio1/ratio2 - Scalar(1.));  // deviation between the two
+      const Scalar ratioMean = (ratio1+ratio2)/Scalar(2.);            // mean of the two
 
       if ( ratioDev > Scalar(0.1) )
           return match_4pcs::kLargeNumber;
@@ -657,11 +652,11 @@ bool Match4PCSBase::ComputeRigidTransformation(
 
   if (max_angle >= 0) {
       // Discard too large solutions (todo: lazy evaluation during boolean computation
-      Scalar theta_x = std::abs(std::atan2(rotation.at<double>(2, 1), rotation.at<double>(2, 2)));
-      Scalar theta_y = std::abs(std::atan2(-rotation.at<double>(2, 0),
+      const Scalar theta_x = std::abs(std::atan2(rotation.at<double>(2, 1), rotation.at<double>(2, 2)));
+      const Scalar theta_y = std::abs(std::atan2(-rotation.at<double>(2, 0),
                                            std::sqrt(std::pow(rotation.at<double>(2, 1),2) +
                                                      std::pow(rotation.at<double>(2, 2),2))));
-      Scalar theta_z = std::abs(atan2(rotation.at<double>(1, 0), rotation.at<double>(0, 0)));
+      const Scalar theta_z = std::abs(atan2(rotation.at<double>(1, 0), rotation.at<double>(0, 0)));
       if (theta_x > max_angle ||
               theta_y > max_angle ||
               theta_z > max_angle)
@@ -723,12 +718,12 @@ Match4PCSBase::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
 #endif
 
   // We allow factor 2 scaling in the normalization.
-  Scalar epsilon = options_.delta;
+  const Scalar epsilon = options_.delta;
   int good_points = 0;
-  int number_of_points = sampled_Q_3D_.size();
-  int terminate_value = best_LCP_ * number_of_points;
+  const size_t number_of_points = sampled_Q_3D_.size();
+  const int terminate_value = best_LCP_ * number_of_points;
 
-  Scalar sq_eps = epsilon*epsilon;
+  const Scalar sq_eps = epsilon*epsilon;
   typename Point3D::VectorType p;
 
   for (int i = 0; i < number_of_points; ++i) {
@@ -775,7 +770,7 @@ Match4PCSBase::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
 #ifdef TEST_GLOBAL_TIMINGS
   verifyTime += Scalar(t_verify.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
 #endif
-  return Scalar(good_points) / number_of_points;
+  return Scalar(good_points) / Scalar(number_of_points);
 }
 
 
@@ -809,14 +804,14 @@ Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
 // transforms the set Q by this optimal transformation.
 bool Match4PCSBase::Perform_N_steps(int n, cv::Mat* transformation,
                                     std::vector<Point3D>* Q) {
-  if (transformation == NULL || Q == NULL) return false;
+  if (transformation == nullptr || Q == nullptr) return false;
 
 #ifdef TEST_GLOBAL_TIMINGS
     Timer t (true);
 #endif
 
   Scalar last_best_LCP = best_LCP_;
-  bool ok;
+  bool ok = false;
   int64 t0 = clock();
   for (int i = current_trial_; i < current_trial_ + n; ++i) {
     ok = TryOneBase();
@@ -858,7 +853,7 @@ bool Match4PCSBase::Perform_N_steps(int n, cv::Mat* transformation,
     cv::eigen2cv( transform_, *transformation );
 
     // Transforms Q by the new transformation.
-    for (unsigned int i = 0; i < Q->size(); ++i) {
+    for (size_t i = 0; i < Q->size(); ++i) {
       cv::Mat first(4, 1, CV_64F), transformed;
       first.at<double>(0, 0) = (*Q)[i].x;
       first.at<double>(1, 0) = (*Q)[i].y;
@@ -909,22 +904,22 @@ bool Match4PCSBase::TryOneBase() {
 
 #else
 
-  if (!SelectQuadrilateral(&invariant1, &invariant2, &base_id1, &base_id2,
-                           &base_id3, &base_id4)) {
+  if (!SelectQuadrilateral(invariant1, invariant2, base_id1, base_id2,
+                           base_id3, base_id4)) {
     return false;
   }
 #endif
 
   // Computes distance between pairs.
-  Scalar distance1 = PointsDistance(base_3D_[0], base_3D_[1]);
-  Scalar distance2 = PointsDistance(base_3D_[2], base_3D_[3]);
+  const Scalar distance1 = PointsDistance(base_3D_[0], base_3D_[1]);
+  const Scalar distance2 = PointsDistance(base_3D_[2], base_3D_[3]);
 
   std::vector<std::pair<int, int>> pairs1, pairs2;
   std::vector<Super4PCS::Quadrilateral> congruent_quads;
 
   // Compute normal angles.
-  Scalar normal_angle1 = (base_3D_[0].normal() - base_3D_[1].normal()).norm();
-  Scalar normal_angle2 = (base_3D_[2].normal() - base_3D_[3].normal()).norm();
+  const Scalar normal_angle1 = (base_3D_[0].normal() - base_3D_[1].normal()).norm();
+  const Scalar normal_angle2 = (base_3D_[2].normal() - base_3D_[3].normal()).norm();
 
   ExtractPairs(distance1, normal_angle1, distance_factor * options_.delta, 0,
                   1, &pairs1);
@@ -950,13 +945,14 @@ bool Match4PCSBase::TryOneBase() {
   }
 
   size_t nb = 0;
-//  std::cout << "Congruent quads: "
-//            << congruent_quads.size()
-//            << std::endl;
 
   bool match = TryCongruentSet(base_id1, base_id2, base_id3, base_id4,
                                congruent_quads,
                                nb);
+
+  //if (nb != 0)
+  //    std::cout << "Congruent quads: (" << nb << ")    " << std::endl;
+
   return match;
 }
 

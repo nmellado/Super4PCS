@@ -69,9 +69,9 @@ bool Match4PCS::FindCongruentQuadrilaterals(
         const std::vector<std::pair<int, int>>& P_pairs,
         const std::vector<std::pair<int, int>>& Q_pairs,
         std::vector<Super4PCS::Quadrilateral>* quadrilaterals) const {
-  if (quadrilaterals == NULL) return false;
+  if (quadrilaterals == nullptr) return false;
 
-  int number_of_points = 2 * P_pairs.size();
+  size_t number_of_points = 2 * P_pairs.size();
 
   // We need a temporary ANN tree to store the new points corresponding to
   // invariants in the P_pairs and then query them (for range search) for all
@@ -84,7 +84,7 @@ bool Match4PCS::FindCongruentQuadrilaterals(
   quadrilaterals->clear();
 
   // Build the ANN tree using the invariants on P_pairs.
-  for (int i = 0; i < P_pairs.size(); ++i) {
+  for (size_t i = 0; i < P_pairs.size(); ++i) {
     const Point3D& p1 = sampled_Q_3D_[P_pairs[i].first];
     const Point3D& p2 = sampled_Q_3D_[P_pairs[i].second];
     data_points[i * 2][0] = p1.x + invariant1 * (p2.x - p1.x);
@@ -99,7 +99,7 @@ bool Match4PCS::FindCongruentQuadrilaterals(
 
     //Point3D invRes;
   // Query the ANN for all the points corresponding to the invariants in Q_pair.
-  for (int i = 0; i < Q_pairs.size(); ++i) {
+  for (size_t i = 0; i < Q_pairs.size(); ++i) {
     const Point3D& p1 = sampled_Q_3D_[Q_pairs[i].first];
     const Point3D& p2 = sampled_Q_3D_[Q_pairs[i].second];
     query_point[0] = p1.x + invariant2 * (p2.x - p1.x);
@@ -110,16 +110,12 @@ bool Match4PCS::FindCongruentQuadrilaterals(
                        near_neighbor_index, distances, 0);
 
     // This is a new candidate of a quadrilateral.
-    for (int j = 0; j < number_of_points; ++j) {
+    for (size_t j = 0; j < number_of_points; ++j) {
       if (distances[j] != ANN_DIST_INF) {
         int id = near_neighbor_index[j] / 2;
 
-        const Point3D& pp1 = sampled_Q_3D_[P_pairs[id].first];
-        const Point3D& pp2 = sampled_Q_3D_[P_pairs[id].second];
-
-        quadrilaterals->push_back(
-            Super4PCS::Quadrilateral(P_pairs[id].first, P_pairs[id].second,
-                          Q_pairs[i].first, Q_pairs[i].second));
+        quadrilaterals->emplace_back(P_pairs[id].first, P_pairs[id].second,
+                                     Q_pairs[i].first, Q_pairs[i].second);
       } else
         break;
     }
@@ -132,16 +128,12 @@ bool Match4PCS::FindCongruentQuadrilaterals(
     tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
                        near_neighbor_index, distances, 0);
 
-    for (int j = 0; j < number_of_points; ++j) {
+    for (size_t j = 0; j < number_of_points; ++j) {
       if (distances[j] != ANN_DIST_INF) {
         int id = near_neighbor_index[j] / 2;
 
-        const Point3D& pp1 = sampled_Q_3D_[P_pairs[id].first];
-        const Point3D& pp2 = sampled_Q_3D_[P_pairs[id].second];
-
-        quadrilaterals->push_back(
-            Super4PCS::Quadrilateral(P_pairs[id].first, P_pairs[id].second,
-                          Q_pairs[i].first, Q_pairs[i].second));
+        quadrilaterals->emplace_back(P_pairs[id].first, P_pairs[id].second,
+                                     Q_pairs[i].first, Q_pairs[i].second);
       } else
         break;
     }
@@ -166,7 +158,7 @@ Match4PCS::ExtractPairs(Scalar pair_distance,
                         int base_point1,
                         int base_point2,
                         PairsVector* pairs) const {
-  if (pairs == NULL) return;
+  if (pairs == nullptr) return;
 
   pairs->clear();
   pairs->reserve(2 * sampled_Q_3D_.size());
@@ -176,9 +168,9 @@ Match4PCS::ExtractPairs(Scalar pair_distance,
 
 
   // Go over all ordered pairs in Q.
-  for (int j = 0; j < sampled_Q_3D_.size(); ++j) {
+  for (size_t j = 0; j < sampled_Q_3D_.size(); ++j) {
     const Point3D& p = sampled_Q_3D_[j];
-    for (int i = j + 1; i < sampled_Q_3D_.size(); ++i) {
+    for (size_t i = j + 1; i < sampled_Q_3D_.size(); ++i) {
       const Point3D& q = sampled_Q_3D_[i];
       // Compute the distance and two normal angles to ensure working with
       // wrong orientation. We want to verify that the angle between the
@@ -230,18 +222,18 @@ Match4PCS::ExtractPairs(Scalar pair_distance,
           cv::Point3d segment2 = q - p;
           segment2 *= 1.0 / cv::norm(segment2);
           if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
-            pairs->push_back(std::make_pair(j, i));
+            pairs->emplace_back(j, i);
           }
 
           segment2 = p - q;
           segment2 *= 1.0 / cv::norm(segment2);
           if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
             // Add ordered pair.
-            pairs->push_back(std::make_pair(i, j));
+            pairs->emplace_back(i, j);
           }
       }else {
-          pairs->push_back(std::make_pair(j, i));
-          pairs->push_back(std::make_pair(i, j));
+          pairs->emplace_back(j, i);
+          pairs->emplace_back(i, j);
       }
     }
   }

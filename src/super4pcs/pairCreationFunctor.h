@@ -102,7 +102,7 @@ public:
         PairCreationFunctor::Point q ( Q_[i].x,
                                        Q_[i].y,
                                        Q_[i].z );
-      points.push_back(q);
+      points.emplace_back(q);
       bbox.extendTo(q);
     }
 
@@ -118,8 +118,8 @@ public:
     for (unsigned int i = 0; i < nSamples; ++i) {
       points[i] = worldToUnit(points[i]);
 
-      primitives.push_back(Primitive(points[i], Scalar(1.)));
-      ids.push_back(i);
+      primitives.emplace_back(Primitive(points[i], Scalar(1.)));
+      ids.emplace_back(i);
     }
 
     std::cout << "Work with " << points.size() << " points" << std::endl;
@@ -207,18 +207,18 @@ public:
           cv::Point3d segment2 = q - p;
           segment2 *= 1.0 / cv::norm(segment2);
           if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
-              pairs->push_back(std::make_pair(j, i));
+              pairs->emplace_back(j, i);
           }
 
           segment2 = p - q;
           segment2 *= 1.0 / cv::norm(segment2);
           if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
               // Add ordered pair.
-              pairs->push_back(std::make_pair(i, j));
+              pairs->emplace_back(i, j);
           }
       }else {
-          pairs->push_back(std::make_pair(j, i));
-          pairs->push_back(std::make_pair(i, j));
+          pairs->emplace_back(j, i);
+          pairs->emplace_back(i, j);
       }
     }
   }

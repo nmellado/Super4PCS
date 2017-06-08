@@ -108,7 +108,7 @@ void DistUniformSampling(const std::vector<Point>& set,
   for (int i = 0; i < num_input; i++) {
     uint64& ind = hash[set[i]];
     if (ind >= num_input) {
-      sample->push_back(set[i]);
+      sample->emplace_back(set[i]);
       ind = sample->size();
     }
   }

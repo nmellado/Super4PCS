@@ -10,7 +10,7 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////////////
 /// Read
 ////////////////////////////////////////////////////////////////////////////////
-bool 
+bool
 IOManager::ReadObject(const char *name,
            vector<Point3D> &v,
            vector<cv::Point2f> &tex_coords,
@@ -19,31 +19,31 @@ IOManager::ReadObject(const char *name,
            vector<std::string> &mtls){
   string filename (name);
   string ext = filename.substr(filename.size()-3);
-  
+
   if ( ext.compare ("ply") == 0 )
     return ReadPly (name, v, normals);
   if ( ext.compare ("obj") == 0 )
     return ReadObj (name, v, tex_coords, normals, tris, mtls);
   if ( ext.compare ("ptx") == 0 )
     return ReadPtx (name, v);
-  
-  std::cerr << "Unsupported file format" << std::endl;  
+
+  std::cerr << "Unsupported file format" << std::endl;
   return false;
 }
 
-bool 
+bool
 IOManager::ReadPly(const char *filename,
-                   vector<Point3D> &v, 
+                   vector<Point3D> &v,
                    vector<typename Point3D::VectorType> &normals){
-  
+
   vector<tripple> face;
   unsigned int numOfVertexProperties, numOfVertices, numOfFaces;
   PLYFormat format;
   bool haveColor;
-  unsigned int headerSize = readHeader (filename, 
-                                        numOfVertices, 
-                                        numOfFaces, 
-                                        format, 
+  unsigned int headerSize = readHeader (filename,
+                                        numOfVertices,
+                                        numOfFaces,
+                                        format,
                                         numOfVertexProperties,
                                         haveColor);
   if (haveColor)
@@ -66,7 +66,7 @@ IOManager::ReadPly(const char *filename,
       return false;
     }
   }
-  
+
   return false;
 }
 
@@ -120,7 +120,7 @@ bool IOManager::ReadPtx(const char *filename, vector<Point3D> &vertex)
 
         ptx.set_rgb(rgb);
 
-        vertex.push_back( ptx );
+        vertex.emplace_back( ptx );
     }
 
     f.close();
@@ -128,9 +128,9 @@ bool IOManager::ReadPtx(const char *filename, vector<Point3D> &vertex)
     return vertex.size() == numOfVertices;
 }
 
-bool 
+bool
 IOManager::ReadObj(const char *filename,
-                   vector<Point3D> &v, 
+                   vector<Point3D> &v,
                    vector<cv::Point2f> &tex_coords,
                    vector<typename Point3D::VectorType> &normals,
                    vector<tripple> &tris,
@@ -147,17 +147,17 @@ IOManager::ReadObj(const char *filename,
     sscanf(str, "%s %*s", ch);
     if (strcmp(ch, "v") == 0) {
       sscanf(str, "%s %f %f %f", ch, &x, &y, &z);
-      v.push_back(Point3D(x, y, z));
+      v.emplace_back(x, y, z);
       v[v.size() - 1].set_rgb(Point3D::VectorType::Zero());
     } else if (strcmp(ch, "vt") == 0) {
       cv::Point2f tex_coord;
       sscanf(str, "%s %f %f", ch, &tex_coord.x, &tex_coord.y);
-      tex_coords.push_back(tex_coord);
+      tex_coords.emplace_back(tex_coord);
     } else if (strcmp(ch, "vn") == 0) {
       typename Point3D::VectorType normal;
       sscanf(str, "%s %f %f %f", ch, &x, &y, &z);
       normal << x, y, z;
-      normals.push_back(normal);
+      normals.emplace_back(normal);
     } else if (strcmp(ch, "f") == 0) {
       tripple triangle;
       if (normals.size() && !tex_coords.size()) {
@@ -175,23 +175,23 @@ IOManager::ReadObj(const char *filename,
         sscanf(str, "%s %d %d %d", ch, &(triangle.a), &(triangle.b),
                &(triangle.c));
       }
-      tris.push_back(triangle);
+      tris.emplace_back(triangle);
       if (normals.size()) {
         v[triangle.a - 1].set_normal(normals[triangle.n1 - 1]);
         v[triangle.b - 1].set_normal(normals[triangle.n2 - 1]);
         v[triangle.c - 1].set_normal(normals[triangle.n3 - 1]);
       }
     } else if (strcmp(ch, "mtllib") == 0) {
-      mtls.push_back(str + 7);
+      mtls.emplace_back(str + 7);
     }
   }
   f.close();
-  
+
   if(tris.size() == 0){
     // In case we have vertex and normal lists but no face, assign normal to v
     if(v.size() == normals.size()){
-      for (int i = 0; i < v.size(); ++i) 
-        v[i].set_normal(normals[i]); 
+      for (int i = 0; i < v.size(); ++i)
+        v[i].set_normal(normals[i]);
     }
   }else {
     if (! normals.empty()){
@@ -200,12 +200,12 @@ IOManager::ReadObj(const char *filename,
       // We assume that the normals have already been sent to vertices
       normals.clear();
       normals.reserve(v.size());
-      
+
       for (unsigned int i = 0; i!= v.size(); i++)
-        normals.push_back(v[i].normal()); 
+        normals.emplace_back(v[i].normal());
     }
   }
-  
+
 
   if (mtls.size()) {
     f.open(mtls[0].c_str(), ios::in);
@@ -224,7 +224,7 @@ IOManager::ReadObj(const char *filename,
             if (tc1.x < 1.0 && tc1.x > 0 && tc1.y < 1.0 && tc1.y > 0 &&
                 tc2.x < 1.0 && tc2.x > 0 && tc2.y < 1.0 && tc2.y > 0 &&
                 tc3.x < 1.0 && tc3.x > 0 && tc3.y < 1.0 && tc3.y > 0) {
-                
+
               v[t.a - 1].set_rgb(typename Point3D::VectorType(
                   tex.at<cv::Vec3b>(tc1.y * tex.rows, tc1.x * tex.cols)[0],
                   tex.at<cv::Vec3b>(tc1.y * tex.rows, tc1.x * tex.cols)[1],
@@ -246,7 +246,7 @@ IOManager::ReadObj(const char *filename,
     }
   }
   f.close();
-  
+
   if (v.size() == 0) return false;
   return true;
 }
@@ -255,7 +255,7 @@ IOManager::ReadObj(const char *filename,
 /// Write
 ////////////////////////////////////////////////////////////////////////////////
 
-bool 
+bool
 IOManager::WriteObject(const char *name,
                        const vector<Point3D> &v,
                        const vector<cv::Point2f> &tex_coords,
@@ -264,23 +264,23 @@ IOManager::WriteObject(const char *name,
                        const vector<std::string> &mtls) {
   string filename (name);
   string ext = filename.substr(filename.size()-3);
-  
+
   bool haveExt = filename.at(filename.size()-4) == '.';
-  
-  if (tris.size() == 0){    
-    return WritePly(haveExt ? 
+
+  if (tris.size() == 0){
+    return WritePly(haveExt ?
                     filename.substr(0,filename.size()-3).append("ply") :
-                    filename.append(".ply"), 
-                    v, normals);	     
+                    filename.append(".ply"),
+                    v, normals);
   }
   else{
-    return WriteObj(haveExt ? 
+    return WriteObj(haveExt ?
                     filename.substr(0,filename.size()-3).append("obj") :
-                    filename.append(".obj"), 
-                    v, 
-                    tex_coords, 
-                    normals, 
-                    tris, 
+                    filename.append(".obj"),
+                    v,
+                    tex_coords,
+                    normals,
+                    tris,
                     mtls);
   }
 
@@ -330,9 +330,9 @@ IOManager::WritePly(string filename,
       break;
     }
   }
-  
+
   plyFile.imbue(std::locale::classic());
-  
+
   // Write Header
   plyFile << "ply" << std::endl;
   plyFile << "format binary_little_endian 1.0" << std::endl;
@@ -352,11 +352,11 @@ IOManager::WritePly(string filename,
     plyFile << "property uchar red" << std::endl;
     plyFile << "property uchar green" << std::endl;
     plyFile << "property uchar blue" << std::endl;
-  }  
+  }
 
   plyFile << "end_header" << std::endl;
 
-  // Read all elements in data, correct their depth and print them in the file  
+  // Read all elements in data, correct their depth and print them in the file
   char tmpColor;
   for (unsigned int i = 0; i!=v.size(); i++){
     plyFile.write(reinterpret_cast<const char*>(&v[i].x),sizeof(float));
@@ -378,13 +378,13 @@ IOManager::WritePly(string filename,
       plyFile.write(reinterpret_cast<const char*>(&tmpColor),sizeof(char));
     }
   }
-    
+
   plyFile.close();
 
   return true;
 }
 
-bool 
+bool
 IOManager::WriteObj(string filename, const vector<Point3D> &v,
                     const vector<cv::Point2f> &tex_coords,
                     const vector<typename Point3D::VectorType> &normals,
@@ -401,12 +401,12 @@ IOManager::WriteObj(string filename, const vector<Point3D> &v,
   }
 
   for (i = 0; i < v.size(); ++i) {
-    f << "v " 
+    f << "v "
       << v[i].x << " " << v[i].y << " " << v[i].z << " ";
-      
+
     if (v[i].rgb()[0] != 0)
       f << v[i].rgb()[0] << " " << v[i].rgb()[1] << " " << v[i].rgb()[2];
-    
+
     f << endl;
   }
 

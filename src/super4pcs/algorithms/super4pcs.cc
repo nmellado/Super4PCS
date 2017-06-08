@@ -86,14 +86,14 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
         std::vector<Super4PCS::Quadrilateral>* quadrilaterals) const {
 
 
-  if (quadrilaterals == NULL) return false;
+  if (quadrilaterals == nullptr) return false;
 
   quadrilaterals->clear();
 
   // Compute the angle formed by the two vectors of the basis
   Point3D b1 = base_3D_[1] - base_3D_[0];  b1.normalize();
   Point3D b2 = base_3D_[3] - base_3D_[2];  b2.normalize();
-  Scalar alpha = /*std::abs(*/b1.dot(b2)/*)*/;
+  const Scalar alpha = /*std::abs(*/b1.dot(b2)/*)*/;
 
   // 1. Datastructure construction
   typedef PairCreationFunctor<Scalar>::Point Point;
@@ -112,10 +112,10 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
 
   IndexedNormalSet3D nset (eps, 2.);
 
-  for (unsigned int i = 0; i <  P_pairs.size(); ++i) {
+  for (size_t i = 0; i <  P_pairs.size(); ++i) {
     const Point& p1 = pcfunctor_.points[P_pairs[i].first];
     const Point& p2 = pcfunctor_.points[P_pairs[i].second];
-    Point  n  = (p2 - p1).normalized();
+    const Point  n  = (p2 - p1).normalized();
 
 //    cout << "new entry: " << endl
 //         << p1.transpose() << "(" << P_pairs[i].first  << ")" << endl
@@ -141,10 +141,10 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
 
     nei.clear();
 
-    Point   query  =  p1 + invariant2 * ( p2 - p1 );
-    Point3D queryQ = pq1 + invariant2 * (pq2 - pq1);
+    const Point   query  =  p1 + invariant2 * ( p2 - p1 );
+    const Point3D queryQ = pq1 + invariant2 * (pq2 - pq1);
 
-    Point queryn = (p2 - p1).normalized();
+    const Point queryn = (p2 - p1).normalized();
 
 //    cout << "query: " << endl
 //         << p1.transpose() << "(" << Q_pairs[i].first  << ")" << endl
@@ -167,7 +167,7 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
 
        // use also distance_threshold2 for inv 1 and 2 in 4PCS
       if (cv::norm(queryQ-invPoint) <= distance_threshold2){
-          comb.insert(std::make_pair(id, i));
+          comb.emplace(id, i);
       }
     }
   }
@@ -178,9 +178,8 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
     const unsigned int & id = (*it).first;
     const unsigned int & i  = (*it).second;
 
-    quadrilaterals->push_back(
-                Super4PCS::Quadrilateral(P_pairs[id].first, P_pairs[id].second,
-                              Q_pairs[i].first,  Q_pairs[i].second));
+    quadrilaterals->emplace_back(P_pairs[id].first, P_pairs[id].second,
+                                 Q_pairs[i].first,  Q_pairs[i].second);
   }
 
   return quadrilaterals->size() != 0;

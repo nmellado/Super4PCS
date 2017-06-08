@@ -181,8 +181,8 @@ extractFilesAndTrFromStandfordConfFile(
                 transform.rotate(quat);
                 transform.translate(-tr);
 
-                transforms.push_back(transform);
-                files.push_back(inputfile);
+                transforms.emplace_back(transform);
+                files.emplace_back(inputfile);
 
 
             }

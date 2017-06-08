@@ -152,9 +152,9 @@ static inline float PointsDistance(const Point3D& p, const Point3D& q) {
 // planar, we use the center of the line segment connecting the two closest
 // points as the "intersection".
 static float distSegmentToSegment(const cv::Point3d& p1, const cv::Point3d& p2,
-                           const cv::Point3d& q1, const cv::Point3d& q2,
-                           double* invariant1, double* invariant2) {
-  if (invariant1 == 0 || invariant2 == 0) return kLargeNumber;
+                                  const cv::Point3d& q1, const cv::Point3d& q2,
+                                  double& invariant1, double& invariant2) {
+
   const float kSmallNumber = 0.0001;
   cv::Point3d u = p2 - p1;
   cv::Point3d v = q2 - q1;
@@ -212,10 +212,10 @@ static float distSegmentToSegment(const cv::Point3d& p1, const cv::Point3d& p2,
       s2 = a;
     }
   }
-  *invariant1 = (abs(s1) < kSmallNumber ? 0.0 : s1 / s2);
-  *invariant2 = (abs(t1) < kSmallNumber ? 0.0 : t1 / t2);
-  cv::Point3d distance = w + (*invariant1 * u) - (*invariant2 * v);
-  return cv::norm(distance);
+  invariant1 = (abs(s1) < kSmallNumber ? 0.0 : s1 / s2);
+  invariant2 = (abs(t1) < kSmallNumber ? 0.0 : t1 / t2);
+
+  return cv::norm( w + (invariant1 * u) - (invariant2 * v));
 }
 
 // ----- 4PCS Options -----

@@ -92,7 +92,7 @@ struct MyPairCreationFunctor{
   inline void process(int primId, int pointId){
     //if(pointId >= 10)
       if (primId>pointId)
-        pairs.push_back(ResPair(pointId, primId));
+        pairs.emplace_back(pointId, primId);
   }
 };
 
@@ -121,7 +121,7 @@ void testFunction( Scalar r, Scalar epsilon,
   MyPairCreationFunctor functor;
   functor.ids.clear();
   for(unsigned int i = 0; i < nbPoints; i++)
-    functor.ids.push_back(i);
+    functor.ids.emplace_back(i);
   functor.pairs.reserve(nbPoints*nbPoints);
 
   //std::cout << "**************************" << std::endl;
@@ -136,8 +136,8 @@ void testFunction( Scalar r, Scalar epsilon,
   for(unsigned int i = 0; i != nbPoints; i++){
     // generate points on a sphere
     Point p (0.5f*Point::Random().normalized() + half);
-    points.push_back(p);
-    primitives.push_back(Primitive(p, r));
+    points.emplace_back(p);
+    primitives.emplace_back(Primitive(p, r));
     //std::cout << p.transpose() << std::endl;
   }
 
@@ -169,7 +169,7 @@ void testFunction( Scalar r, Scalar epsilon,
     for(unsigned int i = 0; i != nbPoints; i++)
       for(unsigned int j = i+1; j < nbPoints; j++)
          if (primitives[j].intersectPoint(points[i], epsilon))
-          p2.push_back(std::make_pair(i,j));
+          p2.emplace_back(std::make_pair(i,j));
     const auto BFtimestep = t.elapsed();
 
     std::cout << "Timers (" << (IFtimestep.count() < BFtimestep.count()
@@ -281,8 +281,8 @@ void callMatchSubTests()
                 const Point3D& q = Q[i];
                 const Scalar distance = cv::norm(q - p);
                 if (std::abs(distance - pair_distance) <= pair_distance_epsilon) {
-                    pairs.push_back(std::make_pair(j, i));
-                    pairs.push_back(std::make_pair(i, j));
+                    pairs.emplace_back(std::make_pair(j, i));
+                    pairs.emplace_back(std::make_pair(i, j));
                 }
             }
         }

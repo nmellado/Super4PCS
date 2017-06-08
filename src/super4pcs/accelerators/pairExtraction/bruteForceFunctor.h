@@ -105,14 +105,13 @@ BruteForceFunctor<DummyPrimitive, Point, dim, Scalar>::process(
 
   const unsigned int sizeM = M.size();
   const unsigned int sizeQ = Q.size();
-  unsigned int i, j;
-  for (j = 0; j != sizeQ; ++j){
-    //functor.beginPrimitiveCollect(j);
-    for (i = 0; i != sizeM; ++i){
+  for (unsigned int j = 0; j != sizeQ; ++j){
+    functor.beginPrimitiveCollect(j);
+    for (unsigned int i = 0; i != sizeM; ++i){
         if( M[i].intersectPoint(Q[j], epsilon ))
             functor.process(i,j);
     }
-    //functor.endPrimitiveCollect(j);
+    functor.endPrimitiveCollect(j);
   }
 }
 

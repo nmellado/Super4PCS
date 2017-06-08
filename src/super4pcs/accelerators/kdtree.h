@@ -190,8 +190,8 @@ public:
     template <class VectorDerived>
     inline void add( const VectorDerived &p ){
          // this is ok since the memory has been reserved at construction time
-        mPoints.push_back(p);
-        mIndices.push_back(mIndices.size());
+        mPoints.emplace_back(p);
+        mIndices.emplace_back(mIndices.size());
         mAABB.extendTo(p);
     }
 
@@ -220,7 +220,7 @@ public:
         _doQueryDistIndicesWithFunctor(queryPoint,
                                       sqdist,
                                       [&result,this](unsigned int i){
-            result.push_back(typename Container::value_type(mPoints[i]));
+            result.emplace_back(mPoints[i]);
         });
     }
 
@@ -235,7 +235,7 @@ public:
         _doQueryDistIndicesWithFunctor(queryPoint,
                                       sqdist,
                                       [&result,this](unsigned int i){
-            result.push_back(typename IndexContainer::value_type(mIndices[i]));
+            result.emplace_back(mIndices[i]);
         });
     }
 
@@ -343,7 +343,7 @@ KdTree<Scalar, Index>::finalize()
 {
     mNodes.clear();
     mNodes.reserve(4*mPoints.size()/_nofPointsPerCell);
-    mNodes.push_back(KdNode());
+    mNodes.emplace_back(KdNode());
     mNodes.back().leaf = 0;
     std::cout << "create tree" << std::endl;
     createTree(0, 0, mPoints.size(), 1, _nofPointsPerCell, _maxDepth);
@@ -581,8 +581,8 @@ void KdTree<Scalar, Index>::createTree(unsigned int nodeId, unsigned int start, 
     {
         KdNode n;
         n.size = 0;
-        mNodes.push_back(n);
-        mNodes.push_back(n);
+        mNodes.emplace_back(n);
+        mNodes.emplace_back(n);
     }
     //mNodes << Node() << Node();
     //mNodes.resize(mNodes.size()+2);
