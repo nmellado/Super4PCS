@@ -174,8 +174,6 @@ Match4PCS::ExtractPairs(Scalar pair_distance,
   cv::Point3d segment1 = base_3D_[base_point2] - base_3D_[base_point1];
   segment1 *= 1.0 / cv::norm(segment1);
 
-  const Scalar norm_threshold =
-      0.5 * options_.max_normal_difference * M_PI / 180.0;
 
   // Go over all ordered pairs in Q.
   for (int j = 0; j < sampled_Q_3D_.size(); ++j) {
@@ -188,10 +186,15 @@ Match4PCS::ExtractPairs(Scalar pair_distance,
       // checked independent of the full rotation angles which are not yet
       // defined by segment matching alone..
       const Scalar distance = cv::norm(q - p);
+#ifndef MULTISCALE
       if (std::abs(distance - pair_distance) > pair_distance_epsilon) continue;
-      const bool use_normals = q.normal().squaredNorm() > 0 && p.normal().squaredNorm() > 0;
-      bool normals_good = true;
-      if (use_normals) {
+#endif
+
+      if ( options_.max_normal_difference > 0 &&
+              q.normal().squaredNorm() > 0 &&
+              p.normal().squaredNorm() > 0) {
+        const Scalar norm_threshold =
+              0.5 * options_.max_normal_difference * M_PI / 180.0;
         const double first_normal_angle = (q.normal() - p.normal()).norm();
         const double second_normal_angle = (q.normal() + p.normal()).norm();
         // Take the smaller normal distance.
@@ -199,37 +202,46 @@ Match4PCS::ExtractPairs(Scalar pair_distance,
             std::min(std::abs(first_normal_angle - pair_normals_angle),
                 std::abs(second_normal_angle - pair_normals_angle));
         // Verify appropriate angle between normals and distance.
-        normals_good = first_norm_distance < norm_threshold;
+
+        if (!first_norm_distance < norm_threshold) continue;
       }
-      if (!normals_good) continue;
-      cv::Point3d segment2 = q - p;
-      segment2 *= 1.0 / cv::norm(segment2);
       // Verify restriction on the rotation angle, translation and colors.
-      const bool use_rgb = (p.rgb()[0] >= 0 && q.rgb()[0] >= 0 &&
-                            base_3D_[base_point1].rgb()[0] >= 0 &&
-                            base_3D_[base_point2].rgb()[0] >= 0);
-      const bool rgb_good =
-          use_rgb ? (p.rgb() - base_3D_[base_point1].rgb()).norm() <
-                            options_.max_color_distance &&
-                    (q.rgb() - base_3D_[base_point2].rgb()).norm() <
-                            options_.max_color_distance
-                  : true;
-      const bool dist_good = cv::norm(p - base_3D_[base_point1]) <
-                                 options_.max_translation_distance &&
-                             cv::norm(q - base_3D_[base_point2]) <
-                                 options_.max_translation_distance;
-      if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0 &&
-          dist_good && rgb_good) {
-        // Add ordered pair.
-        pairs->push_back(std::make_pair(j, i));
+      if (options_.max_color_distance > 0) {
+          const bool use_rgb = (p.rgb()[0] >= 0 && q.rgb()[0] >= 0 &&
+                  base_3D_[base_point1].rgb()[0] >= 0 &&
+                  base_3D_[base_point2].rgb()[0] >= 0);
+          bool color_good = (p.rgb() - base_3D_[base_point1].rgb()).norm() <
+                  options_.max_color_distance &&
+                  (q.rgb() - base_3D_[base_point2].rgb()).norm() <
+                  options_.max_color_distance;
+
+          if (use_rgb && ! color_good) continue;
       }
-      // The same for the second order.
-      segment2 = p - q;
-      segment2 *= 1.0 / cv::norm(segment2);
-      if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0 &&
-          dist_good && rgb_good) {
-        // Add ordered pair.
-        pairs->push_back(std::make_pair(i, j));
+
+      if (options_.max_translation_distance > 0) {
+          const bool dist_good = cv::norm(p - base_3D_[base_point1]) <
+                  options_.max_translation_distance &&
+                  cv::norm(q - base_3D_[base_point2]) <
+                  options_.max_translation_distance;
+          if (! dist_good) continue;
+      }
+
+      if (options_.max_angle > 0){
+          cv::Point3d segment2 = q - p;
+          segment2 *= 1.0 / cv::norm(segment2);
+          if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
+            pairs->push_back(std::make_pair(j, i));
+          }
+
+          segment2 = p - q;
+          segment2 *= 1.0 / cv::norm(segment2);
+          if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
+            // Add ordered pair.
+            pairs->push_back(std::make_pair(i, j));
+          }
+      }else {
+          pairs->push_back(std::make_pair(j, i));
+          pairs->push_back(std::make_pair(i, j));
       }
     }
   }
