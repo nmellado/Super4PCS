@@ -158,7 +158,7 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
     Point3D invPoint;
     //const float distance_threshold2s = distance_threshold2 * distance_threshold2;
     for (unsigned int k = 0; k != nei.size(); k++){
-      int id = nei[k];
+      const int id = nei[k];
 
       const Point3D& pp1 = sampled_Q_3D_[P_pairs[id].first];
       const Point3D& pp2 = sampled_Q_3D_[P_pairs[id].second];
