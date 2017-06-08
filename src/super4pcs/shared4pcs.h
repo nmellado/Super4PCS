@@ -232,13 +232,13 @@ struct Match4PCSOptions {
   double overlap_estimation = 0.2;
 
   // Maximum normal difference.
-  double max_normal_difference = 10.0;
-  // Maximum translation distance.
-  double max_translation_distance = kLargeNumber;
-  // Maximum rotation angle.
-  double max_angle = kLargeNumber;
-  // Maximum color RGB distance between corresponding vertices.
-  double max_color_distance = 100.0;
+  double max_normal_difference = -1;
+  // Maximum translation distance. Set negative to ignore
+  double max_translation_distance = -1;
+  // Maximum rotation angle. Set negative to ignore
+  double max_angle = -1;
+  // Maximum color RGB distance between corresponding vertices. Set negative to ignore
+  double max_color_distance = -1;
   // Threshold on the value of the target function (LCP, see the paper).
   // It is used to terminate the process once we reached this value.
   double terminate_threshold = 1.0;

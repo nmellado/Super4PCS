@@ -49,14 +49,14 @@ double overlap = 0.2;
 double thr = 1.0;
 
 // Maximum norm of RGB values between corresponded points. 1e9 means don't use.
-double max_color = 150;
+double max_color = -1;
 
 // Number of sampled points in both files. The 4PCS allows a very aggressive
 // sampling.
 int n_points = 200;
 
 // Maximum angle (degrees) between corresponded normals.
-double norm_diff = 90.0;
+double norm_diff = -1;
 
 // Maximum allowed computation time.
 int max_time_seconds = 10;
