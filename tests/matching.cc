@@ -50,7 +50,8 @@
 // source code and datasets are available for research use at
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
-#include "4pcs.h"
+#include "algorithms/4pcs.h"
+#include "algorithms/super4pcs.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
