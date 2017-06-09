@@ -343,7 +343,7 @@ KdTree<Scalar, Index>::finalize()
 {
     mNodes.clear();
     mNodes.reserve(4*mPoints.size()/_nofPointsPerCell);
-    mNodes.emplace_back(KdNode());
+    mNodes.emplace_back();
     mNodes.back().leaf = 0;
     std::cout << "create tree" << std::endl;
     createTree(0, 0, mPoints.size(), 1, _nofPointsPerCell, _maxDepth);
