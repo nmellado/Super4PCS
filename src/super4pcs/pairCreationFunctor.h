@@ -102,7 +102,7 @@ public:
         PairCreationFunctor::Point q ( Q_[i].x,
                                        Q_[i].y,
                                        Q_[i].z );
-      points.emplace_back(q);
+      points.push_back(q);
       bbox.extendTo(q);
     }
 
@@ -118,8 +118,8 @@ public:
     for (unsigned int i = 0; i < nSamples; ++i) {
       points[i] = worldToUnit(points[i]);
 
-      primitives.emplace_back(Primitive(points[i], Scalar(1.)));
-      ids.emplace_back(i);
+      primitives.emplace_back(points[i], Scalar(1.));
+      ids.push_back(i);
     }
 
     std::cout << "Work with " << points.size() << " points" << std::endl;

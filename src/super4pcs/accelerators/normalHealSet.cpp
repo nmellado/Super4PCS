@@ -74,7 +74,7 @@ IndexedNormalHealSet::addElement(
   if (nId == -1) return false;
 
   if (_grid[pId] == NULL) _grid[pId] = new ChealMap(_ngLength);
-  (_grid[pId])->at(nId).emplace_back(id);
+  (_grid[pId])->at(nId).push_back(id);
 
   return true;
 }

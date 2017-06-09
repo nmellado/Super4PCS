@@ -190,8 +190,8 @@ public:
     template <class VectorDerived>
     inline void add( const VectorDerived &p ){
          // this is ok since the memory has been reserved at construction time
-        mPoints.emplace_back(p);
-        mIndices.emplace_back(mIndices.size());
+        mPoints.push_back(p);
+        mIndices.push_back(mIndices.size());
         mAABB.extendTo(p);
     }
 
@@ -220,7 +220,7 @@ public:
         _doQueryDistIndicesWithFunctor(queryPoint,
                                       sqdist,
                                       [&result,this](unsigned int i){
-            result.emplace_back(mPoints[i]);
+            result.push_back(mPoints[i]);
         });
     }
 
@@ -235,7 +235,7 @@ public:
         _doQueryDistIndicesWithFunctor(queryPoint,
                                       sqdist,
                                       [&result,this](unsigned int i){
-            result.emplace_back(mIndices[i]);
+            result.push_back(mIndices[i]);
         });
     }
 
@@ -581,8 +581,8 @@ void KdTree<Scalar, Index>::createTree(unsigned int nodeId, unsigned int start, 
     {
         KdNode n;
         n.size = 0;
-        mNodes.emplace_back(n);
-        mNodes.emplace_back(n);
+        mNodes.push_back(n);
+        mNodes.push_back(n);
     }
     //mNodes << Node() << Node();
     //mNodes.resize(mNodes.size()+2);

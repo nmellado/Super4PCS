@@ -125,7 +125,7 @@ IndexedNormalSet<Point, dim, _ngSize, Scalar>::addElement(
   if (nId == -1) return false;
 
   if (_grid[pId] == NULL) _grid[pId] = new AngularGrid;
-  (_grid[pId])->at(nId).emplace_back(id);
+  (_grid[pId])->at(nId).push_back(id);
 
   return true;
 }
@@ -195,13 +195,13 @@ IndexedNormalSet<Point, dim, _ngSize, Scalar>::getNeighbors(
                               cosAlpha ) ).normalized();
     int id = indexNormal( dir );
     if(grid->at(id).size() != 0){
-      colored.emplace(id);
+      colored.insert(id);
     }
 
     if (tryReverse){
       id = indexNormal( -dir );
       if(grid->at(id).size() != 0){
-        colored.emplace(id);
+        colored.insert(id);
       }
     }
   }

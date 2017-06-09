@@ -181,7 +181,7 @@ public:
                  const int id = indexCoordinates(pId3 + Index3D(i,j,k));
                  ChealMap* g = _grid[id];
                  if (g != nullptr)
-                     result.emplace_back(g);
+                     result.push_back(g);
              }
      return result;
   }

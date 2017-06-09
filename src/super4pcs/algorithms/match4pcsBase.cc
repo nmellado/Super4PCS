@@ -124,7 +124,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
         // Sample the sets P and Q uniformly.
         for (int i = 0; i < uniform_P.size(); ++i) {
             if (rand() % sample_fraction_P == 0) {
-                sampled_P_3D_.emplace_back(uniform_P[i]);
+                sampled_P_3D_.push_back(uniform_P[i]);
             }
         }
     }
@@ -145,7 +145,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
 
         for (int i = 0; i < uniform_Q.size(); ++i) {
             if (rand() % sample_fraction_Q == 0) {
-                sampled_Q_3D_.emplace_back(uniform_Q[i]);
+                sampled_Q_3D_.push_back(uniform_Q[i]);
             }
         }
     }

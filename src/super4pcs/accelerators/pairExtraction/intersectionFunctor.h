@@ -140,12 +140,12 @@ IntersectionFunctor<Primitive, Point, dim, Scalar>::process(
     std::cout << "[IntersectionFunctor] Init id array" << std::endl;
     functor.ids.clear();
     for(unsigned int i = 0; i < nbPoint; i++)
-      functor.ids.emplace_back(i);
+      functor.ids.push_back(i);
   }
 
 
   // Buid root node in the child node, will be copied to the current nodes
-  childNodes->emplace_back(Node::buildUnitRootNode(Q, functor.ids));
+  childNodes->push_back(Node::buildUnitRootNode(Q, functor.ids));
 
   Scalar edgeLength = 0.f;
   Scalar edgeHalfLength = 0.f;

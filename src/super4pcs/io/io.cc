@@ -120,7 +120,7 @@ bool IOManager::ReadPtx(const char *filename, vector<Point3D> &vertex)
 
         ptx.set_rgb(rgb);
 
-        vertex.emplace_back( ptx );
+        vertex.push_back( ptx );
     }
 
     f.close();
@@ -152,12 +152,12 @@ IOManager::ReadObj(const char *filename,
     } else if (strcmp(ch, "vt") == 0) {
       cv::Point2f tex_coord;
       sscanf(str, "%s %f %f", ch, &tex_coord.x, &tex_coord.y);
-      tex_coords.emplace_back(tex_coord);
+      tex_coords.push_back(tex_coord);
     } else if (strcmp(ch, "vn") == 0) {
       typename Point3D::VectorType normal;
       sscanf(str, "%s %f %f %f", ch, &x, &y, &z);
       normal << x, y, z;
-      normals.emplace_back(normal);
+      normals.push_back(normal);
     } else if (strcmp(ch, "f") == 0) {
       tripple triangle;
       if (normals.size() && !tex_coords.size()) {
@@ -175,14 +175,14 @@ IOManager::ReadObj(const char *filename,
         sscanf(str, "%s %d %d %d", ch, &(triangle.a), &(triangle.b),
                &(triangle.c));
       }
-      tris.emplace_back(triangle);
+      tris.push_back(triangle);
       if (normals.size()) {
         v[triangle.a - 1].set_normal(normals[triangle.n1 - 1]);
         v[triangle.b - 1].set_normal(normals[triangle.n2 - 1]);
         v[triangle.c - 1].set_normal(normals[triangle.n3 - 1]);
       }
     } else if (strcmp(ch, "mtllib") == 0) {
-      mtls.emplace_back(str + 7);
+      mtls.push_back(str + 7);
     }
   }
   f.close();
@@ -202,7 +202,7 @@ IOManager::ReadObj(const char *filename,
       normals.reserve(v.size());
 
       for (unsigned int i = 0; i!= v.size(); i++)
-        normals.emplace_back(v[i].normal());
+        normals.push_back(v[i].normal());
     }
   }
 

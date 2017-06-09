@@ -158,7 +158,7 @@ void testFunction( Scalar epsilon,
   points.reserve(nbPoints);
 
   for(unsigned int i = 0; i != nbPoints; i++){
-      points.emplace_back(Point::Random());
+      points.push_back(Point::Random());
   }
 
   struct ExtractFunctor{
@@ -199,7 +199,7 @@ void testFunction( Scalar epsilon,
       p.n  = getRandomPoint().normalized();
       p.id = i;
 
-      points.emplace_back(p);
+      points.push_back(p);
       _set.addElement(p.p,p.n, p.id)*/;
  //
 
@@ -231,7 +231,7 @@ void testFunction( Scalar epsilon,
 //  for(unsigned int i = 0; i != nbPrimitives; i++){
 //    Point p (0.5f*Point::Random() + half);
 
-//    primitives.emplace_back(Primitive(p, r));
+//    primitives.emplace_back(p, r);
 //  }
 
 //  // Test test intersection procedure
@@ -262,7 +262,7 @@ void testFunction( Scalar epsilon,
 //    for(unsigned int i = 0; i != nbPoints; i++)
 //      for(unsigned int j = i+1; j < primitives.size(); j++)
 //         if (primitives[j].intersectPoint(points[i], epsilon))
-//          p2.emplace_back(std::pair<unsigned int, unsigned int>(i,j));
+//          p2.emplace_back(i,j);
 //    Utilities::stopTimer(t);
 
 //    // Check we get the same set size
