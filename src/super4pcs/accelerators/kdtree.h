@@ -230,7 +230,7 @@ public:
     template<typename IndexContainer = std::vector<Index> >
     inline void
     doQueryDistIndices(const VectorType& queryPoint,
-                       float sqdist,
+                       Scalar sqdist,
                        IndexContainer& result){
         _doQueryDistIndicesWithFunctor(queryPoint,
                                       sqdist,
@@ -285,7 +285,7 @@ protected:
     template<typename Functor >
     inline void
     _doQueryDistIndicesWithFunctor(const VectorType& queryPoint,
-                                   float sqdist,
+                                   Scalar sqdist,
                                    Functor f);
 protected:
 
@@ -449,9 +449,8 @@ KdTree<Scalar, Index>::doQueryRestrictedClosestIndex(
 template<typename Scalar, typename Index>
 template<typename Functor >
 void
-KdTree<Scalar, Index>::_doQueryDistIndicesWithFunctor(
-        const VectorType& queryPoint,
-        float sqdist,
+KdTree<Scalar, Index>::_doQueryDistIndicesWithFunctor(const VectorType& queryPoint,
+        Scalar sqdist,
         Functor f)
 {
     mNodeStack[0].nodeId = 0;

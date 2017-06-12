@@ -61,27 +61,30 @@ public:
     using Scalar = _Scalar;
 
 private:
-    const uint64 MAGIC1 = 100000007;
-    const uint64 MAGIC2 = 161803409;
-    const uint64 MAGIC3 = 423606823;
-    const uint64 NO_DATA = 0xffffffffu;
+    const uint64_t MAGIC1 = 100000007;
+    const uint64_t MAGIC2 = 161803409;
+    const uint64_t MAGIC3 = 423606823;
+    const uint64_t NO_DATA = 0xffffffffu;
     Scalar voxel_;
     Scalar scale_;
     using VoxelType = std::array<int,3>;
     std::vector<VoxelType> voxels_;
-    std::vector<uint64> data_;
+    std::vector<uint64_t> data_;
 
 public:
     HashTable(int maxpoints, Scalar voxel) : voxel_(voxel), scale_(1.0f / voxel) {
-        uint64 n = maxpoints;
+        uint64_t n = maxpoints;
         voxels_.resize(n);
         data_.resize(n, NO_DATA);
     }
     template <typename Point>
-    uint64& operator[](const Point& p) {
-        VoxelType c {int(floor(p.x * scale_)), int(floor(p.y * scale_)), int(floor(p.z * scale_))};
+    uint64_t& operator[](const Point& p) {
+        // TODO: use eigen power here.
+        VoxelType c {int(floor(p.x() * scale_)),
+                     int(floor(p.y() * scale_)),
+                     int(floor(p.z() * scale_))};
 
-        uint64 key = (MAGIC1 * c[0] + MAGIC2 * c[1] + MAGIC3 * c[2]) % data_.size();
+        uint64_t key = (MAGIC1 * c[0] + MAGIC2 * c[1] + MAGIC3 * c[2]) % data_.size();
         while (1) {
             if (data_[key] == NO_DATA) {
                 voxels_[key] = c;
@@ -100,13 +103,13 @@ public:
 template <typename Point>
 static inline
 void DistUniformSampling(const std::vector<Point>& set,
-                         float delta,
+                         typename Point::Scalar delta,
                          std::vector<Point>* sample) {
   int num_input = set.size();
   sample->clear();
   HashTable<typename Point::Scalar> hash(num_input, delta);
   for (int i = 0; i < num_input; i++) {
-    uint64& ind = hash[set[i]];
+    uint64_t& ind = hash[set[i]];
     if (ind >= num_input) {
       sample->push_back(set[i]);
       ind = sample->size();
