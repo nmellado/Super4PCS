@@ -59,8 +59,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core/eigen.hpp>
 
 #include <boost/filesystem.hpp>
 
@@ -76,7 +74,7 @@
 using namespace std;
 using namespace match_4pcs;
 
-typedef double Scalar;
+using Scalar = Point3D::Scalar;
 enum {Dim = 3};
 typedef Eigen::Transform<Scalar, Dim, Eigen::Affine> Transform;
 
@@ -204,7 +202,7 @@ void test_model(const vector<Transform> &transforms,
     cout << "Matching " << input2.c_str() << endl;
 
     vector<Point3D> set1, set2;
-    vector<cv::Point2f> tex_coords1, tex_coords2;
+    vector<Eigen::Matrix2f> tex_coords1, tex_coords2;
     vector<typename Point3D::VectorType> normals1, normals2;
     vector<tripple> tris1, tris2;
     vector<std::string> mtls1, mtls2;
@@ -224,18 +222,19 @@ void test_model(const vector<Transform> &transforms,
     // accumulate error during the matching process
     // Transforms Q by the new transformation.
     {
-        cv::Mat transformation = cv::Mat::eye(4, 4, CV_64F);
-        cv::eigen2cv(transforms[i-1].inverse().matrix(), transformation);
-        for (int i = 0; i < set1.size(); ++i) {
-            cv::Mat first(4, 1, CV_64F), transformed;
-            first.at<double>(0, 0) = set1[i].x;
-            first.at<double>(1, 0) = set1[i].y;
-            first.at<double>(2, 0) = set1[i].z;
-            first.at<double>(3, 0) = 1;
-            transformed = transformation * first;
-            set1[i].x = transformed.at<double>(0, 0);
-            set1[i].y = transformed.at<double>(1, 0);
-            set1[i].z = transformed.at<double>(2, 0);
+        Match4PCSBase::MatrixType transformation = transforms[i-1].inverse().matrix();
+        for (int j = 0; j < set1.size(); ++j) {
+            set1[j].pos() = (transformation * set1[j].pos().homogeneous()).head<3>();
+
+//            cv::Mat first(4, 1, CV_64F), transformed;
+//            first.at<double>(0, 0) = set1[j].x();
+//            first.at<double>(1, 0) = set1[j].y();
+//            first.at<double>(2, 0) = set1[j].z();
+//            first.at<double>(3, 0) = 1;
+//            transformed = transformation * first;
+//            set1[j].x() = transformed.at<double>(0, 0);
+//            set1[j].y() = transformed.at<double>(1, 0);
+//            set1[j].z() = transformed.at<double>(2, 0);
         }
     }
 
@@ -245,7 +244,8 @@ void test_model(const vector<Transform> &transforms,
     Match4PCSOptions options;
 
     // Set parameters.
-    cv::Mat mat = cv::Mat::eye(4, 4, CV_64F);
+    //cv::Mat mat = cv::Mat::eye(4, 4, CV_64F);
+    Match4PCSBase::MatrixType mat;
     options.overlap_estimation = overlaps[param_i];
     options.sample_size = n_points[param_i];
     options.max_normal_difference = norm_diff;
@@ -267,7 +267,7 @@ void test_model(const vector<Transform> &transforms,
              << " -c " << options.max_color_distance
              << " -t " << options.max_time_seconds
              << endl;
-        score = matcher.ComputeTransformation(mergedset, &set2, &mat);
+        score = matcher.ComputeTransformation(mergedset, &set2, mat);
     }else{
         Match4PCS matcher(options);
         cout << "./Super4PCS -i "
@@ -281,7 +281,7 @@ void test_model(const vector<Transform> &transforms,
              << " -t " << options.max_time_seconds
              << " -x "
              << endl;
-        score = matcher.ComputeTransformation(mergedset, &set2, &mat);
+        score = matcher.ComputeTransformation(mergedset, &set2, mat);
     }
 
 
@@ -297,11 +297,7 @@ void test_model(const vector<Transform> &transforms,
                            mtls2);
 #endif
 
-    // convert matrix to eigen matrix, and
-    Eigen::Matrix<Scalar,4, 4> mat_eigen;
-    cv::cv2eigen(mat,mat_eigen);
-
-    Transform transformEst (mat_eigen);
+    Transform transformEst (mat);
 
     cout << "Reference: " << endl << transforms[i].matrix() << endl;
     cout << "Estimation: " << endl << transformEst.matrix() << endl;
@@ -335,7 +331,7 @@ void test_model(const vector<Transform> &transforms,
     iss2 << "_merged.ply";
     iomanager.WriteObject(iss2.str().c_str(),
                            mergedset,
-                           vector<cv::Point2f>(),
+                           vector<Eigen::Matrix2f>(),
                            vector<typename Point3D::VectorType>(),
                            vector<tripple>(),
                            vector<std::string>());

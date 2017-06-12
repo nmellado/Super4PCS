@@ -54,6 +54,7 @@ public:
     using Base        = Super4PCS::Match4PCSBase;
     using Scalar      = typename Base::Scalar;
     using PairsVector = typename Base::PairsVector;
+    using VectorType  = typename Base::VectorType;
 
     explicit Match4PCS(const Match4PCSOptions& options);
 

@@ -45,7 +45,6 @@
 #define _MATCH_4PCS_BASE_
 
 #include <vector>
-#include <opencv2/highgui/highgui.hpp>
 
 #include "shared4pcs.h"
 #include "sampling.h"
@@ -72,8 +71,11 @@ public:
     using Point3D = match_4pcs::Point3D;
     using PairsVector =  std::vector< std::pair<int, int> >;
     using Scalar = typename Point3D::Scalar;
+    using VectorType = typename Point3D::VectorType;
+    using MatrixType = Eigen::Matrix<Scalar, 4, 4>;
 
     static constexpr int kNumberOfDiameterTrials = 1000;
+    static constexpr Scalar kLargeNumber = 1e9;
     static constexpr Scalar distance_factor = 2.0;
 
     // Read access to the sampled clouds used for the registration
@@ -100,7 +102,7 @@ public:
     Scalar
     ComputeTransformation(const std::vector<Point3D>& P,
                           std::vector<Point3D>* Q,
-                          cv::Mat* transformation);
+                          Eigen::Ref<MatrixType> transformation);
 
 
 protected:
@@ -110,21 +112,17 @@ protected:
     // P and the estimated overlap and used to limit the distance between the
     // points in the base in P so that the probability to have all points in
     // the base as inliers is increased.
-    float max_base_diameter_;
+    Scalar max_base_diameter_;
     // The diameter of P.
-    float P_diameter_;
+    Scalar P_diameter_;
     // Mean distance between points and their nearest neighbor in the set P.
     // Used to normalize the "delta" which is given in terms of this distance.
-    float P_mean_distance_;
+    Scalar P_mean_distance_;
     // The centroid about which we rotate a congruent set in Q to match the base
     // in P. It is used temporarily and makes the transformations more robust to
     // noise. At the end, the direct transformation applied as a 4x4 matrix on
     // every points in Q is computed and returned.
-    cv::Point3d centroid_;
-    // The translation vector by which we move Q to match P.
-    cv::Point3d translate_;
-    // The rotation matrix by which we rotate Q to match P.
-    cv::Mat rotate_;
+    VectorType centroid_;
     // The transformation matrix by wich we transform Q to P
     Eigen::Matrix<Scalar, 4, 4> transform_;
     // Quad centroids in first and second clouds
@@ -149,11 +147,11 @@ protected:
     // transformed version.
     std::vector<Point3D> Q_copy_;
     // The centroid of P.
-    cv::Point3d centroid_P_;
+    VectorType centroid_P_;
     // The centroid of Q.
-    cv::Point3d centroid_Q_;
+    VectorType centroid_Q_;
     // The best LCP (Largest Common Point) fraction so far.
-    float best_LCP_;
+    Scalar best_LCP_;
     // Current trial.
     int current_trial_;
     // KdTree used to compute the LCP
@@ -220,7 +218,7 @@ protected:
                                     const Eigen::Matrix<Scalar, 3, 1>& centroid1,
                                     Eigen::Matrix<Scalar, 3, 1> centroid2,
                                     Scalar max_angle,
-                                    Eigen::Matrix<Scalar, 4, 4> &transform,
+                                    Eigen::Ref<MatrixType> transform,
                                     Scalar& rms_,
                                     bool computeScale );
 
@@ -238,13 +236,15 @@ protected:
     // computing the number of points that this transformation brings near points
     // in Q. Returns the current LCP. R is the rotation matrix, (tx,ty,tz) is
     // the translation vector and (cx,cy,cz) is the center of transformation.template <class MatrixDerived>
-    Scalar Verify(const Eigen::Matrix<Scalar, 4, 4>& mat);
+    Scalar Verify(const Eigen::Ref<const MatrixType> & mat);
 
     // Performs n RANSAC iterations, each one of them containing base selection,
     // finding congruent sets and verification. Returns true if the process can be
     // terminated (the target LCP was obtained or the maximum number of trials has
     // been reached), false otherwise.
-    bool Perform_N_steps(int n, cv::Mat* transformation, std::vector<Point3D>* Q);
+    bool Perform_N_steps(int n,
+                         Eigen::Ref<MatrixType> transformation,
+                         std::vector<Point3D>* Q);
 
     // Tries one base and finds the best transformation for this base.
     // Returns true if the achieved LCP is greater than terminate_threshold_,

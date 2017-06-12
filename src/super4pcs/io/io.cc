@@ -3,6 +3,11 @@
 
 #include <Eigen/Geometry>
 
+#ifdef WITH_OPENCV
+    #include <opencv2/core/core.hpp>
+    #include <opencv2/highgui/highgui.hpp>
+#endif
+
 #define LINE_BUF_SIZE 100
 
 using namespace std;
@@ -13,7 +18,7 @@ using namespace std;
 bool
 IOManager::ReadObject(const char *name,
            vector<Point3D> &v,
-           vector<cv::Point2f> &tex_coords,
+           vector<Eigen::Matrix2f> &tex_coords,
            vector<typename Point3D::VectorType> &normals,
            vector<tripple> &tris,
            vector<std::string> &mtls){
@@ -110,9 +115,9 @@ bool IOManager::ReadPtx(const char *filename, vector<Point3D> &vertex)
         f.getline(line,LINE_BUF_SIZE);
         std::stringstream ss(line);
 
-        ss >> ptx.x;
-        ss >> ptx.y;
-        ss >> ptx.z;
+        ss >> ptx.x();
+        ss >> ptx.y();
+        ss >> ptx.z();
         ss >> intensity;
         ss >> rgb(0);
         ss >> rgb(1);
@@ -131,7 +136,7 @@ bool IOManager::ReadPtx(const char *filename, vector<Point3D> &vertex)
 bool
 IOManager::ReadObj(const char *filename,
                    vector<Point3D> &v,
-                   vector<cv::Point2f> &tex_coords,
+                   vector<Eigen::Matrix2f> &tex_coords,
                    vector<typename Point3D::VectorType> &normals,
                    vector<tripple> &tris,
                    vector<std::string> &mtls) {
@@ -150,8 +155,8 @@ IOManager::ReadObj(const char *filename,
       v.emplace_back(x, y, z);
       v[v.size() - 1].set_rgb(Point3D::VectorType::Zero());
     } else if (strcmp(ch, "vt") == 0) {
-      cv::Point2f tex_coord;
-      sscanf(str, "%s %f %f", ch, &tex_coord.x, &tex_coord.y);
+      Eigen::Matrix2f tex_coord;
+      sscanf(str, "%s %f %f", ch, &tex_coord.coeffRef(0), &tex_coord.coeffRef(1));
       tex_coords.push_back(tex_coord);
     } else if (strcmp(ch, "vn") == 0) {
       typename Point3D::VectorType normal;
@@ -214,34 +219,40 @@ IOManager::ReadObj(const char *filename,
       f >> dummy;
       if (strcmp(dummy.c_str(), "map_Kd") == 0) {
         f >> img_name;
+#ifdef WITH_OPENCV
         cv::Mat tex = cv::imread(img_name);
         if (!tex.empty()) {
           for (int i = 0; i < tris.size(); ++i) {
             const tripple &t = tris[i];
-            cv::Point2f tc1 = tex_coords[t.t1 - 1];
-            cv::Point2f tc2 = tex_coords[t.t2 - 1];
-            cv::Point2f tc3 = tex_coords[t.t3 - 1];
-            if (tc1.x < 1.0 && tc1.x > 0 && tc1.y < 1.0 && tc1.y > 0 &&
-                tc2.x < 1.0 && tc2.x > 0 && tc2.y < 1.0 && tc2.y > 0 &&
-                tc3.x < 1.0 && tc3.x > 0 && tc3.y < 1.0 && tc3.y > 0) {
+            Eigen::Matrix2f tc1 = tex_coords[t.t1 - 1];
+            Eigen::Matrix2f tc2 = tex_coords[t.t2 - 1];
+            Eigen::Matrix2f tc3 = tex_coords[t.t3 - 1];
+            if ((tc1.array() < 1.0 && tc1.array() > 1.0 ).all() &&
+                (tc2.array() < 1.0 && tc2.array() > 1.0 ).all() &&
+                (tc3.array() < 1.0 && tc3.array() > 1.0 ).all()) {
 
               v[t.a - 1].set_rgb(typename Point3D::VectorType(
-                  tex.at<cv::Vec3b>(tc1.y * tex.rows, tc1.x * tex.cols)[0],
-                  tex.at<cv::Vec3b>(tc1.y * tex.rows, tc1.x * tex.cols)[1],
-                  tex.at<cv::Vec3b>(tc1.y * tex.rows, tc1.x * tex.cols)[2]));
+                  tex.at<cv::Vec3b>(tc1.coeffRef(1) * tex.rows, tc1.coeffRef(0) * tex.cols)[0],
+                  tex.at<cv::Vec3b>(tc1.coeffRef(1) * tex.rows, tc1.coeffRef(0) * tex.cols)[1],
+                  tex.at<cv::Vec3b>(tc1.coeffRef(1) * tex.rows, tc1.coeffRef(0) * tex.cols)[2]));
 
               v[t.b - 1].set_rgb(typename Point3D::VectorType(
-                  tex.at<cv::Vec3b>(tc2.y * tex.rows, tc2.x * tex.cols)[0],
-                  tex.at<cv::Vec3b>(tc2.y * tex.rows, tc2.x * tex.cols)[1],
-                  tex.at<cv::Vec3b>(tc2.y * tex.rows, tc2.x * tex.cols)[2]));
+                  tex.at<cv::Vec3b>(tc2.coeffRef(1) * tex.rows, tc2.coeffRef(0) * tex.cols)[0],
+                  tex.at<cv::Vec3b>(tc2.coeffRef(1) * tex.rows, tc2.coeffRef(0) * tex.cols)[1],
+                  tex.at<cv::Vec3b>(tc2.coeffRef(1) * tex.rows, tc2.coeffRef(0) * tex.cols)[2]));
 
               v[t.c - 1].set_rgb(typename Point3D::VectorType(
-                  tex.at<cv::Vec3b>(tc3.y * tex.rows, tc3.x * tex.cols)[0],
-                  tex.at<cv::Vec3b>(tc3.y * tex.rows, tc3.x * tex.cols)[1],
-                  tex.at<cv::Vec3b>(tc3.y * tex.rows, tc3.x * tex.cols)[2]));
+                  tex.at<cv::Vec3b>(tc3.coeffRef(1) * tex.rows, tc3.coeffRef(0) * tex.cols)[0],
+                  tex.at<cv::Vec3b>(tc3.coeffRef(1) * tex.rows, tc3.coeffRef(0) * tex.cols)[1],
+                  tex.at<cv::Vec3b>(tc3.coeffRef(1) * tex.rows, tc3.coeffRef(0) * tex.cols)[2]));
             }
           }
         }
+#else
+        std::cerr << "OpenCV is required to load material textures. Skipping "
+                  << img_name.c_str()
+                  << std::endl;
+#endif
       }
     }
   }
@@ -258,7 +269,7 @@ IOManager::ReadObj(const char *filename,
 bool
 IOManager::WriteObject(const char *name,
                        const vector<Point3D> &v,
-                       const vector<cv::Point2f> &tex_coords,
+                       const vector<Eigen::Matrix2f> &tex_coords,
                        const vector<typename Point3D::VectorType> &normals,
                        const vector<tripple> &tris,
                        const vector<std::string> &mtls) {
@@ -286,9 +297,10 @@ IOManager::WriteObject(const char *name,
 
 }
 
-bool IOManager::WriteMatrix(const string &name,
-                            const cv::Mat &mat,
-                            IOManager::MATRIX_MODE mode)
+bool IOManager::WriteMatrix(
+        const string &name,
+        const Eigen::Ref<const Eigen::Matrix<double, 4, 4> >& mat,
+        IOManager::MATRIX_MODE mode)
 {
     std::ofstream sstr;
     sstr.open(name, std::ofstream::out | std::ofstream::trunc);
@@ -357,11 +369,15 @@ IOManager::WritePly(string filename,
   plyFile << "end_header" << std::endl;
 
   // Read all elements in data, correct their depth and print them in the file
-  char tmpColor;
+  char tmpChar;
+  float tmpFloat;
   for (unsigned int i = 0; i!=v.size(); i++){
-    plyFile.write(reinterpret_cast<const char*>(&v[i].x),sizeof(float));
-    plyFile.write(reinterpret_cast<const char*>(&v[i].y),sizeof(float));
-    plyFile.write(reinterpret_cast<const char*>(&v[i].z),sizeof(float));
+    tmpFloat = v[i].x();
+    plyFile.write(reinterpret_cast<const char*>(&tmpFloat),sizeof(float));
+    tmpFloat = v[i].y();
+    plyFile.write(reinterpret_cast<const char*>(&tmpFloat),sizeof(float));
+    tmpFloat = v[i].z();
+    plyFile.write(reinterpret_cast<const char*>(&tmpFloat),sizeof(float));
 
     if (useNormals){
       plyFile.write(reinterpret_cast<const char*>(&normals[i](0)),sizeof(float));
@@ -370,12 +386,12 @@ IOManager::WritePly(string filename,
     }
 
     if (useColors){
-      tmpColor = v[i].rgb()[0];
-      plyFile.write(reinterpret_cast<const char*>(&tmpColor),sizeof(char));
-      tmpColor = v[i].rgb()[1];
-      plyFile.write(reinterpret_cast<const char*>(&tmpColor),sizeof(char));
-      tmpColor = v[i].rgb()[2];
-      plyFile.write(reinterpret_cast<const char*>(&tmpColor),sizeof(char));
+      tmpChar = v[i].rgb()[0];
+      plyFile.write(reinterpret_cast<const char*>(&tmpChar),sizeof(char));
+      tmpChar = v[i].rgb()[1];
+      plyFile.write(reinterpret_cast<const char*>(&tmpChar),sizeof(char));
+      tmpChar = v[i].rgb()[2];
+      plyFile.write(reinterpret_cast<const char*>(&tmpChar),sizeof(char));
     }
   }
 
@@ -386,7 +402,7 @@ IOManager::WritePly(string filename,
 
 bool
 IOManager::WriteObj(string filename, const vector<Point3D> &v,
-                    const vector<cv::Point2f> &tex_coords,
+                    const vector<Eigen::Matrix2f> &tex_coords,
                     const vector<typename Point3D::VectorType> &normals,
                     const vector<tripple> &tris,
                     const vector<std::string> &mtls) {
@@ -402,7 +418,7 @@ IOManager::WriteObj(string filename, const vector<Point3D> &v,
 
   for (i = 0; i < v.size(); ++i) {
     f << "v "
-      << v[i].x << " " << v[i].y << " " << v[i].z << " ";
+      << v[i].x() << " " << v[i].y() << " " << v[i].z() << " ";
 
     if (v[i].rgb()[0] != 0)
       f << v[i].rgb()[0] << " " << v[i].rgb()[1] << " " << v[i].rgb()[2];
@@ -416,7 +432,7 @@ IOManager::WriteObj(string filename, const vector<Point3D> &v,
   }
 
   for (i = 0; i < tex_coords.size(); ++i) {
-    f << "vt " << tex_coords[i].x << " " << tex_coords[i].y << endl;
+    f << "vt " << tex_coords[i].coeffRef(0) << " " << tex_coords[i].coeffRef(1) << endl;
   }
 
   for (i = 0; i < tris.size(); ++i) {
@@ -438,7 +454,9 @@ IOManager::WriteObj(string filename, const vector<Point3D> &v,
 
 
 std::ofstream &
-IOManager::formatPolyworksMatrix(const cv::Mat& mat, std::ofstream &sstr) {
+IOManager::formatPolyworksMatrix(
+        const Eigen::Ref<const Eigen::Matrix<double, 4, 4> > &mat,
+        std::ofstream &sstr) {
 
     auto formatValue = [](const double& v){
         return (v >= 0.
@@ -449,10 +467,10 @@ IOManager::formatPolyworksMatrix(const cv::Mat& mat, std::ofstream &sstr) {
     sstr << "VERSION\t=\t1\n";
     sstr << "MATRIX\t=\n";
     for (int j = 0; j!= 4; ++j){
-        sstr << formatValue(mat.at<double>(j, 0)) << "  "
-             << formatValue(mat.at<double>(j, 1)) << "  "
-             << formatValue(mat.at<double>(j, 2)) << "  "
-             << formatValue(mat.at<double>(j, 3)) << "\n";
+        sstr << formatValue(mat(j, 0)) << "  "
+             << formatValue(mat(j, 1)) << "  "
+             << formatValue(mat(j, 2)) << "  "
+             << formatValue(mat(j, 3)) << "\n";
     }
 
     return sstr;

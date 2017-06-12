@@ -55,8 +55,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core/eigen.hpp>
 #include "accelerators/normalHealSet.h"
 #include "accelerators/normalset.h"
 #include "accelerators/pairExtraction/bruteForceFunctor.h"
@@ -207,9 +205,9 @@ void testFunction( Scalar epsilon,
   /// quadrangles extraction
 
   // Compute the angle formed by the two vectors of the basis
-  Point3D b1 ((basis.b - basis.a).eval());  b1.normalize();
-  Point3D b2 ((basis.d - basis.c).eval());  b2.normalize();
-  double alpha = b1.dot(b2);
+  const Scalar alpha =
+          (basis.b - basis.a).normalized().dot(
+          (basis.d - basis.c).normalized());
 
 
   struct Quadrangle { std::array<int, 4> ids; };

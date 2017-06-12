@@ -93,16 +93,6 @@ include_directories(${Chealpix_INCLUDE_DIR})
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-find_package( OpenCV REQUIRED core highgui)
-
-# Add package imgcodec required for cv::imread with OpenCV 3.0
-if (${OpenCV_VERSION} GREATER "3.0.0")
-    find_package( OpenCV REQUIRED imgcodecs )
-endif (${OpenCV_VERSION} GREATER "3.0.0")
-
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-
-
 find_path(ANN_DIR ann_1.1.2)
 IF(DEFINED ANN_DIR)
   set(ANN_INCLUDE_DIR "${ANN_DIR}/include")
@@ -156,6 +146,5 @@ add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs_test.cc)
 
 TARGET_LINK_LIBRARIES(super4pcs_algo super4pcs_io super4pcs_accel)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} super4pcs_algo super4pcs_utils)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${OpenCV_LIBS} )
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${ANN_LIBS} )
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Chealpix_LIBS} )

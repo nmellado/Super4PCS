@@ -5,8 +5,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core/eigen.hpp>
 
 #include "io/io.h"
 #include "utils/geometry.h"
@@ -122,7 +120,7 @@ int main(int argc, char **argv) {
   using namespace Super4PCS;
 
   vector<Point3D> set1, set2;
-  vector<cv::Point2f> tex_coords1, tex_coords2;
+  vector<Eigen::Matrix2f> tex_coords1, tex_coords2;
   vector<typename Point3D::VectorType> normals1, normals2;
   vector<tripple> tris1, tris2;
   vector<std::string> mtls1, mtls2;
@@ -154,7 +152,7 @@ int main(int argc, char **argv) {
   Match4PCSOptions options;
 
   // Set parameters.
-  cv::Mat mat = cv::Mat::eye(4, 4, CV_64F);
+  Match4PCSBase::MatrixType mat;
   options.overlap_estimation = overlap;
   options.sample_size = n_points;
   options.max_normal_difference = norm_diff;
@@ -162,14 +160,14 @@ int main(int argc, char **argv) {
   options.max_time_seconds = max_time_seconds;
   options.delta = delta;
   // Match and return the score (estimated overlap or the LCP).
-  float score = 0;
+  typename Point3D::Scalar score = 0;
 
   try {
 
       if (use_super4pcs) {
           MatchSuper4PCS matcher(options);
           cout << "Use Super4PCS" << endl;
-          score = matcher.ComputeTransformation(set1, &set2, &mat);
+          score = matcher.ComputeTransformation(set1, &set2, mat);
 
           if(! outputSampled1.empty() ){
               std::cout << "Exporting Sampled cloud 1 to "
@@ -177,7 +175,7 @@ int main(int argc, char **argv) {
                         << "..." << std::flush;
               iomananger.WriteObject((char *)outputSampled1.c_str(),
                                      matcher.getFirstSampled(),
-                                     vector<cv::Point2f>(),
+                                     vector<Eigen::Matrix2f>(),
                                      vector<typename Point3D::VectorType>(),
                                      vector<tripple>(),
                                      vector<string>());
@@ -189,7 +187,7 @@ int main(int argc, char **argv) {
                         << "..." << std::flush;
               iomananger.WriteObject((char *)outputSampled2.c_str(),
                                      matcher.getSecondSampled(),
-                                     vector<cv::Point2f>(),
+                                     vector<Eigen::Matrix2f>(),
                                      vector<typename Point3D::VectorType>(),
                                      vector<tripple>(),
                                      vector<string>());
@@ -199,7 +197,7 @@ int main(int argc, char **argv) {
       else {
           Match4PCS matcher(options);
           cout << "Use old 4PCS" << endl;
-          score = matcher.ComputeTransformation(set1, &set2, &mat);
+          score = matcher.ComputeTransformation(set1, &set2, mat);
       }
 
   }
@@ -214,25 +212,17 @@ int main(int argc, char **argv) {
   }
 
   cout << "Score: " << score << endl;
-  cerr <<  score << endl;
-  printf("(Homogeneous) Transformation from %s to %s:\n", input2.c_str(),
-         input1.c_str());
-  printf(
-      "\n\n%25.3f %25.3f %25.3f %25.3f\n%25.3f %25.3f %25.3f %25.3f\n%25.3f "
-      "%25.3f %25.3f %25.3f\n%25.3f %25.3f %25.3f %25.3f\n\n",
-      mat.at<double>(0, 0), mat.at<double>(0, 1), mat.at<double>(0, 2),
-      mat.at<double>(0, 3), mat.at<double>(1, 0), mat.at<double>(1, 1),
-      mat.at<double>(1, 2), mat.at<double>(1, 3), mat.at<double>(2, 0),
-      mat.at<double>(2, 1), mat.at<double>(2, 2), mat.at<double>(2, 3),
-      mat.at<double>(3, 0), mat.at<double>(3, 1), mat.at<double>(3, 2),
-      mat.at<double>(3, 3));
+  cout <<"(Homogeneous) Transformation from " << input2.c_str()
+       << " to "<< input1.c_str() << ":\n";
+
+  cout << mat << std::endl;
 
 
   if(! outputMat.empty() ){
       std::cout << "Exporting Matrix to "
                 << outputMat.c_str()
                 << "..." << std::flush;
-      iomananger.WriteMatrix(outputMat, mat, IOManager::POLYWORKS);
+      iomananger.WriteMatrix(outputMat, mat.cast<double>(), IOManager::POLYWORKS);
       std::cout << "DONE" << std::endl;
   }
 

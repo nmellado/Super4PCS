@@ -168,21 +168,21 @@ readBinary1Body (const std::string & filename,
     typename Point3D::VectorType n;
     typename Point3D::VectorType rgb;
     float * v = new float[numOfVertexProperties];
-    uchar rgb_buff [4];
+    unsigned char rgb_buff [4];
 
     for (unsigned int i = 0; i < numOfVertices && !feof (in); i++) {
         if (numOfVertexProperties==10){
             fread (v, 4, 6, in);
-            fread (rgb_buff, sizeof(uchar), 4, in);
+            fread (rgb_buff, sizeof(unsigned char), 4, in);
         }else if (numOfVertexProperties==9){
             fread (v, 4, 6, in);
-            fread (rgb_buff, sizeof(uchar), 3, in);
+            fread (rgb_buff, sizeof(unsigned char), 3, in);
         }else if (numOfVertexProperties==6 && haveColor){
             fread (v, 4, 3, in);
-            fread (rgb_buff, sizeof(uchar), 3, in);
+            fread (rgb_buff, sizeof(unsigned char), 3, in);
         }else if (numOfVertexProperties==7 ){
             fread (v, 4, 3, in);
-            fread (rgb_buff, sizeof(uchar), 4, in);
+            fread (rgb_buff, sizeof(unsigned char), 4, in);
         }
         else
             fread (v, 4, numOfVertexProperties, in);

@@ -47,103 +47,74 @@
 #include <vector>
 #include <memory>
 
-#include <opencv2/core/core.hpp>
 #include "Eigen/Core"
 
 #include "utils/disablewarnings.h"
 
 namespace match_4pcs {
 
-
-static const float kLargeNumber = 1e9;
-
-namespace internal{
-inline void RGB2HSV(float r, float g, float b,
-                    float &h, float &s, float &v)
-{
-    float K = 0.f;
-
-    if (g < b)
-    {
-        std::swap(g, b);
-        K = -1.f;
-    }
-
-    if (r < g)
-    {
-        std::swap(r, g);
-        K = -2.f / 6.f - K;
-    }
-
-    float chroma = r - std::min(g, b);
-    h = std::abs(K + (g - b) / (6.f * chroma + 1e-20f));
-    s = chroma / (r + 1e-20f);
-    v = r;
-}
-}
-
 // The basic 3D point structure. A point potentially contains also directional
 // information and color.
 //template <typename _Scalar = float>
-class Point3D : public cv::Point3d {
+class Point3D {
  public:
-  using Scalar = double; //_Scalar;
+  using Scalar = float; //_Scalar;
   using VectorType = Eigen::Matrix<Scalar, 3, 1>;
 
-  inline Point3D(double x, double y, double z) : cv::Point3d(x, y, z) {}
-  inline Point3D(const cv::Point3d& other): cv::Point3d(other) {}
+  inline Point3D(Scalar x, Scalar y, Scalar z) : pos_({ x, y, z}) {}
   inline Point3D(const Point3D& other):
-      cv::Point3d(other),
+      pos_(other.pos_),
       normal_(other.normal_),
-      rgb_(other.rgb_)/*,
-      hsv_(other.hsv_)*/ {}
+      rgb_(other.rgb_) {}
   template<typename Scalar>
   explicit inline Point3D(const Eigen::Matrix<Scalar, 3, 1>& other):
-      cv::Point3d(other(0), other(1), other(2)){
+      pos_({ other(0), other(1), other(2) }){
   }
 
-  inline Point3D() : cv::Point3d(0.0f, 0.0f, 0.0f) {}
+  inline Point3D() {}
+  inline VectorType& pos() { return pos_ ; }
+  inline const VectorType& pos() const { return pos_ ; }
   inline const VectorType& rgb() const { return rgb_; }
-//  inline const cv::Vec3f& hsv() const { return hsv_; }
+
   inline const VectorType& normal() const { return normal_; }
   inline void set_rgb(const VectorType& rgb) {
       rgb_ = rgb;
       hasColor_ = true;
-//      internal::RGB2HSV(rgb_[0]/255.f,rgb_[1]/255.f,rgb_[2]/255.f, hsv_[0],hsv_[1],hsv_[2]);
   }
   inline void set_normal(const VectorType& normal) {
       normal_ = normal.normalized();
   }
 
   inline void normalize() {
-    double n = cv::norm(*this);
-    x /= n;
-    y /= n;
-    z /= n;
+    pos_.normalize();
   }
   inline bool hasColor() const { return hasColor_; }
 
+  Scalar& x() { return pos_.coeffRef(0); }
+  Scalar& y() { return pos_.coeffRef(1); }
+  Scalar& z() { return pos_.coeffRef(2); }
+
+  Scalar x() const { return pos_.coeff(0); }
+  Scalar y() const { return pos_.coeff(1); }
+  Scalar z() const { return pos_.coeff(2); }
+
+
+
  private:
+  // Normal.
+  VectorType pos_{0.0f, 0.0f, 0.0f};
   // Normal.
   VectorType normal_{0.0f, 0.0f, 0.0f};
   // Color.
   VectorType rgb_{-1.0f, -1.0f, -1.0f};
-//  cv::Vec3f hsv_{-1.0f, -1.0f, -1.0f};
+
   bool hasColor_ = false;
 };
 
-// Throughout this file the first model is called P, the second is Q
-// and the measure we adopt for the quality of a given transformation is the
-// Largest Common Pointset (LCP), normalized to the size of P thus lies in
-// [0,1] (See the paper for details).
-
-
-// Local static helpers that do not depend on state.
-
-static inline float Square(float x) { return x * x; }
-
-static inline float PointsDistance(const Point3D& p, const Point3D& q) {
-  return cv::norm(p - q);
+template <class VectorType>
+static inline
+typename VectorType::Scalar PointsDistance(const VectorType& p, const VectorType& q) {
+  return (p - q).norm();
 }
 
 // Compute the closest points between two 3D line segments and obtain the two
@@ -151,26 +122,28 @@ static inline float PointsDistance(const Point3D& p, const Point3D& q) {
 // point that determines the invariants. Since the 4 points are not exactly
 // planar, we use the center of the line segment connecting the two closest
 // points as the "intersection".
-static float distSegmentToSegment(const cv::Point3d& p1, const cv::Point3d& p2,
-                                  const cv::Point3d& q1, const cv::Point3d& q2,
-                                  double& invariant1, double& invariant2) {
+template < typename VectorType, typename Scalar>
+static Scalar
+distSegmentToSegment(const VectorType& p1, const VectorType& p2,
+                     const VectorType& q1, const VectorType& q2,
+                     Scalar& invariant1, Scalar& invariant2) {
 
-  const float kSmallNumber = 0.0001;
-  cv::Point3d u = p2 - p1;
-  cv::Point3d v = q2 - q1;
-  cv::Point3d w = p1 - q1;
-  float a = u.dot(u);
-  float b = u.dot(v);
-  float c = v.dot(v);
-  float d = u.dot(w);
-  float e = v.dot(w);
-  float f = a * c - b * b;
+  static const Scalar kSmallNumber = 0.0001;
+  VectorType u = p2 - p1;
+  VectorType v = q2 - q1;
+  VectorType w = p1 - q1;
+  Scalar a = u.dot(u);
+  Scalar b = u.dot(v);
+  Scalar c = v.dot(v);
+  Scalar d = u.dot(w);
+  Scalar e = v.dot(w);
+  Scalar f = a * c - b * b;
   // s1,s2 and t1,t2 are the parametric representation of the intersection.
   // they will be the invariants at the end of this simple computation.
-  float s1 = 0.0;
-  float s2 = f;
-  float t1 = 0.0;
-  float t2 = f;
+  Scalar s1 = 0.0;
+  Scalar s2 = f;
+  Scalar t1 = 0.0;
+  Scalar t2 = f;
 
   if (f < kSmallNumber) {
     s1 = 0.0;
@@ -215,7 +188,7 @@ static float distSegmentToSegment(const cv::Point3d& p1, const cv::Point3d& p2,
   invariant1 = (abs(s1) < kSmallNumber ? 0.0 : s1 / s2);
   invariant2 = (abs(t1) < kSmallNumber ? 0.0 : t1 / t2);
 
-  return cv::norm( w + (invariant1 * u) - (invariant2 * v));
+  return ( w + (invariant1 * u) - (invariant2 * v)).norm();
 }
 
 // ----- 4PCS Options -----

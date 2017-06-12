@@ -18,6 +18,7 @@ private:
 public:
   using Scalar      = _Scalar;
   using PairsVector = std::vector<std::pair<int, int>>;
+  using VectorType  = typename Point3D::VectorType;
 
   // Processing data
   Scalar norm_threshold;
@@ -43,7 +44,7 @@ public:
   std::vector< Primitive > primitives;
 
 private:
-  cv::Point3d segment1;
+  VectorType segment1;
   std::vector<Point3D> base_3D_;
   int base_point1_, base_point2_;
 
@@ -99,9 +100,7 @@ public:
     // Compute bounding box on fine data to be SURE to have all points in the
     // unit bounding box
     for (unsigned int i = 0; i < nSamples; ++i) {
-        PairCreationFunctor::Point q ( Q_[i].x,
-                                       Q_[i].y,
-                                       Q_[i].z );
+        const VectorType &q = Q_[i].pos();
       points.push_back(q);
       bbox.extendTo(q);
     }
@@ -142,8 +141,8 @@ public:
     base_point1_ = base_point1;
     base_point2_ = base_point2;
 
-    segment1 = base_3D_[base_point2_] - base_3D_[base_point1_];
-    segment1 *= 1.0 / cv::norm(segment1);
+    segment1 = (base_3D_[base_point2_].pos() -
+                base_3D_[base_point1_].pos()).normalized();
   }
 
 
@@ -162,7 +161,7 @@ public:
       // normals is close to the angle between normals in the base. This can be
       // checked independent of the full rotation angles which are not yet
       // defined by segment matching alone..
-      const Scalar distance = cv::norm(q - p);
+      const Scalar distance = (q.pos() - p.pos()).norm();
 #ifndef MULTISCALE
       if (std::abs(distance - pair_distance) > pair_distance_epsilon) return;
 #endif
@@ -196,23 +195,21 @@ public:
       }
 
       if (options_.max_translation_distance > 0) {
-          const bool dist_good = cv::norm(p - base_3D_[base_point1_]) <
+          const bool dist_good = (p.pos() - base_3D_[base_point1_].pos()).norm() <
                   options_.max_translation_distance &&
-                  cv::norm(q - base_3D_[base_point2_]) <
+                  (q.pos() - base_3D_[base_point2_].pos()).norm() <
                   options_.max_translation_distance;
           if (! dist_good) return;
       }
 
+      // need cleaning here
       if (options_.max_angle > 0){
-          cv::Point3d segment2 = q - p;
-          segment2 *= 1.0 / cv::norm(segment2);
-          if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
+          VectorType segment2 = (q.pos() - p.pos()).normalized();
+          if (std::acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
               pairs->emplace_back(j, i);
           }
 
-          segment2 = p - q;
-          segment2 *= 1.0 / cv::norm(segment2);
-          if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
+          if (std::acos(segment1.dot(- segment2)) <= options_.max_angle * M_PI / 180.0) {
               // Add ordered pair.
               pairs->emplace_back(i, j);
           }

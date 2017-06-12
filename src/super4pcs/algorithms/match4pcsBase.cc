@@ -45,8 +45,6 @@
 #include "shared4pcs.h"
 
 #include <vector>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core/eigen.hpp>
 
 #include "Eigen/Core"
 #include "Eigen/Geometry"                 // MatrixBase.homogeneous()
@@ -76,13 +74,13 @@ Match4PCSBase::MeanDistance() {
   Scalar distance = 0.0;
 
   for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-    query_point << sampled_P_3D_[i].x, sampled_P_3D_[i].y, sampled_P_3D_[i].z;
+    query_point = sampled_P_3D_[i].pos().cast<Scalar>() ;
 
     Super4PCS::KdTree<Scalar>::Index resId =
         kd_tree_.doQueryRestrictedClosestIndex(query_point, P_diameter_ * kDiameterFraction, i);
 
     if (resId != Super4PCS::KdTree<Scalar>::invalidIndex()) {
-      distance += cv::norm(sampled_P_3D_[i] - sampled_P_3D_[resId]);
+      distance += (sampled_P_3D_[i].pos() - sampled_P_3D_[resId].pos()).norm();
       number_of_samples++;
     }
   }
@@ -103,12 +101,8 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
     const int kMinNumberOfTrials = 4;
     const Scalar kDiameterFraction = 0.3;
 
-    centroid_P_.x = 0;
-    centroid_P_.y = 0;
-    centroid_P_.z = 0;
-    centroid_Q_.x = 0;
-    centroid_Q_.y = 0;
-    centroid_Q_.z = 0;
+    centroid_P_ = VectorType::Zero();
+    centroid_Q_ = VectorType::Zero();
 
     sampled_P_3D_.clear();
     sampled_Q_3D_.clear();
@@ -158,35 +152,23 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
 
     // Compute the centroids.
     for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-        centroid_P_.x += sampled_P_3D_[i].x;
-        centroid_P_.y += sampled_P_3D_[i].y;
-        centroid_P_.z += sampled_P_3D_[i].z;
+        centroid_P_ += sampled_P_3D_[i].pos();
     }
 
-    centroid_P_.x /= sampled_P_3D_.size();
-    centroid_P_.y /= sampled_P_3D_.size();
-    centroid_P_.z /= sampled_P_3D_.size();
+    centroid_P_ /= Scalar(sampled_P_3D_.size());
 
     for (int i = 0; i < sampled_Q_3D_.size(); ++i) {
-        centroid_Q_.x += sampled_Q_3D_[i].x;
-        centroid_Q_.y += sampled_Q_3D_[i].y;
-        centroid_Q_.z += sampled_Q_3D_[i].z;
+        centroid_Q_ += sampled_Q_3D_[i].pos();
     }
 
-    centroid_Q_.x /= sampled_Q_3D_.size();
-    centroid_Q_.y /= sampled_Q_3D_.size();
-    centroid_Q_.z /= sampled_Q_3D_.size();
+    centroid_Q_ /= Scalar(sampled_Q_3D_.size());
 
     // Move the samples to the centroids to allow robustness in rotation.
     for (int i = 0; i < sampled_P_3D_.size(); ++i) {
-        sampled_P_3D_[i].x -= centroid_P_.x;
-        sampled_P_3D_[i].y -= centroid_P_.y;
-        sampled_P_3D_[i].z -= centroid_P_.z;
+        sampled_P_3D_[i].pos() -= centroid_P_;
     }
     for (int i = 0; i < sampled_Q_3D_.size(); ++i) {
-        sampled_Q_3D_[i].x -= centroid_Q_.x;
-        sampled_Q_3D_[i].y -= centroid_Q_.y;
-        sampled_Q_3D_[i].z -= centroid_Q_.z;
+        sampled_Q_3D_[i].pos() -= centroid_Q_;
     }
 
 
@@ -198,10 +180,8 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
     for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
         int at = rand() % sampled_Q_3D_.size();
         int bt = rand() % sampled_Q_3D_.size();
-        cv::Point3d u(sampled_Q_3D_[bt].x - sampled_Q_3D_[at].x,
-                      sampled_Q_3D_[bt].y - sampled_Q_3D_[at].y,
-                      sampled_Q_3D_[bt].z - sampled_Q_3D_[at].z);
-        Scalar l = cv::norm(u);
+
+        Scalar l = (sampled_Q_3D_[bt].pos() - sampled_Q_3D_[at].pos()).norm();
         if (l > P_diameter_) {
             P_diameter_ = l;
         }
@@ -256,19 +236,25 @@ bool Match4PCSBase::SelectRandomTriangle(int &base1, int &base2, int &base3) {
       // Pick the first point at random.
       int first_point = rand() % number_of_points;
 
+      const Scalar sq_max_base_diameter_ = max_base_diameter_*max_base_diameter_;
+
       // Try fixed number of times retaining the best other two.
       Scalar best_wide = 0.0;
       for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
         // Pick and compute
         const int second_point = rand() % number_of_points;
         const int third_point = rand() % number_of_points;
-        const cv::Point3d u = sampled_P_3D_[second_point] - sampled_P_3D_[first_point];
-        const cv::Point3d w = sampled_P_3D_[third_point] - sampled_P_3D_[first_point];
+        const VectorType u =
+                sampled_P_3D_[second_point].pos() -
+                sampled_P_3D_[first_point].pos();
+        const VectorType w =
+                sampled_P_3D_[third_point].pos() -
+                sampled_P_3D_[first_point].pos();
         // We try to have wide triangles but still not too large.
-        Scalar how_wide = cv::norm(u.cross(w));
+        Scalar how_wide = (u.cross(w)).norm();
         if (how_wide > best_wide &&
-                cv::norm(u) < max_base_diameter_ &&
-                cv::norm(w) < max_base_diameter_) {
+                u.squaredNorm() < sq_max_base_diameter_ &&
+                w.squaredNorm() < sq_max_base_diameter_) {
           best_wide = how_wide;
           base1 = first_point;
           base2 = second_point;
@@ -285,8 +271,10 @@ bool Match4PCSBase::SelectRandomTriangle(int &base1, int &base2, int &base3) {
 // corresponding the the base pairing are computed.
 bool Match4PCSBase::TryQuadrilateral(Scalar &invariant1, Scalar &invariant2,
                                      int& id1, int& id2, int& id3, int& id4) {
+  using match_4pcs::distSegmentToSegment;
 
-  float min_distance = FLT_MAX;
+
+  Scalar min_distance = std::numeric_limits<Scalar>::max();
   int best1, best2, best3, best4;
   best1 = best2 = best3 = best4 = -1;
   for (int i = 0; i < 4; ++i) {
@@ -300,8 +288,9 @@ bool Match4PCSBase::TryQuadrilateral(Scalar &invariant1, Scalar &invariant2,
       double local_invariant2;
       // Compute the closest points on both segments, the corresponding
       // invariants and the distance between the closest points.
-      float segment_distance = distSegmentToSegment(
-                  base_3D_[i], base_3D_[j], base_3D_[k], base_3D_[l],
+      Scalar segment_distance = distSegmentToSegment(
+                  base_3D_[i].pos(), base_3D_[j].pos(),
+                  base_3D_[k].pos(), base_3D_[l].pos(),
                   local_invariant1, local_invariant2);
       // Retail the smallest distance and the best order so far.
       if (segment_distance < min_distance) {
@@ -340,8 +329,9 @@ bool Match4PCSBase::SelectQuadrilateral(Scalar& invariant1, Scalar& invariant2,
                                         int& base1, int& base2, int& base3,
                                         int& base4) {
 
-  const float kBaseTooSmall = 0.2;
+  const Scalar kBaseTooSmall (0.2);
   int current_trial = 0;
+  using match_4pcs::PointsDistance;
 
   // Try fix number of times.
   while (current_trial < kNumberOfDiameterTrials) {
@@ -356,15 +346,15 @@ bool Match4PCSBase::SelectQuadrilateral(Scalar& invariant1, Scalar& invariant2,
 
     // The 4th point will be a one that is close to be planar to the other 3
     // while still not too close to them.
-    const double& x1 = base_3D_[0].x;
-    const double& y1 = base_3D_[0].y;
-    const double& z1 = base_3D_[0].z;
-    const double& x2 = base_3D_[1].x;
-    const double& y2 = base_3D_[1].y;
-    const double& z2 = base_3D_[1].z;
-    const double& x3 = base_3D_[2].x;
-    const double& y3 = base_3D_[2].y;
-    const double& z3 = base_3D_[2].z;
+    const double x1 = base_3D_[0].x();
+    const double y1 = base_3D_[0].y();
+    const double z1 = base_3D_[0].z();
+    const double x2 = base_3D_[1].x();
+    const double y2 = base_3D_[1].y();
+    const double z2 = base_3D_[1].z();
+    const double x3 = base_3D_[2].x();
+    const double y3 = base_3D_[2].y();
+    const double z3 = base_3D_[2].z();
 
     // Fit a plan.
     Scalar denom = (-x3 * y2 * z1 + x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 -
@@ -378,17 +368,17 @@ bool Match4PCSBase::SelectQuadrilateral(Scalar& invariant1, Scalar& invariant2,
       Scalar C =
           (-x2 * y1 + x3 * y1 + x1 * y2 - x3 * y2 - x1 * y3 + x2 * y3) / denom;
       base4 = -1;
-      Scalar best_distance = FLT_MAX;
+      Scalar best_distance = std::numeric_limits<Scalar>::max();
       // Go over all points in P.
       for (unsigned int i = 0; i < sampled_P_3D_.size(); ++i) {
         const Scalar too_small = max_base_diameter_ * kBaseTooSmall;
-        if (PointsDistance(sampled_P_3D_[i], sampled_P_3D_[base1]) >= too_small &&
-            PointsDistance(sampled_P_3D_[i], sampled_P_3D_[base2]) >= too_small &&
-            PointsDistance(sampled_P_3D_[i], sampled_P_3D_[base3]) >= too_small) {
+        if (PointsDistance(sampled_P_3D_[i].pos(), sampled_P_3D_[base1].pos()) >= too_small &&
+            PointsDistance(sampled_P_3D_[i].pos(), sampled_P_3D_[base2].pos()) >= too_small &&
+            PointsDistance(sampled_P_3D_[i].pos(), sampled_P_3D_[base3].pos()) >= too_small) {
           // Not too close to any of the first 3.
           const Scalar distance =
-              std::abs(A * sampled_P_3D_[i].x + B * sampled_P_3D_[i].y +
-                   C * sampled_P_3D_[i].z - 1.0);
+              std::abs(A * sampled_P_3D_[i].x() + B * sampled_P_3D_[i].y() +
+                   C * sampled_P_3D_[i].z() - 1.0);
           // Search for the most planar.
           if (distance < best_distance) {
             best_distance = distance;
@@ -416,13 +406,8 @@ void Match4PCSBase::initKdTree(){
   // Build the kdtree.
   kd_tree_ = Super4PCS::KdTree<Scalar>(number_of_points);
 
-  Super4PCS::KdTree<Scalar>::VectorType p;
   for (size_t i = 0; i < number_of_points; ++i) {
-    p << sampled_P_3D_[i].x,
-        sampled_P_3D_[i].y,
-        sampled_P_3D_[i].z;
-
-    kd_tree_.add(p);
+    kd_tree_.add(sampled_P_3D_[i].pos());
   }
   kd_tree_.finalize();
 }
@@ -444,11 +429,7 @@ bool Match4PCSBase::TryCongruentSet(
 
 
     // Centroid of the basis, computed once and using only the three first points
-    Eigen::Matrix<Scalar, 3, 1> centroid1;
-    // Must be improved when running without opencv
-    centroid1 << (b1.x + b2.x + b3.x) / Scalar(3.),
-                 (b1.y + b2.y + b3.y) / Scalar(3.),
-                 (b1.z + b2.z + b3.z) / Scalar(3.);
+    Eigen::Matrix<Scalar, 3, 1> centroid1 = (b1.pos() + b2.pos() + b3.pos()) / Scalar(3);
 
     // Centroid of the sets, computed in the loop using only the three first points
     Eigen::Matrix<Scalar, 3, 1> centroid2;
@@ -484,9 +465,9 @@ bool Match4PCSBase::TryCongruentSet(
                 << d << std::endl;
   #endif
 
-      centroid2 << (congruent_points[0].second.x + congruent_points[1].second.x + congruent_points[2].second.x) / Scalar(3.),
-                   (congruent_points[0].second.y + congruent_points[1].second.y + congruent_points[2].second.y) / Scalar(3.),
-                   (congruent_points[0].second.z + congruent_points[1].second.z + congruent_points[2].second.z) / Scalar(3.);
+      centroid2 = (congruent_points[0].second.pos() +
+                   congruent_points[1].second.pos() +
+                   congruent_points[2].second.pos()) / Scalar(3.);
 
       Scalar rms = -1;
 
@@ -544,49 +525,47 @@ bool Match4PCSBase::TryCongruentSet(
 }
 
 
-bool Match4PCSBase::ComputeRigidTransformation(
-        const std::array< std::pair<Point3D, Point3D>,4>& pairs,
+bool Match4PCSBase::ComputeRigidTransformation(const std::array< std::pair<Point3D, Point3D>,4>& pairs,
         const Eigen::Matrix<Scalar, 3, 1>& centroid1,
         Eigen::Matrix<Scalar, 3, 1> centroid2,
         Scalar max_angle,
-        Eigen::Matrix<Scalar, 4, 4> &transform,
+        Eigen::Ref<MatrixType> transform,
         Scalar& rms_,
         bool computeScale ) {
 
-  rms_ = match_4pcs::kLargeNumber;
+  rms_ = kLargeNumber;
 
   if (pairs.size() == 0 || pairs.size() % 2 != 0)
       return false;
 
 
   Scalar kSmallNumber = 1e-6;
-  cv::Mat rotation = cv::Mat::eye(3, 3, CV_64F);
 
   // We only use the first 3 pairs. This simplifies the process considerably
   // because it is the planar case.
 
-  const cv::Point3d& p0 = pairs[0].first;
-  const cv::Point3d& p1 = pairs[1].first;
-  const cv::Point3d& p2 = pairs[2].first;
-        cv::Point3d  q0 = pairs[0].second;
-        cv::Point3d  q1 = pairs[1].second;
-        cv::Point3d  q2 = pairs[2].second;
+  const VectorType& p0 = pairs[0].first.pos();
+  const VectorType& p1 = pairs[1].first.pos();
+  const VectorType& p2 = pairs[2].first.pos();
+        VectorType  q0 = pairs[0].second.pos();
+        VectorType  q1 = pairs[1].second.pos();
+        VectorType  q2 = pairs[2].second.pos();
 
   Scalar scaleEst (1.);
 
   // Compute scale factor if needed
   if (computeScale){
-      const cv::Point3d& p3 = pairs[3].first;
-      const cv::Point3d& q3 = pairs[3].second;
+      const VectorType& p3 = pairs[3].first.pos();
+      const VectorType& q3 = pairs[3].second.pos();
 
-      const Scalar ratio1 = cv::norm(p1 - p0) / cv::norm(q1 - q0);
-      const Scalar ratio2 = cv::norm(p3 - p2) / cv::norm(q3 - q2);
+      const Scalar ratio1 = (p1 - p0).norm() / (q1 - q0).norm();
+      const Scalar ratio2 = (p3 - p2).norm() / (q3 - q2).norm();
 
       const Scalar ratioDev  = std::abs(ratio1/ratio2 - Scalar(1.));  // deviation between the two
       const Scalar ratioMean = (ratio1+ratio2)/Scalar(2.);            // mean of the two
 
       if ( ratioDev > Scalar(0.1) )
-          return match_4pcs::kLargeNumber;
+          return kLargeNumber;
 
 //      std::cout << ratio1 << " "
 //                << ratio2 << " "
@@ -602,83 +581,114 @@ bool Match4PCSBase::ComputeRigidTransformation(
       centroid2 *= scaleEst;
   }
 
-  cv::Point3d vector_p1 = p1 - p0;
-  if (cv::norm(vector_p1) == 0) return match_4pcs::kLargeNumber;
-  vector_p1 = vector_p1 * (1.0 / cv::norm(vector_p1));
-  cv::Point3d vector_p2 = (p2 - p0) - ((p2 - p0).dot(vector_p1)) * vector_p1;
-  if (cv::norm(vector_p2) == 0) return match_4pcs::kLargeNumber;
-  vector_p2 = vector_p2 * (1.0 / cv::norm(vector_p2));
-  cv::Point3d vector_p3 = vector_p1.cross(vector_p2);
+  VectorType vector_p1 = p1 - p0;
+  if (vector_p1.squaredNorm() == 0) return kLargeNumber;
+  vector_p1.normalize();
+  VectorType vector_p2 = (p2 - p0) - ((p2 - p0).dot(vector_p1)) * vector_p1;
+  if (vector_p2.squaredNorm() == 0) return kLargeNumber;
+  vector_p2.normalize();
+  VectorType vector_p3 = vector_p1.cross(vector_p2);
 
-  cv::Point3d vector_q1 = q1 - q0;
-  if (cv::norm(vector_q1) == 0) return match_4pcs::kLargeNumber;
-  vector_q1 = vector_q1 * (1.0 / cv::norm(vector_q1));
-  cv::Point3d vector_q2 = (q2 - q0) - ((q2 - q0).dot(vector_q1)) * vector_q1;
-  if (cv::norm(vector_q2) == 0) return match_4pcs::kLargeNumber;
-  vector_q2 = vector_q2 * (1.0 / cv::norm(vector_q2));
-  cv::Point3d vector_q3 = vector_q1.cross(vector_q2);
+  VectorType vector_q1 = q1 - q0;
+  if (vector_q1.squaredNorm() == 0) return kLargeNumber;
+  vector_q1.normalize();
+  VectorType vector_q2 = (q2 - q0) - ((q2 - q0).dot(vector_q1)) * vector_q1;
+  if (vector_q2.squaredNorm() == 0) return kLargeNumber;
+  vector_q2.normalize();
+  VectorType vector_q3 = vector_q1.cross(vector_q2);
 
-  cv::Mat rotate_p(3, 3, CV_64F);
-  rotate_p.at<double>(0, 0) = vector_p1.x;
-  rotate_p.at<double>(0, 1) = vector_p1.y;
-  rotate_p.at<double>(0, 2) = vector_p1.z;
-  rotate_p.at<double>(1, 0) = vector_p2.x;
-  rotate_p.at<double>(1, 1) = vector_p2.y;
-  rotate_p.at<double>(1, 2) = vector_p2.z;
-  rotate_p.at<double>(2, 0) = vector_p3.x;
-  rotate_p.at<double>(2, 1) = vector_p3.y;
-  rotate_p.at<double>(2, 2) = vector_p3.z;
+  //cv::Mat rotation = cv::Mat::eye(3, 3, CV_64F);
+  Eigen::Matrix<Scalar, 3, 3> rotation = Eigen::Matrix<Scalar, 3, 3>::Identity();
 
-  cv::Mat rotate_q(3, 3, CV_64F);
-  rotate_q.at<double>(0, 0) = vector_q1.x;
-  rotate_q.at<double>(0, 1) = vector_q1.y;
-  rotate_q.at<double>(0, 2) = vector_q1.z;
-  rotate_q.at<double>(1, 0) = vector_q2.x;
-  rotate_q.at<double>(1, 1) = vector_q2.y;
-  rotate_q.at<double>(1, 2) = vector_q2.z;
-  rotate_q.at<double>(2, 0) = vector_q3.x;
-  rotate_q.at<double>(2, 1) = vector_q3.y;
-  rotate_q.at<double>(2, 2) = vector_q3.z;
+  Eigen::Matrix<Scalar, 3, 3> rotate_p;
+  rotate_p.row(0) = vector_p1;
+  rotate_p.row(1) = vector_p2;
+  rotate_p.row(2) = vector_p3;
 
-  rotation = rotate_p.t() * rotate_q;
+  Eigen::Matrix<Scalar, 3, 3> rotate_q;
+  rotate_q.row(0) = vector_q1;
+  rotate_q.row(1) = vector_q2;
+  rotate_q.row(2) = vector_q3;
+
+  rotation = rotate_p.transpose() * rotate_q;
+
+  /*cv::Mat rotate_p(3, 3, CV_64F);
+  rotate_p.at<double>(0, 0) = vector_p1.x();
+  rotate_p.at<double>(0, 1) = vector_p1.y();
+  rotate_p.at<double>(0, 2) = vector_p1.z();
+  rotate_p.at<double>(1, 0) = vector_p2.x();
+  rotate_p.at<double>(1, 1) = vector_p2.y();
+  rotate_p.at<double>(1, 2) = vector_p2.z();
+  rotate_p.at<double>(2, 0) = vector_p3.x();
+  rotate_p.at<double>(2, 1) = vector_p3.y();
+  rotate_p.at<double>(2, 2) = vector_p3.z();*/
+
+  /*cv::Mat rotate_q(3, 3, CV_64F);
+  rotate_q.at<double>(0, 0) = vector_q1.x();
+  rotate_q.at<double>(0, 1) = vector_q1.y();
+  rotate_q.at<double>(0, 2) = vector_q1.z();
+  rotate_q.at<double>(1, 0) = vector_q2.x();
+  rotate_q.at<double>(1, 1) = vector_q2.y();
+  rotate_q.at<double>(1, 2) = vector_q2.z();
+  rotate_q.at<double>(2, 0) = vector_q3.x();
+  rotate_q.at<double>(2, 1) = vector_q3.y();
+  rotate_q.at<double>(2, 2) = vector_q3.z();*/
+
+  //rotation = rotate_p.t() * rotate_q;
 
   // Discard singular solutions. The rotation should be orthogonal.
-  cv::Mat unit = rotation * rotation.t();
+  if (((rotation * rotation).diagonal().array() - Scalar(1) > kSmallNumber).any())
+      return false;
+
+
+  /*cv::Mat unit = rotation * rotation.t();
   if (std::abs(unit.at<double>(0, 0) - 1.0) > kSmallNumber ||
       std::abs(unit.at<double>(1, 1) - 1.0) > kSmallNumber ||
           std::abs(unit.at<double>(2, 2) - 1.0) > kSmallNumber){
       return false;
-  }
+  }*/
 
+  //FIXME
   if (max_angle >= 0) {
       // Discard too large solutions (todo: lazy evaluation during boolean computation
-      const Scalar theta_x = std::abs(std::atan2(rotation.at<double>(2, 1), rotation.at<double>(2, 2)));
-      const Scalar theta_y = std::abs(std::atan2(-rotation.at<double>(2, 0),
-                                           std::sqrt(std::pow(rotation.at<double>(2, 1),2) +
-                                                     std::pow(rotation.at<double>(2, 2),2))));
-      const Scalar theta_z = std::abs(atan2(rotation.at<double>(1, 0), rotation.at<double>(0, 0)));
-      if (theta_x > max_angle ||
-              theta_y > max_angle ||
-              theta_z > max_angle)
+      if (! (
+                  std::abs(std::atan2(rotation(2, 1), rotation(2, 2)))
+                  <= max_angle &&
+
+                  std::abs(std::atan2(-rotation(2, 0),
+                                      std::sqrt(std::pow(rotation(2, 1),2) +
+                                                std::pow(rotation(2, 2),2))))
+                  <= max_angle &&
+
+                  std::abs(atan2(rotation(1, 0), rotation(0, 0)))
+                  <= max_angle
+             ))
           return false;
   }
 
 
+  //FIXME
   // Compute rms and return it.
   rms_ = Scalar(0.0);
   {
-      cv::Mat first(3, 1, CV_64F), transformed;
+      VectorType first, transformed;
+
+      //cv::Mat first(3, 1, CV_64F), transformed;
       for (int i = 0; i < 3; ++i) {
-          first.at<double>(0, 0) = scaleEst*pairs[i].second.x - centroid2(0);
-          first.at<double>(1, 0) = scaleEst*pairs[i].second.y - centroid2(1);
-          first.at<double>(2, 0) = scaleEst*pairs[i].second.z - centroid2(2);
+          first = scaleEst*pairs[i].second.pos() - centroid2;
           transformed = rotation * first;
-          rms_ += sqrt(std::pow(transformed.at<double>(0, 0) -
-                              (pairs[i].first.x - centroid1(0)), 2) +
-                       std::pow(transformed.at<double>(1, 0) -
-                              (pairs[i].first.y - centroid1(1)), 2) +
-                       std::pow(transformed.at<double>(2, 0) -
-                              (pairs[i].first.z - centroid1(2)), 2));
+
+//          first.at<double>(0, 0) = scaleEst*pairs[i].second.x() - centroid2(0);
+//          first.at<double>(1, 0) = scaleEst*pairs[i].second.y() - centroid2(1);
+//          first.at<double>(2, 0) = scaleEst*pairs[i].second.z() - centroid2(2);
+//          transformed = rotation * first;
+          rms_ += (transformed - pairs[i].first.pos() + centroid1).norm();
+//          rms_ += sqrt(std::pow(transformed.at<double>(0, 0) -
+//                              (pairs[i].first.x() - centroid1(0)), 2) +
+//                       std::pow(transformed.at<double>(1, 0) -
+//                              (pairs[i].first.y() - centroid1(1)), 2) +
+//                       std::pow(transformed.at<double>(2, 0) -
+//                              (pairs[i].first.z() - centroid1(2)), 2));
       }
   }
 
@@ -688,14 +698,11 @@ bool Match4PCSBase::ComputeRigidTransformation(
 
   // compute rotation and translation
   {
-      Eigen::Matrix<Scalar, 3, 3> rot;
-      cv::cv2eigen(rotation, rot);
-
       //std::cout << scaleEst << endl;
 
       etrans.scale(scaleEst);       // apply scale factor
       etrans.translate(centroid1);  // translation between quads
-      etrans.rotate(rot);           // rotate to align frames
+      etrans.rotate(rotation);           // rotate to align frames
       etrans.translate(-centroid2); // move to congruent quad frame
 
       transform = etrans.matrix();
@@ -711,7 +718,7 @@ bool Match4PCSBase::ComputeRigidTransformation(
 // we describe randomized verification. We apply deterministic one here with
 // early termination. It was found to be fast in practice.
 Match4PCSBase::Scalar
-Match4PCSBase::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
+Match4PCSBase::Verify(const Eigen::Ref<const MatrixType> &mat) {
 
 #ifdef TEST_GLOBAL_TIMINGS
     Timer t_verify (true);
@@ -724,7 +731,6 @@ Match4PCSBase::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
   const int terminate_value = best_LCP_ * number_of_points;
 
   const Scalar sq_eps = epsilon*epsilon;
-  typename Point3D::VectorType p;
 
   for (int i = 0; i < number_of_points; ++i) {
 
@@ -733,12 +739,9 @@ Match4PCSBase::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
     Timer t (true);
 #endif
 
-    auto pos = sampled_Q_3D_[i];
-    p << pos.x, pos.y, pos.z;
-
     Super4PCS::KdTree<Scalar>::Index resId =
     kd_tree_.doQueryRestrictedClosestIndex(
-                (mat * p.homogeneous()).head<3>(),
+                (mat * sampled_Q_3D_[i].pos().homogeneous()).head<3>(),
                 sq_eps);
 
 
@@ -780,13 +783,12 @@ Match4PCSBase::Verify(const Eigen::Matrix<Scalar, 4, 4>& mat) {
 Match4PCSBase::Scalar
 Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
                                      std::vector<Point3D>* Q,
-                                     cv::Mat* transformation) {
+                                     Eigen::Ref<MatrixType> transformation) {
 
-  if (Q == nullptr || transformation == nullptr) return match_4pcs::kLargeNumber;
+  if (Q == nullptr) return kLargeNumber;
   init(P, *Q);
 
-  *transformation = cv::Mat(4, 4, CV_64F, cv::Scalar(0.0));
-  for (int i = 0; i < 4; ++i) transformation->at<double>(i, i) = 1.0;
+  transformation = MatrixType::Identity();
   Perform_N_steps(number_of_trials_, transformation, Q);
 
 #ifdef TEST_GLOBAL_TIMINGS
@@ -802,9 +804,10 @@ Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
 
 // Performs N RANSAC iterations and compute the best transformation. Also,
 // transforms the set Q by this optimal transformation.
-bool Match4PCSBase::Perform_N_steps(int n, cv::Mat* transformation,
+bool Match4PCSBase::Perform_N_steps(int n,
+                                    Eigen::Ref<MatrixType> transformation,
                                     std::vector<Point3D>* Q) {
-  if (transformation == nullptr || Q == nullptr) return false;
+  if (Q == nullptr) return false;
 
 #ifdef TEST_GLOBAL_TIMINGS
     Timer t (true);
@@ -812,7 +815,7 @@ bool Match4PCSBase::Perform_N_steps(int n, cv::Mat* transformation,
 
   Scalar last_best_LCP = best_LCP_;
   bool ok = false;
-  int64 t0 = clock();
+  int64_t t0 = clock();
   for (int i = current_trial_; i < current_trial_ + n; ++i) {
     ok = TryOneBase();
 
@@ -829,40 +832,34 @@ bool Match4PCSBase::Perform_N_steps(int n, cv::Mat* transformation,
 
   current_trial_ += n;
   if (best_LCP_ > last_best_LCP) {
-    *Q = Q_copy_;
+  *Q = Q_copy_;
 
       // The transformation has been computed between the two point clouds centered
     // at the origin, we need to recompute the translation to apply it to the original clouds
     {
         Eigen::Matrix<Scalar, 3,1> centroid_P,centroid_Q;
-        cv::Mat first(3, 1, CV_64F);
-        first.at<double>(0, 0) = centroid_P_.x;
-        first.at<double>(1, 0) = centroid_P_.y;
-        first.at<double>(2, 0) = centroid_P_.z;
-        cv::cv2eigen(first, centroid_P);
-        first.at<double>(0, 0) = centroid_Q_.x;
-        first.at<double>(1, 0) = centroid_Q_.y;
-        first.at<double>(2, 0) = centroid_Q_.z;
-        cv::cv2eigen(first, centroid_Q);
+        centroid_P = centroid_P_;
+        centroid_Q = centroid_Q_;
 
         Eigen::Matrix<Scalar, 3, 3> rot, scale;
         Eigen::Transform<Scalar, 3, Eigen::Affine> (transform_).computeRotationScaling(&rot, &scale);
         transform_.col(3) = (qcentroid1_ + centroid_P - ( rot * scale * (qcentroid2_ + centroid_Q))).homogeneous();
+        transformation = transform_;
     }
-
-    cv::eigen2cv( transform_, *transformation );
 
     // Transforms Q by the new transformation.
     for (size_t i = 0; i < Q->size(); ++i) {
-      cv::Mat first(4, 1, CV_64F), transformed;
-      first.at<double>(0, 0) = (*Q)[i].x;
-      first.at<double>(1, 0) = (*Q)[i].y;
-      first.at<double>(2, 0) = (*Q)[i].z;
-      first.at<double>(3, 0) = 1;
-      transformed = *transformation * first;
-      (*Q)[i].x = transformed.at<double>(0, 0);
-      (*Q)[i].y = transformed.at<double>(1, 0);
-      (*Q)[i].z = transformed.at<double>(2, 0);
+      (*Q)[i].pos() = (transformation * (*Q)[i].pos().homogeneous()).head<3>();
+
+//      cv::Mat first(4, 1, CV_64F), transformed;
+//      first.at<double>(0, 0) = (*Q)[i].x();
+//      first.at<double>(1, 0) = (*Q)[i].y();
+//      first.at<double>(2, 0) = (*Q)[i].z();
+//      first.at<double>(3, 0) = 1;
+//      transformed = *transformation * first;
+//      (*Q)[i].x() = transformed.at<double>(0, 0);
+//      (*Q)[i].y() = transformed.at<double>(1, 0);
+//      (*Q)[i].z() = transformed.at<double>(2, 0);
     }
   }
 #ifdef TEST_GLOBAL_TIMINGS
@@ -878,6 +875,8 @@ bool Match4PCSBase::Perform_N_steps(int n, cv::Mat* transformation,
 bool Match4PCSBase::TryOneBase() {
   Scalar invariant1, invariant2;
   int base_id1, base_id2, base_id3, base_id4;
+
+  using match_4pcs::PointsDistance;
 
 //#define STATIC_BASE
 
@@ -911,8 +910,8 @@ bool Match4PCSBase::TryOneBase() {
 #endif
 
   // Computes distance between pairs.
-  const Scalar distance1 = PointsDistance(base_3D_[0], base_3D_[1]);
-  const Scalar distance2 = PointsDistance(base_3D_[2], base_3D_[3]);
+  const Scalar distance1 = PointsDistance(base_3D_[0].pos(), base_3D_[1].pos());
+  const Scalar distance2 = PointsDistance(base_3D_[2].pos(), base_3D_[3].pos());
 
   std::vector<std::pair<int, int>> pairs1, pairs2;
   std::vector<Super4PCS::Quadrilateral> congruent_quads;

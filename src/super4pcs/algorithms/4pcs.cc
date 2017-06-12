@@ -47,7 +47,6 @@
 #include "accelerators/utils.h"
 
 #include "ANN/ANN.h"
-#include <opencv2/highgui/highgui.hpp>
 
 #include <fstream>
 #include <time.h>  //clock
@@ -87,12 +86,12 @@ bool Match4PCS::FindCongruentQuadrilaterals(
   for (size_t i = 0; i < P_pairs.size(); ++i) {
     const Point3D& p1 = sampled_Q_3D_[P_pairs[i].first];
     const Point3D& p2 = sampled_Q_3D_[P_pairs[i].second];
-    data_points[i * 2][0] = p1.x + invariant1 * (p2.x - p1.x);
-    data_points[i * 2][1] = p1.y + invariant1 * (p2.y - p1.y);
-    data_points[i * 2][2] = p1.z + invariant1 * (p2.z - p1.z);
-    data_points[i * 2 + 1][0] = p1.x + (1.0-invariant1) * (p2.x - p1.x);
-    data_points[i * 2 + 1][1] = p1.y + (1.0-invariant1) * (p2.y - p1.y);
-    data_points[i * 2 + 1][2] = p1.z + (1.0-invariant1) * (p2.z - p1.z);
+    data_points[i * 2][0] = p1.x() + invariant1 * (p2.x() - p1.x());
+    data_points[i * 2][1] = p1.y() + invariant1 * (p2.y() - p1.y());
+    data_points[i * 2][2] = p1.z() + invariant1 * (p2.z() - p1.z());
+    data_points[i * 2 + 1][0] = p1.x() + (1.0-invariant1) * (p2.x() - p1.x());
+    data_points[i * 2 + 1][1] = p1.y() + (1.0-invariant1) * (p2.y() - p1.y());
+    data_points[i * 2 + 1][2] = p1.z() + (1.0-invariant1) * (p2.z() - p1.z());
   }
 
   ANNkd_tree* tree = new ANNkd_tree(data_points, number_of_points, 3);
@@ -102,9 +101,9 @@ bool Match4PCS::FindCongruentQuadrilaterals(
   for (size_t i = 0; i < Q_pairs.size(); ++i) {
     const Point3D& p1 = sampled_Q_3D_[Q_pairs[i].first];
     const Point3D& p2 = sampled_Q_3D_[Q_pairs[i].second];
-    query_point[0] = p1.x + invariant2 * (p2.x - p1.x);
-    query_point[1] = p1.y + invariant2 * (p2.y - p1.y);
-    query_point[2] = p1.z + invariant2 * (p2.z - p1.z);
+    query_point[0] = p1.x() + invariant2 * (p2.x() - p1.x());
+    query_point[1] = p1.y() + invariant2 * (p2.y() - p1.y());
+    query_point[2] = p1.z() + invariant2 * (p2.z() - p1.z());
 
     tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
                        near_neighbor_index, distances, 0);
@@ -121,9 +120,9 @@ bool Match4PCS::FindCongruentQuadrilaterals(
     }
 
     // We test the other order as our pairs are not ordered.
-    query_point[0] = p1.x + (1.0-invariant2) * (p2.x - p1.x);
-    query_point[1] = p1.y + (1.0-invariant2) * (p2.y - p1.y);
-    query_point[2] = p1.z + (1.0-invariant2) * (p2.z - p1.z);
+    query_point[0] = p1.x() + (1.0-invariant2) * (p2.x() - p1.x());
+    query_point[1] = p1.y() + (1.0-invariant2) * (p2.y() - p1.y());
+    query_point[2] = p1.z() + (1.0-invariant2) * (p2.z() - p1.z());
 
     tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
                        near_neighbor_index, distances, 0);
@@ -163,8 +162,8 @@ Match4PCS::ExtractPairs(Scalar pair_distance,
   pairs->clear();
   pairs->reserve(2 * sampled_Q_3D_.size());
 
-  cv::Point3d segment1 = base_3D_[base_point2] - base_3D_[base_point1];
-  segment1 *= 1.0 / cv::norm(segment1);
+  VectorType segment1 = (base_3D_[base_point2].pos() -
+                         base_3D_[base_point1].pos()).normalized();
 
 
   // Go over all ordered pairs in Q.
@@ -177,7 +176,7 @@ Match4PCS::ExtractPairs(Scalar pair_distance,
       // normals is close to the angle between normals in the base. This can be
       // checked independent of the full rotation angles which are not yet
       // defined by segment matching alone..
-      const Scalar distance = cv::norm(q - p);
+      const Scalar distance = (q.pos() - p.pos()).norm();
 #ifndef MULTISCALE
       if (std::abs(distance - pair_distance) > pair_distance_epsilon) continue;
 #endif
@@ -207,29 +206,27 @@ Match4PCS::ExtractPairs(Scalar pair_distance,
                   (q.rgb() - base_3D_[base_point2].rgb()).norm() <
                   options_.max_color_distance;
 
-          if (use_rgb && ! color_good) continue;
+          if (use_rgb && ! color_good) return;
       }
 
       if (options_.max_translation_distance > 0) {
-          const bool dist_good = cv::norm(p - base_3D_[base_point1]) <
+          const bool dist_good = (p.pos() - base_3D_[base_point1].pos()).norm() <
                   options_.max_translation_distance &&
-                  cv::norm(q - base_3D_[base_point2]) <
+                  (q.pos() - base_3D_[base_point2].pos()).norm() <
                   options_.max_translation_distance;
-          if (! dist_good) continue;
+          if (! dist_good) return;
       }
 
+      // need cleaning here
       if (options_.max_angle > 0){
-          cv::Point3d segment2 = q - p;
-          segment2 *= 1.0 / cv::norm(segment2);
-          if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
-            pairs->emplace_back(j, i);
+          VectorType segment2 = (q.pos() - p.pos()).normalized();
+          if (std::acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
+              pairs->emplace_back(j, i);
           }
 
-          segment2 = p - q;
-          segment2 *= 1.0 / cv::norm(segment2);
-          if (acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
-            // Add ordered pair.
-            pairs->emplace_back(i, j);
+          if (std::acos(segment1.dot(- segment2)) <= options_.max_angle * M_PI / 180.0) {
+              // Add ordered pair.
+              pairs->emplace_back(i, j);
           }
       }else {
           pairs->emplace_back(j, i);

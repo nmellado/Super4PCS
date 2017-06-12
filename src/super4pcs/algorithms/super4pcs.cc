@@ -50,9 +50,6 @@
 #include "Eigen/Geometry"                 // MatrixBase.homogeneous()
 #include "Eigen/SVD"                      // Transform.computeRotationScaling()
 
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core/eigen.hpp>
-
 #include "accelerators/normalset.h"
 #include "accelerators/normalHealSet.h"
 #include "accelerators/bbox.h"
@@ -91,9 +88,9 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
   quadrilaterals->clear();
 
   // Compute the angle formed by the two vectors of the basis
-  Point3D b1 = base_3D_[1] - base_3D_[0];  b1.normalize();
-  Point3D b2 = base_3D_[3] - base_3D_[2];  b2.normalize();
-  const Scalar alpha = /*std::abs(*/b1.dot(b2)/*)*/;
+  const Scalar alpha =
+          (base_3D_[1].pos() - base_3D_[0].pos()).normalized().dot(
+          (base_3D_[3].pos() - base_3D_[2].pos()).normalized());
 
   // 1. Datastructure construction
   typedef PairCreationFunctor<Scalar>::Point Point;
@@ -123,7 +120,8 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
 //         << (p1+ invariant1       * (p2 - p1)).transpose() << endl
 //         << n.transpose() << endl;
 
-    nset.addElement( p1+ invariant1 * (p2 - p1),  n, i);
+    nset.addElement((p1+ Point::Scalar(invariant1) * (p2 - p1)).cast<double>(),
+                    n.cast<double>(), i);
   }
 
 
@@ -136,13 +134,13 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
     const Point& p1 = pcfunctor_.points[Q_pairs[i].first];
     const Point& p2 = pcfunctor_.points[Q_pairs[i].second];
 
-    const Point3D& pq1 = sampled_Q_3D_[Q_pairs[i].first];
-    const Point3D& pq2 = sampled_Q_3D_[Q_pairs[i].second];
+    const VectorType& pq1 = sampled_Q_3D_[Q_pairs[i].first].pos();
+    const VectorType& pq2 = sampled_Q_3D_[Q_pairs[i].second].pos();
 
     nei.clear();
 
-    const Point   query  =  p1 + invariant2 * ( p2 - p1 );
-    const Point3D queryQ = pq1 + invariant2 * (pq2 - pq1);
+    const Point      query  =  p1 + invariant2 * ( p2 - p1 );
+    const VectorType queryQ = pq1 + invariant2 * (pq2 - pq1);
 
     const Point queryn = (p2 - p1).normalized();
 
@@ -152,21 +150,23 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
 //         << query.transpose() << endl
 //         << queryn.transpose() << endl;
 
-    nset.getNeighbors( query,  queryn, alpha, nei);
+    nset.getNeighbors( query.cast<double>(),
+                       queryn.cast<double>(),
+                       alpha, nei);
 
 
-    Point3D invPoint;
-    //const float distance_threshold2s = distance_threshold2 * distance_threshold2;
+    VectorType invPoint;
+    //const Scalar distance_threshold2s = distance_threshold2 * distance_threshold2;
     for (unsigned int k = 0; k != nei.size(); k++){
       const int id = nei[k];
 
-      const Point3D& pp1 = sampled_Q_3D_[P_pairs[id].first];
-      const Point3D& pp2 = sampled_Q_3D_[P_pairs[id].second];
+      const VectorType& pp1 = sampled_Q_3D_[P_pairs[id].first].pos();
+      const VectorType& pp2 = sampled_Q_3D_[P_pairs[id].second].pos();
 
       invPoint = pp1 + (pp2 - pp1) * invariant1;
 
        // use also distance_threshold2 for inv 1 and 2 in 4PCS
-      if (cv::norm(queryQ-invPoint) <= distance_threshold2){
+      if ((queryQ-invPoint).norm() <= distance_threshold2){
           comb.emplace(id, i);
       }
     }

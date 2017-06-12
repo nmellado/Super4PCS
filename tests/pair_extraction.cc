@@ -51,15 +51,11 @@
 #include "algorithms/4pcs.h"
 #include "algorithms/super4pcs.h"
 
-#include "Eigen/Dense"
-
-#include <opencv2/core/eigen.hpp>
+#include <Eigen/Dense>
 
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core/eigen.hpp>
 #include "accelerators/pairExtraction/bruteForceFunctor.h"
 #include "accelerators/pairExtraction/intersectionFunctor.h"
 #include "accelerators/pairExtraction/intersectionPrimitive.h"
@@ -276,10 +272,10 @@ void callMatchSubTests()
         // extract pairs using full search
         // Go over all ordered pairs in Q.
         for (int j = 0; j < Q.size(); ++j) {
-            const Point3D& p = Q[j];
+            const auto& p = Q[j].pos();
             for (int i = j + 1; i < Q.size(); ++i) {
-                const Point3D& q = Q[i];
-                const Scalar distance = cv::norm(q - p);
+                const auto& q = Q[i].pos();
+                const Scalar distance = (q - p).norm();
                 if (std::abs(distance - pair_distance) <= pair_distance_epsilon) {
                     pairs.emplace_back(j, i);
                     pairs.emplace_back(i, j);
