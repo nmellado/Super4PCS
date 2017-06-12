@@ -240,6 +240,21 @@ public:
     }
 
     /*!
+     * \brief Performs distance query and return indices
+     */
+    template<typename Functor>
+    inline void
+    doQueryDistProcessIndices(const VectorType& queryPoint,
+                       Scalar sqdist,
+                       Functor f){
+        _doQueryDistIndicesWithFunctor(queryPoint,
+                                      sqdist,
+                                      [f,this](unsigned int i){
+            f(mIndices[i]);
+        });
+    }
+
+    /*!
      * \brief Finds the closest element index within the range [0:sqrt(sqdist)]
      * \param currentId Index of the querypoint if it belongs to the tree
      */
@@ -345,9 +360,13 @@ KdTree<Scalar, Index>::finalize()
     mNodes.reserve(4*mPoints.size()/_nofPointsPerCell);
     mNodes.emplace_back();
     mNodes.back().leaf = 0;
+#ifdef DEBUG
     std::cout << "create tree" << std::endl;
+#endif
     createTree(0, 0, mPoints.size(), 1, _nofPointsPerCell, _maxDepth);
+#ifdef DEBUG
     std::cout << "create tree ... DONE (" << mPoints.size() << " points)" << std::endl;
+#endif
 }
 
 template<typename Scalar, typename Index>
