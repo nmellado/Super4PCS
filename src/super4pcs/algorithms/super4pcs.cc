@@ -166,7 +166,7 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
       invPoint = pp1 + (pp2 - pp1) * invariant1;
 
        // use also distance_threshold2 for inv 1 and 2 in 4PCS
-      if ((queryQ-invPoint).norm() <= distance_threshold2){
+      if ((queryQ-invPoint).squaredNorm() <= distance_threshold2){
           comb.emplace(id, i);
       }
     }
