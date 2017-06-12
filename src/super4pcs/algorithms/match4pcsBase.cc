@@ -54,6 +54,83 @@
 #include "sampling.h"
 #include "accelerators/kdtree.h"
 
+
+
+// Compute the closest points between two 3D line segments and obtain the two
+// invariants corresponding to the closet points. This is the "intersection"
+// point that determines the invariants. Since the 4 points are not exactly
+// planar, we use the center of the line segment connecting the two closest
+// points as the "intersection".
+template < typename VectorType, typename Scalar>
+static Scalar
+distSegmentToSegment(const VectorType& p1, const VectorType& p2,
+                     const VectorType& q1, const VectorType& q2,
+                     Scalar& invariant1, Scalar& invariant2) {
+
+  static const Scalar kSmallNumber = 0.0001;
+  VectorType u = p2 - p1;
+  VectorType v = q2 - q1;
+  VectorType w = p1 - q1;
+  Scalar a = u.dot(u);
+  Scalar b = u.dot(v);
+  Scalar c = v.dot(v);
+  Scalar d = u.dot(w);
+  Scalar e = v.dot(w);
+  Scalar f = a * c - b * b;
+  // s1,s2 and t1,t2 are the parametric representation of the intersection.
+  // they will be the invariants at the end of this simple computation.
+  Scalar s1 = 0.0;
+  Scalar s2 = f;
+  Scalar t1 = 0.0;
+  Scalar t2 = f;
+
+  if (f < kSmallNumber) {
+    s1 = 0.0;
+    s2 = 1.0;
+    t1 = e;
+    t2 = c;
+  } else {
+    s1 = (b * e - c * d);
+    t1 = (a * e - b * d);
+    if (s1 < 0.0) {
+      s1 = 0.0;
+      t1 = e;
+      t2 = c;
+    } else if (s1 > s2) {
+      s1 = s2;
+      t1 = e + b;
+      t2 = c;
+    }
+  }
+
+  if (t1 < 0.0) {
+    t1 = 0.0;
+    if (-d < 0.0)
+      s1 = 0.0;
+    else if (-d > a)
+      s1 = s2;
+    else {
+      s1 = -d;
+      s2 = a;
+    }
+  } else if (t1 > t2) {
+    t1 = t2;
+    if ((-d + b) < 0.0)
+      s1 = 0;
+    else if ((-d + b) > a)
+      s1 = s2;
+    else {
+      s1 = (-d + b);
+      s2 = a;
+    }
+  }
+  invariant1 = (abs(s1) < kSmallNumber ? 0.0 : s1 / s2);
+  invariant2 = (abs(t1) < kSmallNumber ? 0.0 : t1 / t2);
+
+  return ( w + (invariant1 * u) - (invariant2 * v)).norm();
+}
+
+
 namespace Super4PCS{
 
 Match4PCSBase::Match4PCSBase(const match_4pcs::Match4PCSOptions& options)
@@ -271,8 +348,6 @@ bool Match4PCSBase::SelectRandomTriangle(int &base1, int &base2, int &base3) {
 // corresponding the the base pairing are computed.
 bool Match4PCSBase::TryQuadrilateral(Scalar &invariant1, Scalar &invariant2,
                                      int& id1, int& id2, int& id3, int& id4) {
-  using match_4pcs::distSegmentToSegment;
-
 
   Scalar min_distance = std::numeric_limits<Scalar>::max();
   int best1, best2, best3, best4;
@@ -331,7 +406,6 @@ bool Match4PCSBase::SelectQuadrilateral(Scalar& invariant1, Scalar& invariant2,
 
   const Scalar kBaseTooSmall (0.2);
   int current_trial = 0;
-  using match_4pcs::PointsDistance;
 
   // Try fix number of times.
   while (current_trial < kNumberOfDiameterTrials) {
@@ -370,11 +444,11 @@ bool Match4PCSBase::SelectQuadrilateral(Scalar& invariant1, Scalar& invariant2,
       base4 = -1;
       Scalar best_distance = std::numeric_limits<Scalar>::max();
       // Go over all points in P.
+      const Scalar too_small = std::pow(max_base_diameter_ * kBaseTooSmall, 2);
       for (unsigned int i = 0; i < sampled_P_3D_.size(); ++i) {
-        const Scalar too_small = max_base_diameter_ * kBaseTooSmall;
-        if (PointsDistance(sampled_P_3D_[i].pos(), sampled_P_3D_[base1].pos()) >= too_small &&
-            PointsDistance(sampled_P_3D_[i].pos(), sampled_P_3D_[base2].pos()) >= too_small &&
-            PointsDistance(sampled_P_3D_[i].pos(), sampled_P_3D_[base3].pos()) >= too_small) {
+        if ((sampled_P_3D_[i].pos()- sampled_P_3D_[base1].pos()).squaredNorm() >= too_small &&
+            (sampled_P_3D_[i].pos()- sampled_P_3D_[base2].pos()).squaredNorm() >= too_small &&
+            (sampled_P_3D_[i].pos()- sampled_P_3D_[base3].pos()).squaredNorm() >= too_small) {
           // Not too close to any of the first 3.
           const Scalar distance =
               std::abs(A * sampled_P_3D_[i].x() + B * sampled_P_3D_[i].y() +
@@ -876,8 +950,6 @@ bool Match4PCSBase::TryOneBase() {
   Scalar invariant1, invariant2;
   int base_id1, base_id2, base_id3, base_id4;
 
-  using match_4pcs::PointsDistance;
-
 //#define STATIC_BASE
 
 #ifdef STATIC_BASE
@@ -910,8 +982,8 @@ bool Match4PCSBase::TryOneBase() {
 #endif
 
   // Computes distance between pairs.
-  const Scalar distance1 = PointsDistance(base_3D_[0].pos(), base_3D_[1].pos());
-  const Scalar distance2 = PointsDistance(base_3D_[2].pos(), base_3D_[3].pos());
+  const Scalar distance1 = (base_3D_[0].pos()- base_3D_[1].pos()).norm();
+  const Scalar distance2 = (base_3D_[2].pos()- base_3D_[3].pos()).norm();
 
   std::vector<std::pair<int, int>> pairs1, pairs2;
   std::vector<Super4PCS::Quadrilateral> congruent_quads;
