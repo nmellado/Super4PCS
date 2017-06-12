@@ -92,8 +92,8 @@ std::array<std::string, nbSet> confFiles = {
 };
 
 std::array<Scalar, nbSet> deltas  = {
-    0.002,
-    0.002,
+    0.0015,
+    0.0015,
 };
 
 std::array<Scalar, nbSet> overlaps = {
@@ -106,11 +106,6 @@ std::array<Scalar, nbSet> n_points = {
     500,
 };
 
-// Maximum norm of RGB values between corresponded points. 1e9 means don't use.
-double max_color = 1e9;
-
-// Maximum angle (degrees) between corresponded normals.
-double norm_diff = 360.0;
 
 // Maximum allowed computation time.
 int max_time_seconds = 1e9;
@@ -248,8 +243,6 @@ void test_model(const vector<Transform> &transforms,
     Match4PCSBase::MatrixType mat;
     options.overlap_estimation = overlaps[param_i];
     options.sample_size = n_points[param_i];
-    options.max_normal_difference = norm_diff;
-    options.max_color_distance = max_color;
     options.max_time_seconds = max_time_seconds;
     options.delta = deltas[param_i];
 
