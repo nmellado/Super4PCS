@@ -46,8 +46,6 @@
 #include "match4pcsBase.h"
 #include "accelerators/utils.h"
 
-#include "ANN/ANN.h"
-
 #include <fstream>
 #include <time.h>  //clock
 
@@ -72,77 +70,41 @@ bool Match4PCS::FindCongruentQuadrilaterals(
 
   size_t number_of_points = 2 * P_pairs.size();
 
-  // We need a temporary ANN tree to store the new points corresponding to
+  // We need a temporary kdtree to store the new points corresponding to
   // invariants in the P_pairs and then query them (for range search) for all
   // the new points corresponding to the invariants in Q_pairs.
-  ANNpointArray data_points = annAllocPts(number_of_points, 3);
-  ANNpoint query_point = annAllocPt(3);
-  ANNidxArray near_neighbor_index = new ANNidx[number_of_points];
-  ANNdistArray distances = new ANNdist[number_of_points];
-
   quadrilaterals->clear();
 
-  // Build the ANN tree using the invariants on P_pairs.
-  for (size_t i = 0; i < P_pairs.size(); ++i) {
-    const Point3D& p1 = sampled_Q_3D_[P_pairs[i].first];
-    const Point3D& p2 = sampled_Q_3D_[P_pairs[i].second];
-    data_points[i * 2][0] = p1.x() + invariant1 * (p2.x() - p1.x());
-    data_points[i * 2][1] = p1.y() + invariant1 * (p2.y() - p1.y());
-    data_points[i * 2][2] = p1.z() + invariant1 * (p2.z() - p1.z());
-    data_points[i * 2 + 1][0] = p1.x() + (1.0-invariant1) * (p2.x() - p1.x());
-    data_points[i * 2 + 1][1] = p1.y() + (1.0-invariant1) * (p2.y() - p1.y());
-    data_points[i * 2 + 1][2] = p1.z() + (1.0-invariant1) * (p2.z() - p1.z());
-  }
+  Super4PCS::KdTree<Scalar> kdtree (number_of_points);
 
-  ANNkd_tree* tree = new ANNkd_tree(data_points, number_of_points, 3);
+  // Build the kdtree tree using the invariants on P_pairs.
+  for (size_t i = 0; i < P_pairs.size(); ++i) {
+    const VectorType& p1 = sampled_Q_3D_[P_pairs[i].first].pos();
+    const VectorType& p2 = sampled_Q_3D_[P_pairs[i].second].pos();
+    kdtree.add(p1 + invariant1 * (p2-p1));
+    kdtree.add(p1 + (Scalar(1)-invariant1) * (p2-p1));
+  }
+  kdtree.finalize();
 
     //Point3D invRes;
-  // Query the ANN for all the points corresponding to the invariants in Q_pair.
+  // Query the Kdtree for all the points corresponding to the invariants in Q_pair.
   for (size_t i = 0; i < Q_pairs.size(); ++i) {
-    const Point3D& p1 = sampled_Q_3D_[Q_pairs[i].first];
-    const Point3D& p2 = sampled_Q_3D_[Q_pairs[i].second];
-    query_point[0] = p1.x() + invariant2 * (p2.x() - p1.x());
-    query_point[1] = p1.y() + invariant2 * (p2.y() - p1.y());
-    query_point[2] = p1.z() + invariant2 * (p2.z() - p1.z());
+    const VectorType& p1 = sampled_Q_3D_[Q_pairs[i].first].pos();
+    const VectorType& p2 = sampled_Q_3D_[Q_pairs[i].second].pos();
 
-    tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
-                       near_neighbor_index, distances, 0);
-
-    // This is a new candidate of a quadrilateral.
-    for (size_t j = 0; j < number_of_points; ++j) {
-      if (distances[j] != ANN_DIST_INF) {
-        int id = near_neighbor_index[j] / 2;
-
-        quadrilaterals->emplace_back(P_pairs[id].first, P_pairs[id].second,
+    kdtree.doQueryDistProcessIndices(p1 + invariant2 * (p2 - p1),
+                              distance_threshold2,
+        [quadrilaterals, i, &P_pairs, &Q_pairs](int id){
+        quadrilaterals->emplace_back(P_pairs[id/2].first, P_pairs[id/2].second,
                                      Q_pairs[i].first, Q_pairs[i].second);
-      } else
-        break;
-    }
-
-    // We test the other order as our pairs are not ordered.
-    query_point[0] = p1.x() + (1.0-invariant2) * (p2.x() - p1.x());
-    query_point[1] = p1.y() + (1.0-invariant2) * (p2.y() - p1.y());
-    query_point[2] = p1.z() + (1.0-invariant2) * (p2.z() - p1.z());
-
-    tree->annkFRSearch(query_point, distance_threshold2, number_of_points,
-                       near_neighbor_index, distances, 0);
-
-    for (size_t j = 0; j < number_of_points; ++j) {
-      if (distances[j] != ANN_DIST_INF) {
-        int id = near_neighbor_index[j] / 2;
-
-        quadrilaterals->emplace_back(P_pairs[id].first, P_pairs[id].second,
+    });
+    kdtree.doQueryDistProcessIndices(p1 + (Scalar(1)-invariant2) * (p2 - p1),
+                              distance_threshold2,
+        [quadrilaterals, i, &P_pairs, &Q_pairs](int id){
+        quadrilaterals->emplace_back(P_pairs[id/2].first, P_pairs[id/2].second,
                                      Q_pairs[i].first, Q_pairs[i].second);
-      } else
-        break;
-    }
+    });
   }
-
-  annDeallocPt(query_point);
-  annDeallocPts(data_points);
-  delete[] near_neighbor_index;
-  delete[] distances;
-  delete tree;
 
   return quadrilaterals->size() != 0;
 }
