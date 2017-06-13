@@ -82,7 +82,6 @@ bool Match4PCS::FindCongruentQuadrilaterals(
     const VectorType& p1 = sampled_Q_3D_[P_pairs[i].first].pos();
     const VectorType& p2 = sampled_Q_3D_[P_pairs[i].second].pos();
     kdtree.add(p1 + invariant1 * (p2-p1));
-    kdtree.add(p1 + (Scalar(1)-invariant1) * (p2-p1));
   }
   kdtree.finalize();
 
@@ -93,12 +92,6 @@ bool Match4PCS::FindCongruentQuadrilaterals(
     const VectorType& p2 = sampled_Q_3D_[Q_pairs[i].second].pos();
 
     kdtree.doQueryDistProcessIndices(p1 + invariant2 * (p2 - p1),
-                              distance_threshold2,
-        [quadrilaterals, i, &P_pairs, &Q_pairs](int id){
-        quadrilaterals->emplace_back(P_pairs[id/2].first, P_pairs[id/2].second,
-                                     Q_pairs[i].first, Q_pairs[i].second);
-    });
-    kdtree.doQueryDistProcessIndices(p1 + (Scalar(1)-invariant2) * (p2 - p1),
                               distance_threshold2,
         [quadrilaterals, i, &P_pairs, &Q_pairs](int id){
         quadrilaterals->emplace_back(P_pairs[id/2].first, P_pairs[id/2].second,
