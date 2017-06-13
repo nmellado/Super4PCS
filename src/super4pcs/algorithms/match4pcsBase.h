@@ -189,13 +189,6 @@ protected:
                           int &base1, int &base2, int &base3, int &base4);
 
 
-    // Selects a quadrilateral from P and returns the corresponding invariants
-    // and point indices. Returns true if a quadrilateral has been found, false
-    // otherwise.
-    bool SelectQuadrilateral(Scalar &invariant1, Scalar &invariant2,
-                             int& base1, int& base2, int& base3, int& base4);
-
-
     // Computes the best rigid transformation between three corresponding pairs.
     // The transformation is characterized by rotation matrix, translation vector
     // and a center about which we rotate. The set of pairs is potentially being
@@ -213,16 +206,6 @@ protected:
                                     Eigen::Ref<MatrixType> transform,
                                     Scalar& rms_,
                                     bool computeScale );
-
-    // Loop over the set of congruent 4-points and test compatiliby with the
-    // input base.
-    // \param [out] Nb Number of quads corresponding to valid configurations
-    bool TryCongruentSet(int base_id1,
-                         int base_id2,
-                         int base_id3,
-                         int base_id4,
-                         const std::vector<Super4PCS::Quadrilateral> &congruent_quads,
-                         size_t &nbCongruent);
 
     // For each randomly picked base, verifies the computed transformation by
     // computing the number of points that this transformation brings near points
@@ -260,6 +243,13 @@ public:
     void init(const std::vector<Point3D>& P,
               const std::vector<Point3D>& Q);
 
+    // Selects a quadrilateral from P and returns the corresponding invariants
+    // and point indices. Returns true if a quadrilateral has been found, false
+    // otherwise.
+    bool SelectQuadrilateral(Scalar &invariant1, Scalar &invariant2,
+                             int& base1, int& base2, int& base3, int& base4);
+
+    const std::vector<Point3D>& base3D() const { return base_3D_; }
 
     // Constructs pairs of points in Q, corresponding to a single pair in the
     // in basein P.
@@ -300,7 +290,17 @@ public:
                                 Scalar distance_threshold2,
                                 const PairsVector& P_pairs,
                                 const PairsVector& Q_pairs,
-                                std::vector<Super4PCS::Quadrilateral>* quadrilaterals) const = 0;
+                                std::vector<match_4pcs::Quadrilateral>* quadrilaterals) const = 0;
+
+    // Loop over the set of congruent 4-points and test compatiliby with the
+    // input base.
+    // \param [out] Nb Number of quads corresponding to valid configurations
+    bool TryCongruentSet(int base_id1,
+                         int base_id2,
+                         int base_id3,
+                         int base_id4,
+                         const std::vector<match_4pcs::Quadrilateral> &congruent_quads,
+                         size_t &nbCongruent);
 private:
     void initKdTree();
 
