@@ -99,12 +99,12 @@ std::array<Scalar, nbSet> deltas  = {
 
 std::array<Scalar, nbSet> overlaps = {
     0.5,
-    0.7,
+    0.6,
 };
 
 std::array<Scalar, nbSet> n_points = {
-    500,
-    500,
+    300,
+    300,
 };
 
 
