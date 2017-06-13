@@ -102,7 +102,7 @@ public:
             Scalar distance_threshold2,
             const PairsVector& P_pairs,
             const PairsVector& Q_pairs,
-            std::vector<Super4PCS::Quadrilateral>* quadrilaterals) const override;
+            std::vector<match_4pcs::Quadrilateral>* quadrilaterals) const override;
 
 protected:
     // Initializes the data structures and needed values before the match

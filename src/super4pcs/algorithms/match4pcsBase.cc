@@ -491,7 +491,7 @@ bool Match4PCSBase::TryCongruentSet(
         int base_id2,
         int base_id3,
         int base_id4,
-        const std::vector<Super4PCS::Quadrilateral>& congruent_quads,
+        const std::vector<match_4pcs::Quadrilateral>& congruent_quads,
         size_t &nbCongruent){
     std::array<std::pair<Point3D, Point3D>,4> congruent_points;
 
@@ -986,7 +986,7 @@ bool Match4PCSBase::TryOneBase() {
   const Scalar distance2 = (base_3D_[2].pos()- base_3D_[3].pos()).norm();
 
   std::vector<std::pair<int, int>> pairs1, pairs2;
-  std::vector<Super4PCS::Quadrilateral> congruent_quads;
+  std::vector<match_4pcs::Quadrilateral> congruent_quads;
 
   // Compute normal angles.
   const Scalar normal_angle1 = (base_3D_[0].normal() - base_3D_[1].normal()).norm();

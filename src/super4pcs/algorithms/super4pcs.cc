@@ -80,7 +80,7 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
         Scalar distance_threshold2,
         const std::vector<std::pair<int, int>>& P_pairs,
         const std::vector<std::pair<int, int>>& Q_pairs,
-        std::vector<Super4PCS::Quadrilateral>* quadrilaterals) const {
+        std::vector<match_4pcs::Quadrilateral>* quadrilaterals) const {
 
 
   if (quadrilaterals == nullptr) return false;

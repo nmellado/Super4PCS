@@ -45,9 +45,10 @@
 #define _SHARED_4PCS_H_
 
 #include <vector>
-#include <memory>
+#include <iostream>
+#include <fstream>
 
-#include "Eigen/Core"
+#include <Eigen/Core>
 
 #include "utils/disablewarnings.h"
 
@@ -110,6 +111,38 @@ class Point3D {
 
   bool hasColor_ = false;
 };
+
+
+
+// Holds a base from P. The base contains 4 points (indices) from the set P.
+struct Quadrilateral {
+    std::array <int, 4> vertices;
+    inline Quadrilateral(int vertex0, int vertex1, int vertex2, int vertex3) {
+        vertices = { vertex0, vertex1, vertex2, vertex3 };
+    }
+
+    inline bool operator< (const Quadrilateral& rhs) const {
+        return    vertices[0] != rhs[0] ? vertices[0] < rhs[0]
+                : vertices[1] != rhs[1] ? vertices[1] < rhs[1]
+                : vertices[2] != rhs[2] ? vertices[2] < rhs[2]
+                : vertices[3] < rhs[3];
+    }
+
+    inline bool operator== (const Quadrilateral& rhs) const {
+        return  vertices[0] == rhs[0] &&
+                vertices[1] == rhs[1] &&
+                vertices[2] == rhs[2] &&
+                vertices[3] == rhs[3];
+    }
+
+    int  operator[](int idx) const { return vertices[idx]; }
+    int& operator[](int idx)       { return vertices[idx]; }
+};
+
+inline std::ofstream& operator<<(std::ofstream& ofs, const Quadrilateral& q){
+    ofs << "[" << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << "]";
+    return ofs;
+}
 
 // ----- 4PCS Options -----
 // delta and overlap_estimation are the application parameters. All other

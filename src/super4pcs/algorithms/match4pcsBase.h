@@ -56,14 +56,6 @@
 
 namespace Super4PCS{
 
-// Holds a base from P. The base contains 4 points (indices) from the set P.
-struct Quadrilateral {
-    std::array <int, 4> vertices;
-    inline Quadrilateral(int vertex0, int vertex1, int vertex2, int vertex3) {
-        vertices = { vertex0, vertex1, vertex2, vertex3 };
-    }
-};
-
 
 class Match4PCSBase {
 
