@@ -55,6 +55,8 @@
 #include "sampling.h"
 #include "accelerators/kdtree.h"
 
+const double pi = std::acos(-1);
+
 
 
 // Compute the closest points between two 3D line segments and obtain the two
@@ -550,7 +552,7 @@ bool Match4PCSBase::TryCongruentSet(
       ComputeRigidTransformation(congruent_points,   // input congruent quads
                                  centroid1,          // input: basis centroid
                                  centroid2,          // input: candidate quad centroid
-                                 options_.max_angle * M_PI / 180.0, // maximum per-dimension angle, check return value to detect invalid cases
+                                 options_.max_angle * pi / 180.0, // maximum per-dimension angle, check return value to detect invalid cases
                                  transform,          // output: transformation
                                  rms,                // output: rms error of the transformation between the basis and the congruent quad
                              #ifdef MULTISCALE
