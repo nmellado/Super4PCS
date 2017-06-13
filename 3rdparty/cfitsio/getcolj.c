@@ -729,18 +729,17 @@ int ffgclj( fitsfile *fptr,   /* I - FITS file pointer                       */
     /*  not need to use a temporary buffer to store intermediate datatype.  */
     /*----------------------------------------------------------------------*/
     convert = 1;
-    if (tcode == TLONG)  /* Special Case:                        */
+    if ((tcode == TLONG) && (LONGSIZE == 32))  /* Special Case:                        */
     {                             /* no type convertion required, so read */
                                   /* data directly into output buffer.    */
 
-        if (nelem < (LONGLONG)INT32_MAX/8) {
+        if (nelem < (LONGLONG)INT32_MAX/4) {
             maxelem = nelem;
         } else {
-        /* divide by 8 instead of 4 in case sizeof(long) = 8 */
-            maxelem = INT32_MAX/8;   
+            maxelem = INT32_MAX/4;   
         }
 
-        if (nulcheck == 0 && scale == 1. && zero == 0. && LONGSIZE == 32)
+        if (nulcheck == 0 && scale == 1. && zero == 0. )
             convert = 0;  /* no need to scale data or find nulls */
     }
 
@@ -780,12 +779,22 @@ int ffgclj( fitsfile *fptr,   /* I - FITS file pointer                       */
         switch (tcode) 
         {
             case (TLONG):
+	      if (LONGSIZE == 32) {
                 ffgi4b(fptr, readptr, ntodo, incre, (INT32BIT *) &array[next],
                        status);
                 if (convert)
                     fffi4i4((INT32BIT *) &array[next], ntodo, scale, zero, 
                            nulcheck, (INT32BIT) tnull, nulval, &nularray[next], 
                             anynul, &array[next], status);
+	      } else { /* case where sizeof(long) = 8 */
+                ffgi4b(fptr, readptr, ntodo, incre, (INT32BIT *) buffer,
+                       status);
+                if (convert)
+                    fffi4i4((INT32BIT *) buffer, ntodo, scale, zero, 
+                           nulcheck, (INT32BIT) tnull, nulval, &nularray[next], 
+                            anynul, &array[next], status);
+	      }
+
                 break;
             case (TLONGLONG):
                 ffgi8b(fptr, readptr, ntodo, incre, (long *) buffer, status);
@@ -1148,10 +1157,6 @@ int fffi4i4(INT32BIT *input,      /* I - array of values to be converted     */
   nullarray will be set to 1; the value of nullarray for non-null pixels 
   will = 0.  The anynull parameter will be set = 1 if any of the returned
   pixels are null, otherwise anynull will be returned with a value = 0;
-
-  Process the array of data in reverse order, to handle the case where
-  the input data is 4-bytes and the output is  8-bytes and the conversion
-  is being done in place in the same array.
 */
 {
     long ii;
@@ -1161,12 +1166,13 @@ int fffi4i4(INT32BIT *input,      /* I - array of values to be converted     */
     {
         if (scale == 1. && zero == 0.)      /* no scaling */
         {       
-            for (ii = ntodo - 1; ii >= 0; ii--)
-                output[ii] = (long) input[ii];   /* copy input to output */
+            for (ii = 0; ii < ntodo; ii++) { 
+                 output[ii] = (long) input[ii];   /* copy input to output */
+	    }
         }
         else             /* must scale the data */
         {
-            for (ii = ntodo - 1; ii >= 0; ii--)
+            for (ii = 0; ii < ntodo; ii++)
             {
                 dvalue = input[ii] * scale + zero;
 
@@ -1189,7 +1195,7 @@ int fffi4i4(INT32BIT *input,      /* I - array of values to be converted     */
     {
         if (scale == 1. && zero == 0.)  /* no scaling */
         {       
-            for (ii = ntodo - 1; ii >= 0; ii--)
+            for (ii = 0; ii < ntodo; ii++)
             {
                 if (input[ii] == tnull)
                 {
@@ -1201,12 +1207,11 @@ int fffi4i4(INT32BIT *input,      /* I - array of values to be converted     */
                 }
                 else
                     output[ii] = input[ii];
-
             }
         }
         else                  /* must scale the data */
         {
-            for (ii = ntodo - 1; ii >= 0; ii--)
+            for (ii = 0; ii < ntodo; ii++)
             {
                 if (input[ii] == tnull)
                 {

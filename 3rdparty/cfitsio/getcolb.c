@@ -1008,7 +1008,7 @@ int fffi1i1(unsigned char *input, /* I - array of values to be converted     */
     {
         if (scale == 1. && zero == 0.)      /* no scaling */
         {              /* this routine is normally not called in this case */
-           memcpy(output, input, ntodo );
+           memmove(output, input, ntodo );
         }
         else             /* must scale the data */
         {                

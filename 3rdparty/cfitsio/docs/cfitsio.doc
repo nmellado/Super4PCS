@@ -208,29 +208,8 @@ The CFITSIO code is contained in about 40 C source files (*.c) and header
 files (*.h). On VAX/VMS systems 2 assembly-code files (vmsieeed.mar and
 vmsieeer.mar) are also needed.
 
-CFITSIO has currently been tested on the following platforms (not up-to-date):
--
-  OPERATING SYSTEM           COMPILER
-   Sun OS                     gcc and cc (3.0.1)
-   Sun Solaris                gcc and cc
-   Silicon Graphics IRIX      gcc and cc
-   Silicon Graphics IRIX64    MIPS
-   Dec Alpha OSF/1            gcc and cc
-   DECstation  Ultrix         gcc
-   Dec Alpha OpenVMS          cc 
-   DEC VAX/VMS                gcc and cc
-   HP-UX                      gcc
-   IBM AIX                    gcc
-   Linux                      gcc
-   MkLinux                    DR3
-   Windows 95/98/NT           Borland C++ V4.5
-   Windows 95/98/NT/ME/XP     Microsoft/Compaq Visual C++ v5.0, v6.0
-   Windows 95/98/NT           Cygwin gcc
-   MacOS 7.1 or greater       Metrowerks 10.+
-   MacOS-X 10.1 or greater    cc (gcc)
--
-CFITSIO will probably run on most other Unix platforms.  Cray
-supercomputers are currently not supported.
+CFITSIO is written in ANCI C and should be compatible with most existing C and C++
+compilers. Cray supercomputers are currently not supported.
 
 ***1.  Unix Systems
 
@@ -257,13 +236,29 @@ to /usr1/local/lib and the necessary include files to /usr1/local/include
 (assuming of course that the  process has permission to write to these 
 directories).
 
-The optional --enable-reentrant flag will attempt to configure CFITSIO
-so that it can be used in multi-threaded programs.  See the "Using CFITSIO in Multi-threaded Environments" section, below, for more details.
+All the available configure options can be seen by entering the command
+-
+   > ./configure --help
+-
+Some of the more useful options are described below:
 
-The optional --enable-sse2 and --enable-ssse3 flags will cause configure to 
+The --enable-reentrant option will attempt to configure CFITSIO
+so that it can be used in multi-threaded programs.  See the 
+"Using CFITSIO in Multi-threaded Environments" section, below, for more details.
+
+The --enable-sse2 and --enable-ssse3 options will cause configure to 
 attempt to build CFITSIO using faster byte-swapping algorithms.  
 See the "Optimizing Programs" chapter of this manual for
 more information about these options.
+
+The --with-gsiftp-flavour and --with-gsiftp options enable support for the Globus
+Toolkit gsiftp protocal.  See the "Extended File Name Syntax" chapter for more
+information.
+
+The --with-bzip2 option enables support for reading FITS files that have been
+externally compressed by the bzip2 algorithm.  This requires that the CFITSIO
+library, and all applications program that use CFITSIO, to be linked to include
+the libbz2 library.
 
 The 'make shared' option builds a shared or dynamic version of the
 CFITSIO library.  When using the shared library the executable code is
@@ -327,17 +322,11 @@ link line in the next section of this document.
 
 ***3.  Windows PCs
 
-A precompiled DLL version of CFITSIO is available for IBM-PC users of
-the Borland or Microsoft Visual C++ compilers in the files
-cfitsiodll\_3xxx\_borland.zip and cfitsiodll\_3xxx\_vcc.zip, where
-'3xxx' represents the current release number.  These zip archives also
-contains other files and instructions on how to use the CFITSIO DLL
-library.
-
+A precompiled DLL version of CFITSIO (not necessarily the latest version)
+is available on the CFITSIO web site.  
 The CFITSIO library may also be built from the source code using the
-makefile.bc or makefile.vcc  files.  Finally, the makepc.bat file gives
-an example of  building CFITSIO with the Borland C++ v4.5 or v5.5  compiler
-using older DOS commands.
+CMake build system.  See the "README.win" file in the CFITSIO source distribution
+for more information.
 
 ***4.  Macintosh PCs
 
@@ -1205,12 +1194,19 @@ error messages one at a time.
  
 CFITSIO provides easy-to-use support for reading and writing data in
 variable length fields of a binary table. The variable length columns
-have TFORMn keyword values of the form `1Pt(len)' where `t' is the
-data type code (e.g., I, J, E, D, etc.) and `len' is an integer
-specifying the maximum length of the vector in the table.  (CFITSIO also
-supports the experimental 'Q' datatype, which is identical to the 'P' type
-except that is supports is a 64-bit address space and hence much larger
-data structures).  If the value
+have TFORMn keyword values of the form `1Pt(len)' or `1Qt(len)' where `t' 
+is the data type code (e.g., I, J, E, D, etc.) and `len' is an integer
+specifying the maximum length of the vector in the table.  The 'P' type 
+variable length columns use 32-bit array length and byte offset values, whereas
+the 'Q' type columns use 64-bit values, which may be required when dealing
+with large arrays.  CFITSIO supports a local convention that interprets
+the 'P' type descriptors as unsigned 32-bit integers, which provides 
+a factor of 2 greater range for the array length or heap address than 
+is possible with 32-bit 'signed' integers.  Note, however, that other software
+packages may not support this convention, and may be unable to read thees
+extended range variable length records.
+ 
+If the value
 of `len' is not specified when the table is created (e.g., if the TFORM
 keyword value is simply specified as '1PE' instead of '1PE(400) ), then
 CFITSIO will automatically scan the table when it is closed to
@@ -1548,6 +1544,10 @@ int fits_open_table / fftopn
 
 int fits_open_image / ffiopn
     (fitsfile **fptr, char *filename, int iomode, > int *status)
+
+int fits_open_extlist / ffeopn
+    (fitsfile **fptr, char *filename, int iomode, char *extlist,
+    >  int *hdutype, int *status)
 -
 
 The iomode parameter determines the read/write access allowed in the
@@ -1578,6 +1578,13 @@ The fits\_open\_table and fits\_open\_image routines are similar to
 fits\_open\_data except they will move to the first significant table
 HDU or image HDU in the file, respectively, if a HDU name or
 number is not specified as part of the filename.
+
+The fits\_open\_extname routine opens the file and attempts to move to a 'useful'
+HDU. If after opening the file CFITSIO is pointing to null primary array,
+then CFITSIO will attempt to move to the first extension that has an EXTNAME or
+HDUNAME keyword value that matches one of the names in the input extlist 
+space-delimited list of names.  If that fails, then CFITSIO simply moves to the 
+2nd HDU in the file.
 
 IRAF images (.imh format files) and raw binary data arrays may also be
 opened with READONLY access.  CFITSIO will automatically test if the
@@ -1881,7 +1888,30 @@ header.
   int fits_read_str / ffgstr
       (fitsfile *fptr, char *string, > char *card, int *status)
 -
->3  Return the nth header record in the CHU.  The first keyword
+>3  Read a string-valued keyword and return the string length, the value string, 
+    and/or the comment field.   The first routine, ffgksl, simply
+    returns the length of the character string value of the specified keyword.
+    The second routine, ffgsky, also returns up to maxchar characters 
+    of the keyword value string, starting with the firstchar character, 
+    and the keyword comment string (unless the input value of comm = NULL).
+    The valuelen argument returns the total length of the keyword value string
+    regardless of how much of the string is actually returned (which 
+    depends on the value of the firstchar and maxchar arguments).
+    Note that the value character string argument must be allocated large enough to
+    also hold the null terminator at the end of the returned string.  These 
+    routines support string keywords that use the CONTINUE convention to
+    continue long string values over multiple FITS header records.  Normally,
+    string-valued keywords have a maximum length of 68 characters, however,
+>   CONTINUE'd string keywords may be arbitrarily long. \label{ffgksl} \label{ffgsky}
+-
+  int fits_get_key_strlen / ffgksl
+      (fitsfile *fptr, const char *keyname, int *length, int *status);
+
+  int fits_read_string_key / ffgsky
+       (fitsfile *fptr, const char *keyname, int firstchar, int maxchar,
+       char *value, int *valuelen, char *comm, int *status);
+-
+>4  Return the nth header record in the CHU.  The first keyword
    in the header is at keynum = 1;  if keynum = 0 then these routines
    simply reset the internal CFITSIO pointer to the beginning of the header
    so that subsequent keyword operations will start at the top of the
@@ -1901,7 +1931,7 @@ header.
       (fitsfile *fptr, int keynum, > char *keyname, char *value,
        char *comment, int *status)
 -
->4  Return the next keyword whose name matches one of the strings in
+>5  Return the next keyword whose name matches one of the strings in
     'inclist' but does not match any of the strings in 'exclist'.
     The strings in inclist and exclist may contain wild card characters
     (*, ?, and \#) as described at the beginning of this section.
@@ -1917,7 +1947,7 @@ header.
       (fitsfile *fptr, char **inclist, int ninc, char **exclist,
        int nexc, > char *card, int  *status)
 -
->5  Return the physical units string from an existing keyword.  This
+>6  Return the physical units string from an existing keyword.  This
     routine uses a local convention, shown in the following example,
     in which the keyword units are enclosed in square brackets in the
     beginning of the keyword comment field.  A null string is returned
@@ -1928,7 +1958,7 @@ header.
   int fits_read_key_unit / ffgunt
       (fitsfile *fptr, char *keyname, > char *unit, int *status)
 -
->6  Concatenate the header keywords in the CHDU into a single long
+>7  Concatenate the header keywords in the CHDU into a single long
     string of characters.  This provides a convenient way of passing
     all or part of the header information in a FITS HDU to other subroutines.
     Each 80-character fixed-length keyword record is appended to the
@@ -3541,8 +3571,8 @@ The following utility routines may be useful for certain applications.
                      XTENSION, TFIELDS, TTYPEn, TBCOLn, TFORMn, THEAP,
                      and the first 4 COMMENT keywords in the primary array
                      that define the FITS format.
-  TYP_CMPRS_KEY  20  The experimental keywords used in the compressed 
-                     image format ZIMAGE, ZCMPTYPE, ZNAMEn, ZVALn,
+  TYP_CMPRS_KEY  20  The keywords used in the compressed image or table
+                     format, including ZIMAGE, ZCMPTYPE, ZNAMEn, ZVALn,
                      ZTILEn, ZBITPIX, ZNAXISn, ZSCALE, ZZERO, ZBLANK
   TYP_SCAL_KEY   30  BSCALE, BZERO, TSCALn, TZEROn
   TYP_NULL_KEY   40  BLANK, TNULLn
@@ -7984,8 +8014,13 @@ the entire line is treated as a FITS comment keyword (with a blank
 keyword name) and is copied verbatim into the FITS header.
 
 The KEYVALUE field may have any allowed  FITS  data type: character
-string, logical, integer, real, complex integer, or complex real.  The
-character string values need not be enclosed in single quote characters
+string, logical, integer, real, complex integer, or complex real.  Integer
+values must be within the allowed range of a 'signed long' variable;  
+some C compilers only suppport 4-byte long integers with a range 
+from -2147483648 to +2147483647, whereas other C compilers support 8-byte
+integers with a range of plus or minus 2**63.  
+
+The character string values need not be enclosed in single quote characters
 unless they are necessary to distinguish the string from a different
 data type (e.g.  2.0 is a real but '2.0' is a string).  The keyword has
 an undefined (null) value if the template record only contains blanks
@@ -8290,12 +8325,6 @@ keyword, so this local convention is in compliance with the
 FITS standard although other FITS readers may not
 recognize this convention.
 
-The Binary Table definition document that was approved by the IAU in
-1994 contains an appendix describing an alternate convention for
-specifying arrays of fixed or variable length strings in a binary table
-character column (with the form 'rA:SSTRw/nnn)'.  This appendix was not
-officially voted on by the IAU and hence is still provisional.  CFITSIO
-does not currently support this proposal.
 
 **D.  Keyword Units Strings
 
@@ -8346,8 +8375,10 @@ contain any printable ASCII text characters, including spaces.  The
 equals sign marks the end of the keyword name and is followed by the
 usual value and comment fields just as in standard FITS keywords.
 Further details of this convention are described at
-http://arcdev.hq.eso.org/dicb/dicd/dic-1-1.4.html (search for
-HIERARCH).
+http://fits.gsfc.nasa.gov/registry/hierarch\_keyword.html
+and in Section 4.4 of the ESO Data Interface Control Document that
+is linked to from 
+http://archive.eso.org/cms/tools-documentation/eso-data-interface-control.html.
 
 This convention allows a much broader range of keyword names 
 than is allowed by the FITS Standard.  Here are more examples
@@ -8753,6 +8784,7 @@ fits\_get\_img\_param & \pageref{ffgipr} \\
 fits\_get\_img\_size & \pageref{ffgisz} \\
 fits\_get\_img\_type & \pageref{ffgidt} \\
 fits\_get\_inttype    & \pageref{ffinttyp} \\
+fits\_get\_key\_strlen & \pageref{ffgksl} \\
 fits\_get\_keyclass    & \pageref{ffgkcl} \\
 fits\_get\_keyname    & \pageref{ffgknm} \\
 fits\_get\_keytype    & \pageref{ffdtyp} \\
@@ -8768,10 +8800,10 @@ fits\_get\_tile\_dim     & \pageref{ffgetcomp} \\
 fits\_get\_tbcol      & \pageref{ffgabc} \\
 fits\_get\_version    & \pageref{ffvers} \\
 fits\_hdr2str         & \pageref{ffhdr2str}, \pageref{hdr2str} \\
-fits\_insert\_atbl    & \pageref{ffitab} \\
 \end{tabular}
 \newpage
 \begin{tabular}{lr}
+fits\_insert\_atbl    & \pageref{ffitab} \\
 fits\_insert\_btbl    & \pageref{ffibin} \\
 fits\_insert\_col   & \pageref{fficol} \\
 fits\_insert\_cols  & \pageref{fficls} \\
@@ -8801,6 +8833,7 @@ fits\_movrel\_hdu     & \pageref{ffmrhd} \\
 fits\_null\_check     & \pageref{ffnchk} \\
 fits\_open\_data      & \pageref{ffopen} \\
 fits\_open\_diskfile    & \pageref{ffopen} \\
+fits\_open\_extlist      & \pageref{ffopen} \\
 fits\_open\_file      & \pageref{ffopen} \\
 fits\_open\_image      & \pageref{ffopen} \\
 fits\_open\_table      & \pageref{ffopen} \\
@@ -8818,10 +8851,10 @@ fits\_pix\_to\_world & \pageref{ffwldp} \\
 fits\_read\_2d\_TYP      & \pageref{ffg2dx} \\
 fits\_read\_3d\_TYP      & \pageref{ffg3dx} \\
 fits\_read\_atblhdr      & \pageref{ffghtb} \\
-fits\_read\_btblhdr      & \pageref{ffghbn} \\
-fits\_read\_card         & \pageref{ffgcrd} \\
 \end{tabular}
 \begin{tabular}{lr}
+fits\_read\_btblhdr      & \pageref{ffghbn} \\
+fits\_read\_card         & \pageref{ffgcrd} \\
 fits\_read\_col        & \pageref{ffgcv} \\
 fits\_read\_col\_bit\_ & \pageref{ffgcx} \\
 fits\_read\_col\_TYP    & \pageref{ffgcvx} \\
@@ -8850,6 +8883,7 @@ fits\_read\_pix  & \pageref{ffgpxv} \\
 fits\_read\_pixnull & \pageref{ffgpxf} \\
 fits\_read\_record       & \pageref{ffgrec} \\
 fits\_read\_str         & \pageref{ffgcrd} \\
+fits\_read\_string\_key & \pageref{ffgsky} \\
 fits\_read\_subset  & \pageref{ffgsv} \\
 fits\_read\_subset\_TYP  & \pageref{ffgsvx} \pageref{ffgsvx2}\\
 fits\_read\_subsetnull\_TYP & \pageref{ffgsfx} \pageref{ffgsfx2} \\
@@ -8867,11 +8901,11 @@ fits\_rms\_float      & \pageref{imageRMS} \\
 fits\_rms\_short      & \pageref{imageRMS} \\
 fits\_select\_rows  & \pageref{ffsrow} \\
 fits\_set\_atblnull   & \pageref{ffsnul} \\
+\end{tabular}
+\begin{tabular}{lr}
 fits\_set\_bscale     & \pageref{ffpscl} \\
 fits\_set\_btblnull   & \pageref{fftnul} \\
 fits\_set\_compression\_type  & \pageref{ffsetcomp} \\
-\end{tabular}
-\begin{tabular}{lr}
 fits\_set\_hdrsize    & \pageref{ffhdef} \\
 fits\_set\_hdustruc   & \pageref{ffrdef} \\
 fits\_set\_imgnull    & \pageref{ffpnul} \\
@@ -8917,12 +8951,12 @@ fits\_write\_errmark   & \pageref{ffpmrk} \\
 fits\_write\_errmsg   & \pageref{ffpmsg} \\
 fits\_write\_ext        & \pageref{ffgextn} \\
 fits\_write\_exthdr        & \pageref{ffphps} \\
-fits\_write\_grphdr       & \pageref{ffphpr} \\
-fits\_write\_grppar\_TYP & \pageref{ffpgpx} \\
-fits\_write\_hdu       & \pageref{ffwrhdu} \\
 \end{tabular}
 \newpage
 \begin{tabular}{lr}
+fits\_write\_grphdr       & \pageref{ffphpr} \\
+fits\_write\_grppar\_TYP & \pageref{ffpgpx} \\
+fits\_write\_hdu       & \pageref{ffwrhdu} \\
 fits\_write\_history      & \pageref{ffphis} \\
 fits\_write\_img        & \pageref{ffppr} \\
 fits\_write\_img\_null & \pageref{ffppru} \\
@@ -8990,6 +9024,7 @@ ffdsum  & \pageref{ffdsum} \\
 ffdt2s  & \pageref{ffdt2s} \\
 ffdtdm   & \pageref{ffdtdm} \\
 ffdtyp    & \pageref{ffdtyp} \\
+ffeopn    & \pageref{ffopen} \\
 ffeqty    & \pageref{ffgtcl} \\
 ffesum  & \pageref{ffesum} \\
 ffexest  & \pageref{ffexist} \\
@@ -9000,9 +9035,9 @@ ffflnm      & \pageref{ffflnm} \\
 ffflsh     & \pageref{ffflus} \\
 ffflus     & \pageref{ffflus} \\
 fffree     & \pageref{ffgkls},  \pageref{ffhdr2str} \\
-fffrow    & \pageref{fffrow} \\
 \end{tabular}
 \begin{tabular}{lr}
+fffrow    & \pageref{fffrow} \\
 ffg2d\_      & \pageref{ffg2dx} \\
 ffg3d\_      & \pageref{ffg3dx} \\
 ffgabc      & \pageref{ffgabc} \\
@@ -9040,6 +9075,7 @@ ffgisz & \pageref{ffgisz} \\
 ffgkcl      & \pageref{ffgkcl} \\
 ffgkey      & \pageref{ffgkey} \\
 ffgkls  & \pageref{ffgkls} \\
+ffgksl  & \pageref{ffgksl} \\
 ffgkn\_     & \pageref{ffgknx} \\
 ffgknm    & \pageref{ffgknm} \\
 ffgky          & \pageref{ffgky} \\
@@ -9049,11 +9085,11 @@ ffgky\_      & \pageref{ffgkyx} \\
 ffgmcp   & \pageref{ffgmcp} \\
 ffgmng  & \pageref{ffgmng} \\
 ffgmop    & \pageref{ffgmop} \\
-ffgmrm   & \pageref{ffgmrm} \\
-ffgmsg    & \pageref{ffgmsg} \\
 
 \end{tabular}
 \begin{tabular}{lr}
+ffgmrm   & \pageref{ffgmrm} \\
+ffgmsg    & \pageref{ffgmsg} \\
 ffgmtf  & \pageref{ffgmtf} \\
 ffgncl     & \pageref{ffgnrw} \\
 ffgnrw     & \pageref{ffgnrw} \\
@@ -9067,7 +9103,8 @@ ffgpxf  & \pageref{ffgpxf} \\
 ffgrec       & \pageref{ffgrec} \\
 ffgrsz    & \pageref{ffgrsz} \\
 ffgsdt        & \pageref{ffdt2s} \\
-ffgsf\_ & \pageref{ffgsfx} \pageref{ffgsfx2} \\
+ffgsf\_ &  \pageref{ffgsfx} \pageref{ffgsfx2} \\
+ffgsky  &  \pageref{ffgsky} \\
 ffgstm        & \pageref{ffdt2s} \\
 ffgstr         & \pageref{ffgcrd} \\
 ffgsv  & \pageref{ffgsv} \\
@@ -9099,13 +9136,13 @@ ffikls    & \pageref{ffikyx} \\
 ffikyu   & \pageref{ffikyu} \\
 ffiky\_    & \pageref{ffikyx} \\
 ffimem  & \pageref{ffimem} \\
-ffinit  & \pageref{ffinit} \\
-ffinttyp    & \pageref{ffinttyp} \\
-ffiopn & \pageref{ffopen} \\
 
 \end{tabular}
 \begin{tabular}{lr}
 
+ffinit  & \pageref{ffinit} \\
+ffinttyp    & \pageref{ffinttyp} \\
+ffiopn & \pageref{ffopen} \\
 ffirec     & \pageref{ffirec} \\
 ffirow  & \pageref{ffirow} \\
 ffitab    & \pageref{ffitab} \\
@@ -9151,13 +9188,13 @@ ffphtb      & \pageref{ffphtb} \\
 ffpkls  & \pageref{ffpkls} \\
 ffpkn\_     & \pageref{ffpknx} \\
 ffpktp & \pageref{ffpktp} \\
-ffpky          & \pageref{ffpky} \\
-ffpkyt   & \pageref{ffpkyt} \\
-ffpkyu     & \pageref{ffpkyu} \\
 
 \end{tabular}
 \begin{tabular}{lr}
 
+ffpky          & \pageref{ffpky} \\
+ffpkyt   & \pageref{ffpkyt} \\
+ffpkyu     & \pageref{ffpkyu} \\
 ffpky\_      & \pageref{ffpkyx} \\
 ffplsw & \pageref{ffplsw} \\
 ffpmrk   & \pageref{ffpmrk} \\
@@ -9203,14 +9240,15 @@ fftrec    & \pageref{fftrec} \\
 fftscl     & \pageref{fftscl} \\
 ffucrd       & \pageref{ffucrd} \\
 ffukls    & \pageref{ffukyx} \\
-ffuky        & \pageref{ffuky} \\
-ffukyu   & \pageref{ffukyu} \\
-ffuky\_    & \pageref{ffukyx} \\
+
 
 \end{tabular}
 \newpage
 \begin{tabular}{lr}
 
+ffuky        & \pageref{ffuky} \\
+ffukyu   & \pageref{ffukyu} \\
+ffuky\_    & \pageref{ffukyx} \\
 ffupch      & \pageref{ffupch} \\
 ffupck  & \pageref{ffupck} \\
 ffurlt  & \pageref{ffurlt} \\
@@ -9236,8 +9274,6 @@ bitpix   - bits per pixel. The following symbolic mnemonics are predefined:
                LONGLONG_IMG =  64 (signed long 64-bit integer)
                FLOAT_IMG  = -32 (float)
                DOUBLE_IMG = -64 (double).
-           The LONGLONG_IMG type is experimental and is not officially
-           recognized in the FITS Standard document.
            Two additional values, USHORT_IMG and ULONG_IMG are also available
            for creating unsigned integer images.  These are equivalent to
            creating a signed integer image with BZERO offset keyword values

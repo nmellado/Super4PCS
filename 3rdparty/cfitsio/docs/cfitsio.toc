@@ -9,10 +9,10 @@
 \contentsline {subsection}{\numberline {2.1.2}VMS}{7}
 \contentsline {subsection}{\numberline {2.1.3}Windows PCs}{7}
 \contentsline {subsection}{\numberline {2.1.4}Macintosh PCs}{7}
-\contentsline {section}{\numberline {2.2}Testing the Library}{8}
+\contentsline {section}{\numberline {2.2}Testing the Library}{7}
 \contentsline {section}{\numberline {2.3}Linking Programs with CFITSIO}{9}
 \contentsline {section}{\numberline {2.4}Using CFITSIO in Multi-threaded Environments}{9}
-\contentsline {section}{\numberline {2.5}Getting Started with CFITSIO}{10}
+\contentsline {section}{\numberline {2.5}Getting Started with CFITSIO}{9}
 \contentsline {section}{\numberline {2.6}Example Program}{10}
 \contentsline {chapter}{\numberline {3} A FITS Primer }{13}
 \contentsline {chapter}{\numberline {4} Programming Guidelines }{15}
@@ -34,21 +34,21 @@
 \contentsline {section}{\numberline {5.2}FITS File Access Routines}{32}
 \contentsline {section}{\numberline {5.3}HDU Access Routines}{35}
 \contentsline {section}{\numberline {5.4}Header Keyword Read/Write Routines}{37}
-\contentsline {subsection}{\numberline {5.4.1}Keyword Reading Routines}{37}
+\contentsline {subsection}{\numberline {5.4.1}Keyword Reading Routines}{38}
 \contentsline {subsection}{\numberline {5.4.2}Keyword Writing Routines}{40}
-\contentsline {section}{\numberline {5.5}Primary Array or IMAGE Extension I/O Routines}{42}
-\contentsline {section}{\numberline {5.6}Image Compression}{46}
-\contentsline {section}{\numberline {5.7}ASCII and Binary Table Routines}{51}
+\contentsline {section}{\numberline {5.5}Primary Array or IMAGE Extension I/O Routines}{43}
+\contentsline {section}{\numberline {5.6}Image Compression}{47}
+\contentsline {section}{\numberline {5.7}ASCII and Binary Table Routines}{52}
 \contentsline {subsection}{\numberline {5.7.1}Create New Table}{52}
-\contentsline {subsection}{\numberline {5.7.2}Column Information Routines}{52}
+\contentsline {subsection}{\numberline {5.7.2}Column Information Routines}{53}
 \contentsline {subsection}{\numberline {5.7.3}Routines to Edit Rows or Columns}{55}
 \contentsline {subsection}{\numberline {5.7.4}Read and Write Column Data Routines}{57}
 \contentsline {subsection}{\numberline {5.7.5}Row Selection and Calculator Routines}{59}
-\contentsline {subsection}{\numberline {5.7.6}Column Binning or Histogramming Routines}{60}
+\contentsline {subsection}{\numberline {5.7.6}Column Binning or Histogramming Routines}{61}
 \contentsline {section}{\numberline {5.8}Utility Routines}{63}
 \contentsline {subsection}{\numberline {5.8.1}File Checksum Routines}{63}
-\contentsline {subsection}{\numberline {5.8.2}Date and Time Utility Routines}{64}
-\contentsline {subsection}{\numberline {5.8.3}General Utility Routines}{65}
+\contentsline {subsection}{\numberline {5.8.2}Date and Time Utility Routines}{65}
+\contentsline {subsection}{\numberline {5.8.3}General Utility Routines}{66}
 \contentsline {chapter}{\numberline {6} The CFITSIO Iterator Function }{77}
 \contentsline {section}{\numberline {6.1}The Iterator Work Function}{78}
 \contentsline {section}{\numberline {6.2}The Iterator Driver Function}{80}
@@ -105,7 +105,7 @@
 \contentsline {section}{\numberline {11.1}Detailed Template Line Format}{153}
 \contentsline {section}{\numberline {11.2}Auto-indexing of Keywords}{154}
 \contentsline {section}{\numberline {11.3}Template Parser Directives}{155}
-\contentsline {section}{\numberline {11.4}Formal Template Syntax}{155}
+\contentsline {section}{\numberline {11.4}Formal Template Syntax}{156}
 \contentsline {section}{\numberline {11.5}Errors}{156}
 \contentsline {section}{\numberline {11.6}Examples}{156}
 \contentsline {chapter}{\numberline {12} Local FITS Conventions }{159}
@@ -113,7 +113,7 @@
 \contentsline {section}{\numberline {12.2}Long String Keyword Values.}{159}
 \contentsline {section}{\numberline {12.3}Arrays of Fixed-Length Strings in Binary Tables}{161}
 \contentsline {section}{\numberline {12.4}Keyword Units Strings}{161}
-\contentsline {section}{\numberline {12.5}HIERARCH Convention for Extended Keyword Names}{162}
+\contentsline {section}{\numberline {12.5}HIERARCH Convention for Extended Keyword Names}{161}
 \contentsline {section}{\numberline {12.6}Tile-Compressed Image Format}{162}
 \contentsline {chapter}{\numberline {13} Optimizing Programs }{165}
 \contentsline {section}{\numberline {13.1}How CFITSIO Manages Data I/O}{165}

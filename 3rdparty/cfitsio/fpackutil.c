@@ -116,7 +116,7 @@ int fp_tmpnam(char *suffix, char *rootname, char *tmpnam)
 {
 	/* create temporary file name */
 
-	int maxtry = 30, i1 = 0, ii;
+	int maxtry = 30, ii;
 
 	if (strlen(suffix) + strlen(rootname) > SZ_STR-5) {
 	    fp_msg ("Error: filename is too long to create tempory file\n"); exit (-1);
@@ -1065,7 +1065,6 @@ int fp_test (char *infits, char *outfits, char *outfits2, fpstate fpvar)
 	fitsfile *inputfptr, *infptr, *outfptr, *outfptr2, *tempfile;
 
 	long	naxes[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
-	long	tilesize[9] = {0,1,1,1,1,1,1,1,1};
 	int	stat=0, totpix=0, naxis=0, ii, hdutype, bitpix = 0, extnum = 0, len;
 	int     tstatus = 0, hdunum, rescale_flag, bpix, ncols;
 	char	dtype[8], dimen[100];
@@ -1329,7 +1328,14 @@ printf("    HDU %d does not meet noise criteria to be quantized, so losslessly c
 
     		fits_get_num_rowsll(inputfptr, &nrows, &stat);
     		fits_get_num_cols(inputfptr, &ncols, &stat);
+#if defined(_MSC_VER)
+                /* Microsoft Visual C++ 6.0 uses '%I64d' syntax  for 8-byte integers */
+ 		printf("\n File: %s, HDU %d,  %d cols X %I64d rows\n", infits, extnum, ncols, nrows);
+#elif (USE_LL_SUFFIX == 1)
+ 		printf("\n File: %s, HDU %d,  %d cols X %lld rows\n", infits, extnum, ncols, nrows);
+#else
  		printf("\n File: %s, HDU %d,  %d cols X %ld rows\n", infits, extnum, ncols, nrows);
+#endif
 		fp_test_table(inputfptr, outfptr, outfptr2, fpvar, &stat);	  
 
 	    } else {
@@ -1360,7 +1366,7 @@ int fp_pack_hdu (fitsfile *infptr, fitsfile *outfptr, fpstate fpvar,
 	fitsfile *tempfile;
 	long	naxes[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
 	int	stat=0, totpix=0, naxis=0, ii, hdutype, bitpix;
-	int	tstatus, hdunum, rescale_flag = 0;
+	int	tstatus, hdunum;
 	double  bscale, rescale;
 
 	char	outfits[SZ_STR], fzalgor[FLEN_VALUE];
@@ -1487,6 +1493,9 @@ int fp_pack_hdu (fitsfile *infptr, fitsfile *outfptr, fpstate fpvar,
 			  fp_i4stat(infptr, naxis, naxes, &imagestats, &stat);
 			else
 			  fp_i2stat(infptr, naxis, naxes, &imagestats, &stat);
+
+			/* rescan the image header to reset scaling values (changed by fp_iNstat) */
+			ffrhdu(infptr, &hdutype, &stat);
 
 			/* use the minimum of the MAD 2nd, 3rd, and 5th order noise estimates */
 			noisemin = imagestats.noise3;
@@ -1738,7 +1747,7 @@ int fp_test_hdu (fitsfile *infptr, fitsfile *outfptr, fitsfile *outfptr2,
    /*   This routine is only used for performance testing of image HDUs. */
    /*   Use fp_test_table for testing binary table HDUs.    */
 
-	int stat = 0, hdutype, comptype, noloss = 0;
+	int stat = 0, hdutype, comptype;
         char ctype[20], lossless[4];
 	long headstart, datastart, dataend;
 	float origdata = 0., compressdata = 0.;
@@ -1823,7 +1832,6 @@ int fp_test_hdu (fitsfile *infptr, fitsfile *outfptr, fitsfile *outfptr2,
 
 		if ( datasum1 == datasum2) {
 			strcpy(lossless, "Yes");
-			noloss = 1;
 		} else {
 			strcpy(lossless, "No");
 		}
@@ -1859,7 +1867,7 @@ int fp_test_hdu (fitsfile *infptr, fitsfile *outfptr, fitsfile *outfptr2,
 int fp_test_table (fitsfile *infptr, fitsfile *outfptr, fitsfile *outfptr2, 
 	fpstate fpvar, int *status)
 {
-/* this routine is for performance testing of the beta table compression methods */
+/* this routine is for performance testing of the table compression methods */
 
 	int stat = 0, hdutype, tstatus = 0;
         char fzalgor[FLEN_VALUE];

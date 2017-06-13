@@ -623,6 +623,7 @@ ac_default_prefix=`pwd`
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 my_shmem
+LDFLAGS_BIN
 F77_WRAPPERS
 CFITSIO_SHLIB_SONAME
 CFITSIO_SHLIB
@@ -1345,8 +1346,8 @@ Optional Packages:
   --with-gsiftp-flavour[=PATH]
                           Enable Globus Toolkit gsiftp protocol support
   --with-gsiftp[=PATH]    Enable Globus Toolkit gsiftp protocol support
-  --with-bzip2[=PATH]     Enable bzip2. Optional path to the header file
-                          bzlib.h
+  --with-bzip2[=PATH]     Enable bzip2 support. Optional path to the location
+                          of include/bzlib.h and lib/libbz2
 
 Some influential environment variables:
   CC          C compiler command
@@ -2216,10 +2217,10 @@ test -n "$target_alias" &&
 #--------------------------------------------------------------------
 CFITSIO_MAJOR=3
 
-CFITSIO_MINOR=37
+CFITSIO_MINOR=41
 
 # Increment soname each time the interface changes:
-CFITSIO_SONAME=2
+CFITSIO_SONAME=5
 
 
 #--------------------------------------------------------------------
@@ -2265,7 +2266,6 @@ fi
 # Check whether --with-gsiftp-flavour was given.
 if test "${with_gsiftp_flavour+set}" = set; then :
   withval=$with_gsiftp_flavour;  if test "x$withval" != "xno"; then
-
         if test "x$withval" != "xyes" ; then
             GSIFTP_FLAVOUR=${withval}
         fi
@@ -2282,10 +2282,8 @@ fi
 # Check whether --with-gsiftp was given.
 if test "${with_gsiftp+set}" = set; then :
   withval=$with_gsiftp;  if test "x$withval" != "xno"; then
-
         if test "x$withval" != "xyes" ; then
-            CFLAGS="$CFLAGS -I${withval}/include/${GSIFTP_FLAVOUR}"
-            LDFLAGS="$LDFLAGS -L${withval}/lib -lglobus_ftp_client_${GSIFTP_FLAVOUR}"
+            GSIFTP_PATH=${withval}
             HAVE_GSIFTP=yes
         fi
 
@@ -2297,6 +2295,7 @@ $as_echo "#define HAVE_GSIFTP 1" >>confdefs.h
 fi
 
 
+# Enable support for bzip2 compression (disabled by default):
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -3488,44 +3487,26 @@ done
 # Check whether --with-bzip2 was given.
 if test "${with_bzip2+set}" = set; then :
   withval=$with_bzip2;  if test "x$withval" != "xno"; then
-        if test "x$withval" != "xyes" ; then
-            CFLAGS="$CFLAGS -I${withval}"
+        if test "x$withval" = "xyes" ; then
+            for ac_header in bzlib.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "bzlib.h" "ac_cv_header_bzlib_h" "$ac_includes_default"
+if test "x$ac_cv_header_bzlib_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_BZLIB_H 1
+_ACEOF
+
+$as_echo "#define HAVE_BZIP2 1" >>confdefs.h
+
+
+fi
+
+done
+
+        else
+            BZIP2_PATH=${withval}
         fi
-        for ac_header in bzlib.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "bzlib.h" "ac_cv_header_bzlib_h" "$ac_includes_default"
-if test "x$ac_cv_header_bzlib_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_BZLIB_H 1
-_ACEOF
-
-fi
-
-done
-
-        HAVE_BZIP2=yes
-
-$as_echo "#define HAVE_BZIP2 1" >>confdefs.h
-
     fi
-
-else
-  for ac_header in bzlib.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "bzlib.h" "ac_cv_header_bzlib_h" "$ac_includes_default"
-if test "x$ac_cv_header_bzlib_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_BZLIB_H 1
-_ACEOF
-
-fi
-
-done
-
-   HAVE_BZIP2=yes
-
-$as_echo "#define HAVE_BZIP2 1" >>confdefs.h
-
 
 
 fi
@@ -3550,7 +3531,7 @@ test "$exec_prefix" != NONE -a "$prefix" != "$exec_prefix" \
 #--------------------------------------------------------------------
 
 case $host in
-    *pc-cygwin*)
+    *cygwin*)
 	ARCH="cygwin"
 	EXT="cygwin"
 	;;
@@ -4184,6 +4165,8 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+LDFLAGS="$CFLAGS"
+LDFLAGS_BIN="$LDFLAGS"
 
 if test "x$FC" = "xnone" ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: cfitsio: == Fortran compiler search has been overridden" >&5
@@ -4496,7 +4479,7 @@ CFLAGS="$CFLAGS"
 LIBPRE=""
 
 case $host in
-    *pc-cygwin*)
+    *cygwin*)
 	CFLAGS="$CFLAGS -DHAVE_POSIX_SIGNALS"
 	;;
     *apple-darwin*)
@@ -4507,47 +4490,21 @@ case $host in
                 ;;
             *)
 
-                # Test to see whether the C compiler accepts the "-arch"
-                # flags for building "universal" binaries (Apple XCode only):
-                SAVE_CFLAGS="$CFLAGS"
-                C_UNIV_SWITCH="-arch i386 -arch x86_64"
-                CFLAGS="$CFLAGS $C_UNIV_SWITCH"
-                { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CC accepts $C_UNIV_SWITCH" >&5
-$as_echo_n "checking whether $CC accepts $C_UNIV_SWITCH... " >&6; }
-                ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-                cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  c_has_option=yes
-else
-  c_has_option=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-                { $as_echo "$as_me:${as_lineno-$LINENO}: result: $c_has_option" >&5
-$as_echo "$c_has_option" >&6; }
-                ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-                # Value of C_UNIV_SWITCH will be needed later for SHLIB_LD:
-                if test "$c_has_option" = no; then C_UNIV_SWITCH=""; fi
-                CFLAGS="$SAVE_CFLAGS $C_UNIV_SWITCH"
+                echo "int main(){return(0);}" > /tmp/$$.c
+                $CC -v -o /tmp/$$.out /tmp/$$.c 2> /tmp/$$.log
+                if test `cat /tmp/$$.log | grep -ci 'LLVM'` -ne 0; then APPLEXCODE="yes"; fi
+                if test "x$APPLEXCODE" = xyes; then
+                # Apple XCode LLVM:
+                  # Flags for building Universal binaries:
+                  C_UNIV_SWITCH="-arch i386 -arch x86_64"
+                  CFLAGS="$CFLAGS $C_UNIV_SWITCH"
+                  # Set LDFLAGS used by utilities:
+                  LDFLAGS_BIN="$LDFLAGS_BIN -rpath \${CFITSIO_LIB}"
+                else
+                # Non-Xcode GCC:
+                  # Set LDFLAGS used by utilities:
+                  LDFLAGS_BIN="$LDFLAGS_BIN -Wl,-rpath,\${CFITSIO_LIB}"
+                fi
                 ;;
         esac
         # For large file support (but may break Absoft compilers):
@@ -4708,6 +4665,18 @@ $as_echo "$as_me: WARNING: This gcc is pretty old. Disabling optimization to be 
 		;;
 esac
 
+# GSIFTP flags:
+if test "x$GSIFTP_PATH" != x -a "x$GSIFTP_FLAVOUR" != x; then
+   CFLAGS="$CFLAGS -I${GSIFTP_PATH}/include/${GSIFTP_FLAVOUR}"
+   LDFLAGS="$LDFLAGS -L${GSIFTP_PATH}/lib -lglobus_ftp_client_${GSIFTP_FLAVOUR}"
+fi
+
+# BZIP2 flags:
+if test "x$BZIP2_PATH" != x; then
+   CFLAGS="$CFLAGS -I${BZIP2_PATH}/include"
+   LDFLAGS="$LDFLAGS -L${BZIP2_PATH}/lib -lbz2"
+fi
+
 # Shared library section
 #-------------------------------------------------------------------------------
 SHLIB_LD=:
@@ -4716,22 +4685,23 @@ CFITSIO_SHLIB=""
 CFITSIO_SHLIB_SONAME=""
 lhea_shlib_cflags=
 case $EXT in
-  cygwin)
+  cygwin|mingw32)
     SHLIB_LD="$CC -shared"
     SHLIB_SUFFIX=".dll"
     ;;
   darwin)
 
     SHLIB_SUFFIX=".dylib"
-    CFITSIO_SHLIB="libcfitsio.\${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}\${SHLIB_SUFFIX}"
-    CFITSIO_SHLIB_SONAME="libcfitsio.\${CFITSIO_SONAME}\${SHLIB_SUFFIX}"
+    CFITSIO_SHLIB="lib\${PACKAGE}.\${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}\${SHLIB_SUFFIX}"
+    CFITSIO_SHLIB_SONAME="lib\${PACKAGE}.\${CFITSIO_SONAME}\${SHLIB_SUFFIX}"
     case $host in
         *darwin[56789]*)
-            SHLIB_LD="$CC -dynamiclib -install_name libcfitsio.\${CFITSIO_SONAME}\${SHLIB_SUFFIX} -compatibility_version \${CFITSIO_SONAME} -current_version \${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}"
+            SHLIB_LD="$CC -dynamiclib -install_name lib\${PACKAGE}.\${CFITSIO_SONAME}\${SHLIB_SUFFIX} -compatibility_version \${CFITSIO_SONAME} -current_version \${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}"
             ;;
         *)
-            # Build for i386 & x86_64 architectures on Darwin 10.x or newer:
-            SHLIB_LD="$CC -dynamiclib $C_UNIV_SWITCH -install_name libcfitsio.\${CFITSIO_SONAME}\${SHLIB_SUFFIX} -compatibility_version \${CFITSIO_SONAME} -current_version \${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}"
+            # Build 'Universal' binaries (i386 & x86_64 architectures) and
+            # use rpath token on Darwin 10.x or newer:
+            SHLIB_LD="$CC -dynamiclib $C_UNIV_SWITCH -headerpad_max_install_names -install_name @rpath/lib\${PACKAGE}.\${CFITSIO_SONAME}\${SHLIB_SUFFIX} -compatibility_version \${CFITSIO_SONAME} -current_version \${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}"
             ;;
     esac
 
@@ -4743,8 +4713,8 @@ case $EXT in
     ;;
   lnx)
     SHLIB_LD=":"
-    CFITSIO_SHLIB="libcfitsio\${SHLIB_SUFFIX}.\${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}"
-    CFITSIO_SHLIB_SONAME="libcfitsio\${SHLIB_SUFFIX}.\${CFITSIO_SONAME}"
+    CFITSIO_SHLIB="lib\${PACKAGE}\${SHLIB_SUFFIX}.\${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}"
+    CFITSIO_SHLIB_SONAME="lib\${PACKAGE}\${SHLIB_SUFFIX}.\${CFITSIO_SONAME}"
     ;;
   osf)
     SHLIB_LD="ld -shared -expect_unresolved '*'"
@@ -4765,7 +4735,7 @@ esac
 # Darwin uses gcc (=cc), but needs different flags (see above)
 if test "x$EXT" != xdarwin && test "x$EXT" != xcygwin && test "x$EXT" != xmingw32; then
   if test "x$GCC" = xyes; then
-    SHLIB_LD="$CC -shared -Wl,-soname,libcfitsio\${SHLIB_SUFFIX}.\${CFITSIO_SONAME}"
+    SHLIB_LD="$CC -shared -Wl,-soname,lib\${PACKAGE}\${SHLIB_SUFFIX}.\${CFITSIO_SONAME}"
     lhea_shlib_cflags='-fPIC'
   fi
 fi
@@ -4773,7 +4743,8 @@ if test "x$lhea_shlib_cflags" != x; then
   CFLAGS="$CFLAGS $lhea_shlib_cflags"
 fi
 # Set shared library name for cases in which we aren't setting a 'soname':
-if test "x$CFITSIO_SHLIB" = x; then CFITSIO_SHLIB="libcfitsio\${SHLIB_SUFFIX}"; fi
+if test "x$CFITSIO_SHLIB" = x; then CFITSIO_SHLIB="lib\${PACKAGE}\${SHLIB_SUFFIX}"; fi
+
 
 
 
@@ -5124,6 +5095,8 @@ fi
 # ------------------------------------------------------------------------------
 if test "x$BUILD_REENTRANT" = xyes; then
   $as_echo "#define _REENTRANT 1" >>confdefs.h
+
+  $as_echo "#define _XOPEN_SOURCE 700" >>confdefs.h
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lpthread" >&5
 $as_echo_n "checking for main in -lpthread... " >&6; }

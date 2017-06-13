@@ -457,7 +457,6 @@ int marktime( int *status)
     double telapse;
     time_t temp;
     struct  timeval tv;
-    struct  timezone tz;
 
     temp = time(0);
 
@@ -478,7 +477,7 @@ int marktime( int *status)
         telapse = difftime( start, temp );
     }
 */
-        gettimeofday (&tv, &tz);
+        gettimeofday (&tv, NULL);
 
 	startsec = tv.tv_sec;
         startmilli = tv.tv_usec/1000;
@@ -489,12 +488,11 @@ int marktime( int *status)
 int gettime(double *elapse, float *elapscpu, int *status)
 {
         struct  timeval tv;
-        struct  timezone tz;
 	int stopmilli;
 	long stopsec;
 
 
-        gettimeofday (&tv, &tz);
+        gettimeofday (&tv, NULL);
     ecpu = clock();
     finish = time(0);
 

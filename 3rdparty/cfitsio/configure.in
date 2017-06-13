@@ -15,9 +15,9 @@ AC_CANONICAL_TARGET([])
 # CFITSIO Version Numbers:
 #--------------------------------------------------------------------
 AC_SUBST(CFITSIO_MAJOR,3)
-AC_SUBST(CFITSIO_MINOR,37)
+AC_SUBST(CFITSIO_MINOR,41)
 # Increment soname each time the interface changes:
-AC_SUBST(CFITSIO_SONAME,2)
+AC_SUBST(CFITSIO_SONAME,5)
 
 #--------------------------------------------------------------------
 # Command options
@@ -57,7 +57,6 @@ AC_ARG_WITH(
   gsiftp-flavour,
   [AS_HELP_STRING([--with-gsiftp-flavour[[=PATH]]],[Enable Globus Toolkit gsiftp protocol support])],
   [ if test "x$withval" != "xno"; then
-
         if test "x$withval" != "xyes" ; then
             GSIFTP_FLAVOUR=${withval}
         fi
@@ -70,10 +69,8 @@ AC_ARG_WITH(
   gsiftp,
   [AS_HELP_STRING([--with-gsiftp[[=PATH]]],[Enable Globus Toolkit gsiftp protocol support])],
   [ if test "x$withval" != "xno"; then
-
         if test "x$withval" != "xyes" ; then
-            CFLAGS="$CFLAGS -I${withval}/include/${GSIFTP_FLAVOUR}"
-            LDFLAGS="$LDFLAGS -L${withval}/lib -lglobus_ftp_client_${GSIFTP_FLAVOUR}"
+            GSIFTP_PATH=${withval}
             HAVE_GSIFTP=yes
         fi
         AC_DEFINE(HAVE_GSIFTP,1,[Define if you want Globus Toolkit gsiftp protocol support])
@@ -81,21 +78,19 @@ AC_ARG_WITH(
   ]
 )
 
+# Enable support for bzip2 compression (disabled by default):
 AC_ARG_WITH(
   bzip2,
-  [AS_HELP_STRING([--with-bzip2[[=PATH]]],[Enable bzip2. Optional path to the header file bzlib.h])],
+  [AS_HELP_STRING([--with-bzip2[[=PATH]]],[Enable bzip2 support. Optional path to the location of include/bzlib.h and lib/libbz2])],
   [ if test "x$withval" != "xno"; then
-        if test "x$withval" != "xyes" ; then
-            CFLAGS="$CFLAGS -I${withval}"
+        if test "x$withval" = "xyes" ; then
+            AC_CHECK_HEADERS(bzlib.h,
+              [AC_DEFINE(HAVE_BZIP2,1,[Define if you want bzip2 read support])]
+            )
+        else
+            BZIP2_PATH=${withval}
         fi
-        AC_CHECK_HEADERS(bzlib.h)
-        HAVE_BZIP2=yes
-        AC_DEFINE(HAVE_BZIP2,1,[Define if you want bzip2 read support])
     fi
-  ],
-  [AC_CHECK_HEADERS(bzlib.h)
-   HAVE_BZIP2=yes
-   AC_DEFINE(HAVE_BZIP2,1,[Define if you want bzip2 read support])
   ]
 )
 
@@ -117,7 +112,7 @@ test "$exec_prefix" != NONE -a "$prefix" != "$exec_prefix" \
 #--------------------------------------------------------------------
 
 case $host in
-    *pc-cygwin*)
+    *cygwin*)
 	ARCH="cygwin"
 	EXT="cygwin"
 	;;
@@ -173,6 +168,8 @@ if test "x$EXT" != xcygwin && test "x$EXT" != xdarwin && test "x$EXT" != xlnx &&
   fi
 fi
 AC_PROG_CC
+LDFLAGS="$CFLAGS"
+LDFLAGS_BIN="$LDFLAGS"
 
 if test "x$FC" = "xnone" ; then
   AC_MSG_NOTICE(cfitsio: == Fortran compiler search has been overridden)
@@ -258,7 +255,7 @@ CFLAGS="$CFLAGS"
 LIBPRE=""
 
 case $host in
-    *pc-cygwin*)
+    *cygwin*)
 	CFLAGS="$CFLAGS -DHAVE_POSIX_SIGNALS"
 	;;
     *apple-darwin*)
@@ -269,19 +266,21 @@ case $host in
                 ;;
             *)
                 changequote([,])
-                # Test to see whether the C compiler accepts the "-arch"
-                # flags for building "universal" binaries (Apple XCode only):
-                SAVE_CFLAGS="$CFLAGS"
-                C_UNIV_SWITCH="-arch i386 -arch x86_64"
-                CFLAGS="$CFLAGS $C_UNIV_SWITCH"
-                AC_MSG_CHECKING([whether $CC accepts $C_UNIV_SWITCH])
-                AC_LANG_PUSH([C])
-                AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],[c_has_option=yes],[c_has_option=no])
-                AC_MSG_RESULT($c_has_option)
-                AC_LANG_POP([])
-                # Value of C_UNIV_SWITCH will be needed later for SHLIB_LD:
-                if test "$c_has_option" = no; then C_UNIV_SWITCH=""; fi
-                CFLAGS="$SAVE_CFLAGS $C_UNIV_SWITCH"
+                echo "int main(){return(0);}" > /tmp/$$.c
+                $CC -v -o /tmp/$$.out /tmp/$$.c 2> /tmp/$$.log
+                if test `cat /tmp/$$.log | grep -ci 'LLVM'` -ne 0; then APPLEXCODE="yes"; fi
+                if test "x$APPLEXCODE" = xyes; then
+                # Apple XCode LLVM:
+                  # Flags for building Universal binaries:
+                  C_UNIV_SWITCH="-arch i386 -arch x86_64"
+                  CFLAGS="$CFLAGS $C_UNIV_SWITCH"
+                  # Set LDFLAGS used by utilities:
+                  LDFLAGS_BIN="$LDFLAGS_BIN -rpath \${CFITSIO_LIB}"
+                else
+                # Non-Xcode GCC:
+                  # Set LDFLAGS used by utilities:
+                  LDFLAGS_BIN="$LDFLAGS_BIN -Wl,-rpath,\${CFITSIO_LIB}"
+                fi
                 ;;
         esac
         # For large file support (but may break Absoft compilers):
@@ -370,6 +369,18 @@ case $GCC in
 		# Don't do anything now
 		;;
 esac
+
+# GSIFTP flags:
+if test "x$GSIFTP_PATH" != x -a "x$GSIFTP_FLAVOUR" != x; then
+   CFLAGS="$CFLAGS -I${GSIFTP_PATH}/include/${GSIFTP_FLAVOUR}"
+   LDFLAGS="$LDFLAGS -L${GSIFTP_PATH}/lib -lglobus_ftp_client_${GSIFTP_FLAVOUR}"
+fi
+
+# BZIP2 flags:
+if test "x$BZIP2_PATH" != x; then
+   CFLAGS="$CFLAGS -I${BZIP2_PATH}/include"
+   LDFLAGS="$LDFLAGS -L${BZIP2_PATH}/lib -lbz2"
+fi
 		
 # Shared library section
 #-------------------------------------------------------------------------------
@@ -379,22 +390,23 @@ CFITSIO_SHLIB=""
 CFITSIO_SHLIB_SONAME=""
 lhea_shlib_cflags=
 case $EXT in
-  cygwin)
+  cygwin|mingw32)
     SHLIB_LD="$CC -shared"
     SHLIB_SUFFIX=".dll"
     ;;
   darwin)
     changequote(,)
     SHLIB_SUFFIX=".dylib"
-    CFITSIO_SHLIB="libcfitsio.\${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}\${SHLIB_SUFFIX}"
-    CFITSIO_SHLIB_SONAME="libcfitsio.\${CFITSIO_SONAME}\${SHLIB_SUFFIX}"
+    CFITSIO_SHLIB="lib\${PACKAGE}.\${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}\${SHLIB_SUFFIX}"
+    CFITSIO_SHLIB_SONAME="lib\${PACKAGE}.\${CFITSIO_SONAME}\${SHLIB_SUFFIX}"
     case $host in
         *darwin[56789]*)
-            SHLIB_LD="$CC -dynamiclib -install_name libcfitsio.\${CFITSIO_SONAME}\${SHLIB_SUFFIX} -compatibility_version \${CFITSIO_SONAME} -current_version \${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}"
+            SHLIB_LD="$CC -dynamiclib -install_name lib\${PACKAGE}.\${CFITSIO_SONAME}\${SHLIB_SUFFIX} -compatibility_version \${CFITSIO_SONAME} -current_version \${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}"
             ;;
         *)
-            # Build for i386 & x86_64 architectures on Darwin 10.x or newer:
-            SHLIB_LD="$CC -dynamiclib $C_UNIV_SWITCH -install_name libcfitsio.\${CFITSIO_SONAME}\${SHLIB_SUFFIX} -compatibility_version \${CFITSIO_SONAME} -current_version \${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}"
+            # Build 'Universal' binaries (i386 & x86_64 architectures) and
+            # use rpath token on Darwin 10.x or newer:
+            SHLIB_LD="$CC -dynamiclib $C_UNIV_SWITCH -headerpad_max_install_names -install_name @rpath/lib\${PACKAGE}.\${CFITSIO_SONAME}\${SHLIB_SUFFIX} -compatibility_version \${CFITSIO_SONAME} -current_version \${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}"
             ;;
     esac
     changequote([,])
@@ -406,8 +418,8 @@ case $EXT in
     ;;
   lnx)
     SHLIB_LD=":"
-    CFITSIO_SHLIB="libcfitsio\${SHLIB_SUFFIX}.\${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}"
-    CFITSIO_SHLIB_SONAME="libcfitsio\${SHLIB_SUFFIX}.\${CFITSIO_SONAME}"
+    CFITSIO_SHLIB="lib\${PACKAGE}\${SHLIB_SUFFIX}.\${CFITSIO_SONAME}.\${CFITSIO_MAJOR}.\${CFITSIO_MINOR}"
+    CFITSIO_SHLIB_SONAME="lib\${PACKAGE}\${SHLIB_SUFFIX}.\${CFITSIO_SONAME}"
     ;;
   osf)
     SHLIB_LD="ld -shared -expect_unresolved '*'"
@@ -427,7 +439,7 @@ esac
 # Darwin uses gcc (=cc), but needs different flags (see above)
 if test "x$EXT" != xdarwin && test "x$EXT" != xcygwin && test "x$EXT" != xmingw32; then
   if test "x$GCC" = xyes; then
-    SHLIB_LD="$CC -shared -Wl,-soname,libcfitsio\${SHLIB_SUFFIX}.\${CFITSIO_SONAME}"
+    SHLIB_LD="$CC -shared -Wl,-soname,lib\${PACKAGE}\${SHLIB_SUFFIX}.\${CFITSIO_SONAME}"
     lhea_shlib_cflags='-fPIC'
   fi
 fi
@@ -435,7 +447,7 @@ if test "x$lhea_shlib_cflags" != x; then
   CFLAGS="$CFLAGS $lhea_shlib_cflags"
 fi
 # Set shared library name for cases in which we aren't setting a 'soname':
-if test "x$CFITSIO_SHLIB" = x; then CFITSIO_SHLIB="libcfitsio\${SHLIB_SUFFIX}"; fi
+if test "x$CFITSIO_SHLIB" = x; then CFITSIO_SHLIB="lib\${PACKAGE}\${SHLIB_SUFFIX}"; fi
 
 AC_SUBST(ARCH)dnl
 AC_SUBST(CFLAGS)dnl
@@ -447,6 +459,7 @@ AC_SUBST(SHLIB_SUFFIX)dnl
 AC_SUBST(CFITSIO_SHLIB)dnl
 AC_SUBST(CFITSIO_SHLIB_SONAME)dnl
 AC_SUBST(F77_WRAPPERS)
+AC_SUBST(LDFLAGS_BIN)
 
 # ================= test for the unix ftruncate function ================
 
@@ -559,6 +572,7 @@ fi
 # ------------------------------------------------------------------------------
 if test "x$BUILD_REENTRANT" = xyes; then
   AC_DEFINE(_REENTRANT)
+  AC_DEFINE([_XOPEN_SOURCE], [700])
   AC_CHECK_LIB([pthread],[main],[],[AC_MSG_ERROR(Unable to locate pthread library needed when enabling reentrant multithreading)])
 fi
 # ------------------------------------------------------------------------------

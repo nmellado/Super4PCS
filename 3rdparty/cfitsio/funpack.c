@@ -28,7 +28,7 @@ int main (int argc, char *argv[])
 
 int fu_get_param (int argc, char *argv[], fpstate *fpptr)
 {
-	int	gottype=0, gottile=0, wholetile=0, iarg;
+	int	iarg;
 	char	tile[SZ_STR];
 
         if (fpptr->initialized != FP_INIT_MAGIC) {
