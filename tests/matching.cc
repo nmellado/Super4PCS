@@ -73,6 +73,7 @@
 
 using namespace std;
 using namespace match_4pcs;
+using namespace Super4PCS;
 
 using Scalar = Point3D::Scalar;
 enum {Dim = 3};
@@ -336,7 +337,7 @@ int main(int argc, const char **argv) {
 
     const char* custom_argv [1] = {"matching"};
 
-    if(!init_testing(1, custom_argv))
+    if(!Testing::init_testing(1, custom_argv))
     {
         return EXIT_FAILURE;
     }

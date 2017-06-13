@@ -16,32 +16,32 @@
 //
 // Authors: Nicolas Mellado
 //
-// An implementation of the Super 4-points Congruent Sets (Super 4PCS) 
+// An implementation of the Super 4-points Congruent Sets (Super 4PCS)
 // algorithm presented in:
 //
 // Super 4PCS: Fast Global Pointcloud Registration via Smart Indexing
 // Nicolas Mellado, Dror Aiger, Niloy J. Mitra
 // Symposium on Geometry Processing 2014.
 //
-// Data acquisition in large-scale scenes regularly involves accumulating 
-// information across multiple scans. A common approach is to locally align scan 
-// pairs using Iterative Closest Point (ICP) algorithm (or its variants), but 
-// requires static scenes and small motion between scan pairs. This prevents 
+// Data acquisition in large-scale scenes regularly involves accumulating
+// information across multiple scans. A common approach is to locally align scan
+// pairs using Iterative Closest Point (ICP) algorithm (or its variants), but
+// requires static scenes and small motion between scan pairs. This prevents
 // accumulating data across multiple scan sessions and/or different acquisition
 // modalities (e.g., stereo, depth scans). Alternatively, one can use a global
-// registration algorithm allowing scans to be in arbitrary initial poses. The 
+// registration algorithm allowing scans to be in arbitrary initial poses. The
 // state-of-the-art global registration algorithm, 4PCS, however has a quadratic
-// time complexity in the number of data points. This vastly limits its 
+// time complexity in the number of data points. This vastly limits its
 // applicability to acquisition of large environments. We present Super 4PCS for
-// global pointcloud registration that is optimal, i.e., runs in linear time (in 
-// the number of data points) and is also output sensitive in the complexity of 
-// the alignment problem based on the (unknown) overlap across scan pairs. 
-// Technically, we map the algorithm as an ‘instance problem’ and solve it 
-// efficiently using a smart indexing data organization. The algorithm is 
+// global pointcloud registration that is optimal, i.e., runs in linear time (in
+// the number of data points) and is also output sensitive in the complexity of
+// the alignment problem based on the (unknown) overlap across scan pairs.
+// Technically, we map the algorithm as an ‘instance problem’ and solve it
+// efficiently using a smart indexing data organization. The algorithm is
 // simple, memory-efficient, and fast. We demonstrate that Super 4PCS results in
-// significant speedup over alternative approaches and allows unstructured 
-// efficient acquisition of scenes at scales previously not possible. Complete 
-// source code and datasets are available for research use at 
+// significant speedup over alternative approaches and allows unstructured
+// efficient acquisition of scenes at scales previously not possible. Complete
+// source code and datasets are available for research use at
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
 // Part of this file has been adapted from the Eigen library.
@@ -57,10 +57,57 @@
 #include <sstream>
 #include <ctime>
 
+#include "shared4pcs.h"
+
 #define DEFAULT_REPEAT 10
 
 #define SUPER4PCS_PP_MAKE_STRING2(S) #S
 #define SUPER4PCS_PP_MAKE_STRING(S) SUPER4PCS_PP_MAKE_STRING2(S)
+
+namespace Super4PCS {
+namespace Testing {
+static inline void
+generateSphereCloud (std::vector<match_4pcs::Point3D>& cloud,
+                     size_t len){
+  using match_4pcs::Point3D;
+  cloud.resize(len);
+  for(auto& p : cloud)
+  {
+    typename Point3D::VectorType eigenpos =
+             Point3D::VectorType::Random().normalized();
+    p = Point3D(eigenpos);
+    p.normalize();
+  }
+}
+
+
+// extract pairs using brute force
+template <typename Scalar, typename PairsVector>
+static inline void
+extractPairs( Scalar pair_distance,
+              Scalar pair_distance_epsilon,
+              const std::vector<match_4pcs::Point3D>& cloud,
+              PairsVector& pairs){
+    pairs.clear();
+    pairs.reserve(2 * cloud.size());
+
+    // extract pairs using full search
+    // Go over all ordered pairs in Q.
+    for (int j = 0; j < cloud.size(); ++j) {
+        const auto& p = cloud[j].pos();
+        for (int i = j + 1; i < cloud.size(); ++i) {
+            const auto& q = cloud[i].pos();
+            const Scalar distance = (q - p).norm();
+            if (std::abs(distance - pair_distance) <= pair_distance_epsilon) {
+                pairs.emplace_back(j, i);
+                pairs.emplace_back(i, j);
+            }
+        }
+    }
+}
+
+
+
 
 static std::vector<std::string> g_test_stack;
 static int g_repeat;
@@ -77,12 +124,14 @@ void verify_impl(bool condition, const char *testname, const char *file, int lin
   }
 }
 
-#define VERIFY(a) ::verify_impl(a, g_test_stack.back().c_str(), __FILE__, __LINE__, SUPER4PCS_PP_MAKE_STRING(a))
+#define VERIFY(a) Super4PCS::Testing::verify_impl(a, \
+                  Super4PCS::Testing::g_test_stack.back().c_str(), __FILE__, \
+                  __LINE__, SUPER4PCS_PP_MAKE_STRING(a))
 
 #define CALL_SUBTEST(FUNC) do { \
-    g_test_stack.push_back(SUPER4PCS_PP_MAKE_STRING(FUNC)); \
+    Super4PCS::Testing::g_test_stack.push_back(SUPER4PCS_PP_MAKE_STRING(FUNC));\
     FUNC; \
-    g_test_stack.pop_back(); \
+    Super4PCS::Testing::g_test_stack.pop_back(); \
   } while (0)
 
 inline void set_repeat_from_string(const char *str)
@@ -147,17 +196,17 @@ static bool init_testing(int argc, const char *argv[])
     std::cout << "  rN     Repeat each test N times (default: " << DEFAULT_REPEAT << ")" << std::endl;
     std::cout << "  sN     Use N as seed for random numbers (default: based on current time)" << std::endl;
     std::cout << std::endl;
-    std::cout << "If defined, the environment variables EIGEN_REPEAT and EIGEN_SEED" << std::endl;
+    std::cout << "If defined, the environment variables SUPER4PCS_REPEAT and SUPER4PCS_SEED" << std::endl;
     std::cout << "will be used as default values for these parameters." << std::endl;
     return false;
   }
 
-  char *env_EIGEN_REPEAT = getenv("EIGEN_REPEAT");
-  if(!g_has_set_repeat && env_EIGEN_REPEAT)
-    set_repeat_from_string(env_EIGEN_REPEAT);
-  char *env_EIGEN_SEED = getenv("EIGEN_SEED");
-  if(!g_has_set_seed && env_EIGEN_SEED)
-    set_seed_from_string(env_EIGEN_SEED);
+  char *env_SUPER4PCS_REPEAT = getenv("SUPER4PCS_REPEAT");
+  if(!g_has_set_repeat && env_SUPER4PCS_REPEAT)
+    set_repeat_from_string(env_SUPER4PCS_REPEAT);
+  char *env_SUPER4PCS_SEED = getenv("SUPER4PCS_SEED");
+  if(!g_has_set_seed && env_SUPER4PCS_SEED)
+    set_seed_from_string(env_SUPER4PCS_SEED);
 
   if(!g_has_set_seed) g_seed = (unsigned int) time(NULL);
   if(!g_has_set_repeat) g_repeat = DEFAULT_REPEAT;
@@ -168,8 +217,11 @@ static bool init_testing(int argc, const char *argv[])
   g_test_stack.push_back(ss.str());
   srand(g_seed);
   std::cout << "Repeating each test " << g_repeat << " times" << std::endl;
-  
+
   return true;
 }
+
+} // namespace Testing
+} // namespace Super4PCS
 
 #endif // _SUPER4PCS_TESTING_H_

@@ -73,6 +73,7 @@
 //#include "normalHealSet.h"
 
 using namespace match_4pcs;
+using namespace Super4PCS;
 
 struct MyPairCreationFunctor{
   typedef std::pair<unsigned int, unsigned int>ResPair;
@@ -215,7 +216,7 @@ void callSubTests()
     unsigned int nbPoint = 2500;  // size of Q point cloud
     int minNodeSize = 50;
 
-    for(int i = 0; i < g_repeat; ++i)
+    for(int i = 0; i < Testing::g_repeat; ++i)
     {
         CALL_SUBTEST(( testFunction<Scalar,
                                     EigenPoint,
@@ -244,96 +245,65 @@ void callMatchSubTests()
 
     Scalar pair_distance_epsilon = MatchType::distance_factor * opt.delta;
 
-    auto generateCloud = [](std::vector<Point3D>& cloud, size_t len){
-        cloud.resize(len);
-        for(auto& p : cloud)
-        {
-            typename Point3D::VectorType eigenpos =
-                    Point3D::VectorType::Random().normalized();
-            p = Point3D(eigenpos);
-            p.normalize();
-        }
-    };
 
-    // generate input point cloud
-    std::vector<Point3D> P, Q;
-    generateCloud(P, nbPointP);
-    generateCloud(Q, nbPointQ);
+    for(int i = 0; i < Testing::g_repeat; ++i)
+    {
 
+        // generate input point cloud
+        std::vector<Point3D> P, Q;
+        Testing::generateSphereCloud(P, nbPointP);
+        Testing::generateSphereCloud(Q, nbPointQ);
 
-    // extract pairs using brute force
-    auto extractPairs = [&Q] (
-            Scalar pair_distance,
-            Scalar pair_distance_epsilon,
-            PairsVector& pairs){
-        pairs.clear();
-        pairs.reserve(2 * Q.size());
+        std::vector<std::pair<int, int>> gtpairs1, gtpairs2;
+        Testing::extractPairs(distance1, pair_distance_epsilon, Q, gtpairs1);
+        Testing::extractPairs(distance2, pair_distance_epsilon, Q, gtpairs2);
 
-        // extract pairs using full search
-        // Go over all ordered pairs in Q.
-        for (int j = 0; j < Q.size(); ++j) {
-            const auto& p = Q[j].pos();
-            for (int i = j + 1; i < Q.size(); ++i) {
-                const auto& q = Q[i].pos();
-                const Scalar distance = (q - p).norm();
-                if (std::abs(distance - pair_distance) <= pair_distance_epsilon) {
-                    pairs.emplace_back(j, i);
-                    pairs.emplace_back(i, j);
-                }
-            }
-        }
-    };
+        std::sort(gtpairs1.begin(), gtpairs1.end());
+        std::sort(gtpairs2.begin(), gtpairs2.end());
 
 
-    std::vector<std::pair<int, int>> gtpairs1, gtpairs2;
-    extractPairs(distance1, pair_distance_epsilon, gtpairs1);
-    extractPairs(distance2, pair_distance_epsilon, gtpairs2);
+        // extract point using matcher
+        MatchType match (opt);
+        match.init(P, Q);
 
-    std::sort(gtpairs1.begin(), gtpairs1.end());
-    std::sort(gtpairs2.begin(), gtpairs2.end());
+        std::vector<std::pair<int, int>> pairs1, pairs2;
+        match.ExtractPairs(distance1,
+                           normal_angle1,
+                           pair_distance_epsilon,
+                           0,
+                           1,
+                           &pairs1);
+        match.ExtractPairs(distance2,
+                           normal_angle2,
+                           pair_distance_epsilon,
+                           2,
+                           3,
+                           &pairs2);
 
+        std::sort(pairs1.begin(), pairs1.end());
+        std::sort(pairs2.begin(), pairs2.end());
 
-    // extract point using matcher
-    MatchType match (opt);
-    match.init(P, Q);
+        // Check we get the same set size
+        std::cout << "Size check 1 (" << (pairs1.size() == gtpairs1.size()
+                                          ? "PASSED" : "NOT PASSED")
+                  << "): \t Functor: " << pairs1.size()
+                  << " \t GT: " << gtpairs1.size() << std::endl;
+        std::cout << "Size check 2 (" << (pairs2.size() == gtpairs2.size()
+                                          ? "PASSED" : "NOT PASSED")
+                  << "): \t Functor: " << pairs2.size()
+                  << " \t GT: " << gtpairs2.size() << std::endl;
 
-    std::vector<std::pair<int, int>> pairs1, pairs2;
-    match.ExtractPairs(distance1,
-                       normal_angle1,
-                       pair_distance_epsilon,
-                       0,
-                       1,
-                       &pairs1);
-    match.ExtractPairs(distance2,
-                       normal_angle2,
-                       pair_distance_epsilon,
-                       2,
-                       3,
-                       &pairs2);
+        VERIFY( gtpairs1.size() == pairs1.size() );
+        VERIFY( std::equal(pairs1.begin(), pairs1.end(), gtpairs1.begin()));
 
-    std::sort(pairs1.begin(), pairs1.end());
-    std::sort(pairs2.begin(), pairs2.end());
-
-    // Check we get the same set size
-    std::cout << "Size check 1 (" << (pairs1.size() == gtpairs1.size()
-                                    ? "PASSED" : "NOT PASSED")
-              << "): \t Functor: " << pairs1.size()
-              << " \t GT: " << gtpairs1.size() << std::endl;
-    std::cout << "Size check 2 (" << (pairs2.size() == gtpairs2.size()
-                                    ? "PASSED" : "NOT PASSED")
-              << "): \t Functor: " << pairs2.size()
-              << " \t GT: " << gtpairs2.size() << std::endl;
-
-    VERIFY( gtpairs1.size() == pairs1.size() );
-    VERIFY( std::equal(pairs1.begin(), pairs1.end(), gtpairs1.begin()));
-
-    VERIFY( gtpairs2.size() == pairs2.size() );
-    VERIFY( std::equal(pairs2.begin(), pairs2.end(), gtpairs2.begin()));
+        VERIFY( gtpairs2.size() == pairs2.size() );
+        VERIFY( std::equal(pairs2.begin(), pairs2.end(), gtpairs2.begin()));
+    }
 
 }
 
 int main(int argc, const char **argv) {
-    if(!init_testing(argc, argv))
+    if(!Testing::init_testing(argc, argv))
     {
         return EXIT_FAILURE;
     }
