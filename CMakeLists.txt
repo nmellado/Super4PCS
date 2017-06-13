@@ -87,8 +87,7 @@ endif (${ENABLE_TIMING})
 ## Dependencies
 ################################################################################
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/chealpix EXCLUDE_FROM_ALL)
-include_directories(${Chealpix_INCLUDE_DIR})
+add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty)
 
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})

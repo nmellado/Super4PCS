@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 project(chealpix)
 
-find_package(CFITSIO REQUIRED)
 include_directories(${CFITSIO_INCLUDE_DIRS})
 
 # Set variables
@@ -14,4 +13,4 @@ include_directories(${Chealpix_INCLUDE_DIR})
 
 add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCE_DIR}/src/chealpix.c)
 target_link_libraries(${PROJECT_NAME} ${CFITSIO_LIBRARIES})
-
+add_dependencies(${PROJECT_NAME}  cfitsio)
