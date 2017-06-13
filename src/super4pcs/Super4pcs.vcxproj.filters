@@ -23,6 +23,9 @@
     <Filter Include="Source Files\super4pcs\utils">
       <UniqueIdentifier>{0e7adf0a-47df-4f8b-b705-25e047f1144a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\super4pcs\algorithms">
+      <UniqueIdentifier>{69a6f342-7a3b-4d4a-ba6b-5b0771499363}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="io\io.cc">
@@ -31,17 +34,20 @@
     <ClCompile Include="accelerators\normalHealSet.cpp">
       <Filter>Source Files\super4pcs\accelerators</Filter>
     </ClCompile>
-    <ClCompile Include="4pcs.cc">
-      <Filter>Source Files\super4pcs</Filter>
-    </ClCompile>
-    <ClCompile Include="super4pcs.cc">
-      <Filter>Source Files\super4pcs</Filter>
-    </ClCompile>
     <ClCompile Include="super4pcs_test.cc">
       <Filter>Source Files\super4pcs</Filter>
     </ClCompile>
     <ClCompile Include="..\..\3rdparty\chealpix\src\chealpix.c">
       <Filter>Source Files\3rdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithms\4pcs.cc">
+      <Filter>Source Files\super4pcs\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithms\match4pcsBase.cc">
+      <Filter>Source Files\super4pcs\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithms\super4pcs.cc">
+      <Filter>Source Files\super4pcs\algorithms</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -84,9 +90,6 @@
     <ClInclude Include="utils\timer.h">
       <Filter>Source Files\super4pcs\utils</Filter>
     </ClInclude>
-    <ClInclude Include="4pcs.h">
-      <Filter>Source Files\super4pcs</Filter>
-    </ClInclude>
     <ClInclude Include="pairCreationFunctor.h">
       <Filter>Source Files\super4pcs</Filter>
     </ClInclude>
@@ -102,10 +105,20 @@
     <ClInclude Include="..\..\3rdparty\chealpix\include\chealpix.h">
       <Filter>Source Files\3rdParty</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="accelerators\CMakeLists.txt">
-      <Filter>Source Files\super4pcs\accelerators</Filter>
-    </Text>
+    <ClInclude Include="utils\geometry.h">
+      <Filter>Source Files\super4pcs\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithms\4pcs.h">
+      <Filter>Source Files\super4pcs\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithms\match4pcsBase.h">
+      <Filter>Source Files\super4pcs\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithms\super4pcs.h">
+      <Filter>Source Files\super4pcs\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="sampling.h">
+      <Filter>Source Files\super4pcs</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

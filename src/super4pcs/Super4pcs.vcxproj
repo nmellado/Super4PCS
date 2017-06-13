@@ -20,15 +20,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\3rdparty\chealpix\src\chealpix.c" />
-    <ClCompile Include="4pcs.cc" />
     <ClCompile Include="accelerators\normalHealSet.cpp" />
+    <ClCompile Include="algorithms\4pcs.cc" />
+    <ClCompile Include="algorithms\match4pcsBase.cc" />
+    <ClCompile Include="algorithms\super4pcs.cc" />
     <ClCompile Include="io\io.cc" />
-    <ClCompile Include="super4pcs.cc" />
     <ClCompile Include="super4pcs_test.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\3rdparty\chealpix\include\chealpix.h" />
-    <ClInclude Include="4pcs.h" />
     <ClInclude Include="accelerators\bbox.h" />
     <ClInclude Include="accelerators\kdtree.h" />
     <ClInclude Include="accelerators\normalHealSet.h" />
@@ -39,16 +39,18 @@
     <ClInclude Include="accelerators\pairExtraction\intersectionNode.h" />
     <ClInclude Include="accelerators\pairExtraction\intersectionPrimitive.h" />
     <ClInclude Include="accelerators\utils.h" />
+    <ClInclude Include="algorithms\4pcs.h" />
+    <ClInclude Include="algorithms\match4pcsBase.h" />
+    <ClInclude Include="algorithms\super4pcs.h" />
     <ClInclude Include="io\io.h" />
     <ClInclude Include="io\io_ply.h" />
     <ClInclude Include="pairCreationFunctor.h" />
     <ClInclude Include="pairExtraction.h" />
+    <ClInclude Include="sampling.h" />
     <ClInclude Include="shared4pcs.h" />
     <ClInclude Include="utils\disablewarnings.h" />
+    <ClInclude Include="utils\geometry.h" />
     <ClInclude Include="utils\timer.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="accelerators\CMakeLists.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EC169232-18F7-4DD8-9DEB-6AEF670BDD99}</ProjectGuid>
@@ -132,6 +134,9 @@
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>cfitsio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -142,7 +147,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opencv_world310d.lib;ann.lib;cfitsio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cfitsio.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -158,7 +163,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opencv_world310.lib;ann.lib;cfitsio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cfitsio.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -174,7 +179,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opencv_world310.lib;ann.lib;cfitsio.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cfitsio.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

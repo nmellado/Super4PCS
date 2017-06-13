@@ -47,6 +47,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <array>
 
 #include <Eigen/Core>
 
