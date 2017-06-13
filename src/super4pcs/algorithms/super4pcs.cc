@@ -76,7 +76,7 @@ bool
 MatchSuper4PCS::FindCongruentQuadrilaterals(
         Scalar invariant1,
         Scalar invariant2,
-        Scalar distance_threshold1,
+        Scalar /*distance_threshold1*/,
         Scalar distance_threshold2,
         const std::vector<std::pair<int, int>>& P_pairs,
         const std::vector<std::pair<int, int>>& Q_pairs,
@@ -94,8 +94,7 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
 
   // 1. Datastructure construction
   typedef PairCreationFunctor<Scalar>::Point Point;
-  const Scalar eps = pcfunctor_.getNormalizedEpsilon(
-    std::min(distance_threshold1, distance_threshold2));
+  const Scalar eps = pcfunctor_.getNormalizedEpsilon(distance_threshold2);
   typedef Super4PCS::IndexedNormalHealSet IndexedNormalSet3D;
 
   // Use the following definition to get ride of Healpix
@@ -106,8 +105,7 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
 //                    Scalar>  //! \brief Scalar type
 //  IndexedNormalSet3D;
 
-
-  IndexedNormalSet3D nset (eps, 2.);
+  IndexedNormalSet3D nset (eps);
 
   for (size_t i = 0; i <  P_pairs.size(); ++i) {
     const Point& p1 = pcfunctor_.points[P_pairs[i].first];
