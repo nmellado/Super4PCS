@@ -88,6 +88,7 @@ endif (${ENABLE_TIMING})
 ################################################################################
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty)
+include_directories(${Chealpix_INCLUDE_DIR})
 
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
@@ -132,4 +133,3 @@ add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs_test.cc)
 
 TARGET_LINK_LIBRARIES(super4pcs_algo super4pcs_io super4pcs_accel)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} super4pcs_algo super4pcs_utils)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${Chealpix_LIBS} )
