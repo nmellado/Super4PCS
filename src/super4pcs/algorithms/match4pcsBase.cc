@@ -45,6 +45,7 @@
 #include "shared4pcs.h"
 
 #include <vector>
+#include <chrono>
 
 #include "Eigen/Core"
 #include "Eigen/Geometry"                 // MatrixBase.homogeneous()
@@ -881,6 +882,7 @@ Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
 bool Match4PCSBase::Perform_N_steps(int n,
                                     Eigen::Ref<MatrixType> transformation,
                                     std::vector<Point3D>* Q) {
+	using std::chrono::system_clock;
   if (Q == nullptr) return false;
 
 #ifdef TEST_GLOBAL_TIMINGS
@@ -889,12 +891,14 @@ bool Match4PCSBase::Perform_N_steps(int n,
 
   Scalar last_best_LCP = best_LCP_;
   bool ok = false;
-  int64_t t0 = clock();
+  std::chrono::time_point<system_clock> t0 = system_clock::now(), end;
   for (int i = current_trial_; i < current_trial_ + n; ++i) {
     ok = TryOneBase();
 
     Scalar fraction_try  = Scalar(i) / Scalar(number_of_trials_);
-    Scalar fraction_time = Scalar(clock() - t0) / CLOCKS_PER_SEC /
+    Scalar fraction_time = 
+		std::chrono::duration_cast<std::chrono::seconds>
+		(system_clock::now() - t0).count() /
                           options_.max_time_seconds;
     Scalar fraction = std::max(fraction_time, fraction_try);
     printf("done: %d%c best: %f                  \r",
