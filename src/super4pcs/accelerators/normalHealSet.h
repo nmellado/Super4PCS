@@ -51,8 +51,10 @@
 #include "utils/disablewarnings.h"
 #include "utils.h"
 #include "chealpix.h"
-#include <vector>
 #include <Eigen/Core>
+
+#include <vector>
+#include <set>
 
 namespace Super4PCS{
 
@@ -63,9 +65,10 @@ namespace Super4PCS{
  */
 class IndexedNormalHealSet{
 public:
+    using Scalar = double;
     typedef Eigen::Vector3d Point;
     typedef Eigen::Vector3i Index3D;
-  typedef std::vector<std::vector<unsigned int>> ChealMap;
+    typedef std::vector<std::vector<unsigned int>> ChealMap;
 
 #ifdef DEBUG
 #define VALIDATE_INDICES true
@@ -132,11 +135,15 @@ public:
     _epsilon = 1.f/_egSize;
   }
 
-  virtual ~IndexedNormalHealSet();
+  virtual ~IndexedNormalHealSet(){
+    for(unsigned int i = 0; i != _grid.size(); i++)
+      delete(_grid[i]);
+  }
 
   //! \brief Add a new couple pos/normal, and its associated id
-  bool addElement(const Point& pos,
-                  const Point& normal,
+  template <typename PointT>
+  bool addElement(const PointT& pos,
+                  const PointT& normal,
                   unsigned int id);
 
   //! \return NULL if the grid does not exist or p is out of bound
@@ -182,15 +189,18 @@ public:
 
 
   //! Get closest points in euclidean space
-  void getNeighbors( const Point& p,
+  template <typename PointT>
+  void getNeighbors(const PointT &p,
                      std::vector<unsigned int>&nei);
   //! Get closest points in euclidean an normal space
-  void getNeighbors( const Point& p,
-                     const Point& n,
+  template <typename PointT>
+  void getNeighbors( const PointT& p,
+                     const PointT& n,
                      std::vector<unsigned int>&nei);
+  template <typename PointT>
   //! Get closest poitns in euclidean an normal space with angular deviation
-  void getNeighbors( const Point& p,
-                     const Point& n,
+  void getNeighbors( const PointT& p,
+                     const PointT& n,
                      double alpha,
                      std::vector<unsigned int>&nei);
 
@@ -199,6 +209,119 @@ public:
   }
 
 }; // class IndexedNormalHealSet
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Template functions
+///
+
+
+template <typename PointT>
+bool
+IndexedNormalHealSet::addElement(
+  const PointT& p,
+  const PointT& n,
+  unsigned int id)
+{
+  const int pId = indexPos(p.template cast<Scalar>());
+  if (pId == -1) return false;
+
+  const int nId = indexNormal(n.template cast<Scalar>());
+  if (nId == -1) return false;
+
+  if (_grid[pId] == NULL) _grid[pId] = new ChealMap(_ngLength);
+  (_grid[pId])->at(nId).push_back(id);
+
+  return true;
+}
+
+template <typename PointT>
+void
+IndexedNormalHealSet::getNeighbors(
+  const PointT& p,
+  std::vector<unsigned int>&nei)
+{
+  using ChealMapIterator = ChealMap::const_iterator;
+  ChealMap* grid = getMap(p.template cast<Scalar>());
+  if ( grid == NULL ) return;
+
+  for(ChealMapIterator it = grid->cbegin();
+      it != grid->cend(); it++){
+    const std::vector<unsigned int>& lnei = *it;
+    nei.insert( nei.end(), lnei.begin(), lnei.end() );
+  }
+}
+
+template <typename PointT>
+void
+IndexedNormalHealSet::getNeighbors(
+  const PointT& p,
+  const PointT& n,
+  std::vector<unsigned int>&nei)
+{
+  ChealMap* grid = getMap(p.template cast<Scalar>());
+  if ( grid == NULL ) return;
+
+  const std::vector<unsigned int>& lnei = grid->at(indexNormal(n.template cast<Scalar>()));
+  nei.insert( nei.end(), lnei.begin(), lnei.end() );
+}
+
+
+template <typename PointT>
+void
+IndexedNormalHealSet::getNeighbors(
+  const PointT& p,
+  const PointT& n,
+  double cosAlpha,
+  std::vector<unsigned int>&nei)
+{
+  //ChealMap* grid = getMap(p);
+  std::vector<ChealMap*> grids = getEpsilonMaps(p.template cast<Scalar>());
+  if ( grids.empty() ) return;
+
+  const double alpha          = std::acos(cosAlpha);
+  //const double perimeter      = double(2) * M_PI * std::atan(alpha);
+  const unsigned int nbSample = std::pow(2,_resolution+1);
+  const double angleStep      = double(2) * M_PI / double(nbSample);
+
+
+  const double sinAlpha       = std::sin(alpha);
+
+  Eigen::Quaternion<double> q;
+  q.setFromTwoVectors(Point(0.,0.,1.), n.template cast<Scalar>());
+
+  // store a pair with
+  // first  = grid id in grids
+  // second = normal id in grids[first]
+  typedef std::pair<unsigned int,unsigned int> PairId;
+  std::set< PairId > colored;
+  const int nbgrid = grids.size();
+
+  // Do the rendering independently of the content
+  for(unsigned int a = 0; a != nbSample; a++){
+    double theta    = double(a) * angleStep;
+    const Point dir = ( q * Point(sinAlpha*std::cos(theta),
+                              sinAlpha*std::sin(theta),
+                              cosAlpha ) ).normalized();
+    int id = indexNormal( dir );
+
+    for (int i = 0; i != nbgrid; ++i){
+        if(grids[i]->at(id).size() != 0){
+          colored.emplace(i,id);
+        }
+    }
+
+  }
+
+  for( std::set<PairId>::const_iterator it = colored.cbegin();
+       it != colored.cend(); it++){
+    const std::vector<unsigned int>& lnei = grids[it->first]->at(it->second);
+    nei.insert( nei.end(), lnei.begin(), lnei.end() );
+  }
+}
+
+
+
 } // namespace Super4PCS
 
 #endif // _INDEXED_NORMAL_SET_H_
