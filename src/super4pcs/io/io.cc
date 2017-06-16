@@ -3,7 +3,7 @@
 
 #include <Eigen/Geometry>
 
-#ifdef WITH_OPENCV
+#ifdef USE_OPENCV
     #include <opencv2/core/core.hpp>
     #include <opencv2/highgui/highgui.hpp>
 #endif
@@ -219,7 +219,7 @@ IOManager::ReadObj(const char *filename,
       f >> dummy;
       if (strcmp(dummy.c_str(), "map_Kd") == 0) {
         f >> img_name;
-#ifdef WITH_OPENCV
+#ifdef USE_OPENCV
         cv::Mat tex = cv::imread(img_name);
         if (!tex.empty()) {
           for (int i = 0; i < tris.size(); ++i) {

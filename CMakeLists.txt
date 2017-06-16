@@ -2,7 +2,6 @@ cmake_minimum_required (VERSION 2.6)
 project (Super4PCS)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-
 set(SRC_DIR ${PROJECT_SOURCE_DIR}/src/super4pcs/)
 
 ################################################################################
@@ -18,7 +17,10 @@ set (Super4PCS_VERSION_MINOR 1)
 #  )
 
 # Set option to enable timing recording
-set (ENABLE_TIMING 0)
+OPTION (SUPER4PCS_COMPILE_TESTS "Enable testing" TRUE)
+OPTION (IO_USE_OPENCV "Use OpenCV for texture loading" TRUE)
+OPTION (ENABLE_TIMING "Enable computation time recording" FALSE)
+OPTION (SUPER4PCS_USE_CHEALPIX "Use Chealpix for orientation filtering (deprecated)" FALSE)
 
 
 # add the binary tree to the search path for include files
@@ -76,10 +78,10 @@ endif()
 ################################################################################
 ## Apply user-defined configuration
 ################################################################################
-if (${ENABLE_TIMING})
+if (ENABLE_TIMING)
     ADD_DEFINITIONS( -DTEST_GLOBAL_TIMINGS )
     message ("OPT: Enable timing recording")
-endif (${ENABLE_TIMING})
+endif (ENABLE_TIMING)
 
 
 
@@ -88,7 +90,10 @@ endif (${ENABLE_TIMING})
 ################################################################################
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty)
-include_directories(${Chealpix_INCLUDE_DIR})
+if(SUPER4PCS_USE_CHEALPIX)
+    add_definitions(-DSUPER4PCS_USE_CHEALPIX)
+    include_directories(${Chealpix_INCLUDE_DIR})
+endif(SUPER4PCS_USE_CHEALPIX)
 
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
@@ -97,10 +102,10 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 ## Tests
 ################################################################################
 
-if(DEFINED SUPER4PCS_BUILD_TEST)
+if(SUPER4PCS_COMPILE_TESTS)
         include(cmake/ConfigureTesting.cmake)
         add_subdirectory(tests EXCLUDE_FROM_ALL)
-endif(DEFINED SUPER4PCS_BUILD_TEST)
+endif(SUPER4PCS_COMPILE_TESTS)
 
 ################################################################################
 ## Project files

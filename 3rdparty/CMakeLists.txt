@@ -1,7 +1,11 @@
 
+
+if (SUPER4PCS_USE_CHEALPIX)
+
 # EXTERNALS
 # have ExternalProject available
 include(ExternalProject)
+message("[Super4PCS] Use Chealpix")
 
 ExternalProject_Add(
         cfitsio
@@ -18,4 +22,4 @@ ExternalProject_Add(
 
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/chealpix EXCLUDE_FROM_ALL)
-include_directories(${Chealpix_INCLUDE_DIR})
+endif (SUPER4PCS_USE_CHEALPIX)

@@ -50,8 +50,11 @@
 #include "Eigen/Geometry"                 // MatrixBase.homogeneous()
 #include "Eigen/SVD"                      // Transform.computeRotationScaling()
 
-#include "accelerators/normalset.h"
+#ifdef SUPER4PCS_USE_CHEALPIX
 #include "accelerators/normalHealSet.h"
+#else
+#include "accelerators/normalset.h"
+#endif
 #include "accelerators/bbox.h"
 
 #include <fstream>
@@ -82,6 +85,19 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
         const std::vector<std::pair<int, int>>& Q_pairs,
         std::vector<match_4pcs::Quadrilateral>* quadrilaterals) const {
 
+    typedef PairCreationFunctor<Scalar>::Point Point;
+
+#ifdef SUPER4PCS_USE_CHEALPIX
+    typedef Super4PCS::IndexedNormalHealSet IndexedNormalSet3D;
+#else
+    typedef  Super4PCS::IndexedNormalSet
+                    < Point,   //! \brief Point type used internally
+                      3,       //! \brief Nb dimension
+                      7,       //! \brief Nb cells/dim normal
+                      Scalar>  //! \brief Scalar type
+    IndexedNormalSet3D;
+#endif
+
 
   if (quadrilaterals == nullptr) return false;
 
@@ -93,17 +109,7 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
           (base_3D_[3].pos() - base_3D_[2].pos()).normalized());
 
   // 1. Datastructure construction
-  typedef PairCreationFunctor<Scalar>::Point Point;
   const Scalar eps = pcfunctor_.getNormalizedEpsilon(distance_threshold2);
-  typedef Super4PCS::IndexedNormalHealSet IndexedNormalSet3D;
-
-  // Use the following definition to get ride of Healpix
-//  typedef  IndexedNormalSet
-//                  < Point,   //! \brief Point type used internally
-//                    3,       //! \brief Nb dimension
-//                    7,       //! \brief Nb cells/dim normal
-//                    Scalar>  //! \brief Scalar type
-//  IndexedNormalSet3D;
 
   IndexedNormalSet3D nset (eps);
 
@@ -118,8 +124,7 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
 //         << (p1+ invariant1       * (p2 - p1)).transpose() << endl
 //         << n.transpose() << endl;
 
-    nset.addElement((p1+ Point::Scalar(invariant1) * (p2 - p1)).cast<double>(),
-                    n.cast<double>(), i);
+    nset.addElement((p1+ Point::Scalar(invariant1) * (p2 - p1)).eval(), n, i);
   }
 
 
@@ -148,9 +153,7 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
 //         << query.transpose() << endl
 //         << queryn.transpose() << endl;
 
-    nset.getNeighbors( query.cast<double>(),
-                       queryn.cast<double>(),
-                       alpha, nei);
+    nset.getNeighbors( query, queryn, alpha, nei);
 
 
     VectorType invPoint;
