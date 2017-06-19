@@ -63,21 +63,20 @@ static inline void CleanInvalidNormals( PointContainer &v,
     typename VecContainer::iterator itN = normals.begin();
 
     unsigned int nb = 0;
-    for( ; itV != v.end(); ){
+    for( ; itV != v.end(); itV++, itN++){
 
       if ((*itV).normal().squaredNorm() < 0.01){
-        itN = normals.erase(itN);
-        itV = v.erase(itV);
+        (*itN) = {0., 0., 0.};
+        (*itV).set_normal({0., 0., 0.});
         nb++;
       }else{
         (*itN).normalize();
-        itV++;
-        itN++;
+        (*itV).normalize();
       }
     }
 
     if (nb != 0){
-      cout << "Removed " << nb << " invalid points/normals" << endl;
+      cout << "Found " << nb << " vertices with invalid normals" << endl;
     }
   }
 }
