@@ -227,9 +227,7 @@ int main(int argc, char **argv) {
   }
 
   if (! output.empty() ){
-      if(tris2.size() == 0) {
-        output = defaultPlyOutput;
-      }
+
       std::cout << "Exporting Registered geometry to "
                 << output.c_str()
                 << "..." << std::flush;
