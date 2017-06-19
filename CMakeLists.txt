@@ -21,6 +21,7 @@ OPTION (SUPER4PCS_COMPILE_TESTS "Enable testing" TRUE)
 OPTION (IO_USE_OPENCV "Use OpenCV for texture loading" TRUE)
 OPTION (ENABLE_TIMING "Enable computation time recording" FALSE)
 OPTION (SUPER4PCS_USE_CHEALPIX "Use Chealpix for orientation filtering (deprecated)" FALSE)
+OPTION (DL_DATASETS "Download demo datasets and associated run scripts" FALSE)
 
 
 # add the binary tree to the search path for include files
@@ -83,7 +84,21 @@ if (ENABLE_TIMING)
     message ("OPT: Enable timing recording")
 endif (ENABLE_TIMING)
 
+if (DL_DATASETS)
+    include(ExternalProject)
 
+    ExternalProject_Add(dl-dataset-demo1
+        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/datasets/demo1
+        URL https://www.irit.fr/~Nicolas.Mellado/dl/datasets/point-clouds/Super4PCS-dataset-demo1.zip
+        URL_MD5 68796d9b4efa7edee3ed6f55b92cf7ad
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+    )
+
+add_custom_target(dl-datasets DEPENDS dl-dataset-demo1)
+
+endif (DL_DATASETS)
 
 ################################################################################
 ## Dependencies
