@@ -146,7 +146,7 @@ readBinary1Body (const std::string & filename,
                  bool         haveColor,
                  bool bigEndian,
                  vector<Point3D>& vertex,
-                 vector<cv::Point3f>& normal,
+                 vector<typename Point3D::VectorType>& normal,
                  vector<tripple>& face )
 {
     //size_t count;
@@ -165,56 +165,46 @@ readBinary1Body (const std::string & filename,
     // *****************
     // Reading geometry.
     // *****************
-    cv::Point3f n;
-    cv::Vec3f rgb;
+    typename Point3D::VectorType n;
+    typename Point3D::VectorType rgb;
     float * v = new float[numOfVertexProperties];
-    uchar rgb_buff [4];
+    unsigned char rgb_buff [4];
 
     for (unsigned int i = 0; i < numOfVertices && !feof (in); i++) {
         if (numOfVertexProperties==10){
             fread (v, 4, 6, in);
-            fread (rgb_buff, sizeof(uchar), 4, in);
+            fread (rgb_buff, sizeof(unsigned char), 4, in);
         }else if (numOfVertexProperties==9){
             fread (v, 4, 6, in);
-            fread (rgb_buff, sizeof(uchar), 3, in);
+            fread (rgb_buff, sizeof(unsigned char), 3, in);
         }else if (numOfVertexProperties==6 && haveColor){
             fread (v, 4, 3, in);
-            fread (rgb_buff, sizeof(uchar), 3, in);
+            fread (rgb_buff, sizeof(unsigned char), 3, in);
         }else if (numOfVertexProperties==7 ){
             fread (v, 4, 3, in);
-            fread (rgb_buff, sizeof(uchar), 4, in);
+            fread (rgb_buff, sizeof(unsigned char), 4, in);
         }
         else
             fread (v, 4, numOfVertexProperties, in);
         if (bigEndian == true)
             bigLittleEndianSwap (v, numOfVertexProperties);
-        vertex.push_back( Point3D(v[0],v[1],v[2]) );
+        vertex.emplace_back( v[0],v[1],v[2] );
 
         if (numOfVertexProperties == 6){
             if (haveColor){
-                rgb[0] = rgb_buff[0];
-                rgb[1] = rgb_buff[1];
-                rgb[2] = rgb_buff[2];
+                rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
                 vertex.back().set_rgb(rgb);
             }else{
-                n.x = v[3];
-                n.y = v[4];
-                n.z = v[5];
+                n << v[3], v[4], v[5];
                 normal.push_back (n);
                 vertex.back().set_normal(n);
             }
         }else if (numOfVertexProperties == 7){
-            rgb[0] = rgb_buff[0];
-            rgb[1] = rgb_buff[1];
-            rgb[2] = rgb_buff[2];
+            rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
             vertex.back().set_rgb(rgb);
         }else if (numOfVertexProperties == 9 || numOfVertexProperties == 10){
-            n.x = v[3];
-            n.y = v[4];
-            n.z = v[5];
-            rgb[0] = rgb_buff[0];
-            rgb[1] = rgb_buff[1];
-            rgb[2] = rgb_buff[2];
+            n << v[3], v[4], v[5];
+            rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
             normal.push_back (n);
             vertex.back().set_normal(n);
             vertex.back().set_rgb(rgb);
@@ -238,7 +228,7 @@ readBinary1Body (const std::string & filename,
             /*count = */fread (f, 4, 3, in);
             if (bigEndian == true)
                 bigLittleEndianSwap (f, 3);
-            face.push_back(tripple(f[0],f[1],f[2]));
+            face.emplace_back(f[0],f[1],f[2]);
         }
     }
 
@@ -254,7 +244,7 @@ readASCII1Body (const std::string & filename,
                 unsigned int numOfVertexProperties,
                 bool         haveColor,
                 vector<Point3D>& vertex,
-                vector<cv::Point3f>& normal,
+                vector<typename Point3D::VectorType>& normal,
                 vector<tripple>& face )
 {
 
@@ -272,8 +262,8 @@ readASCII1Body (const std::string & filename,
     // *****************
     // Reading geometry.
     // *****************
-    cv::Point3f n;
-    cv::Vec3f rgb;
+    typename Point3D::VectorType n;
+    typename Point3D::VectorType rgb;
     unsigned int rgb_buff [4];
     for (unsigned int i = 0; i < numOfVertices && !feof (in); i++) {
         std::vector<float> v(numOfVertexProperties);
@@ -303,35 +293,25 @@ readASCII1Body (const std::string & filename,
         else
             for (unsigned int j = 0;  j < numOfVertexProperties;  j++)
                 fscanf (in, "%f", &v[j]);
-        
-        vertex.push_back( Point3D(v[0],v[1],v[2]) );
+
+        vertex.emplace_back( v[0],v[1],v[2] );
 
         if (numOfVertexProperties == 6){
             if (haveColor){
-                rgb[0] = float(rgb_buff[0]);
-                rgb[1] = float(rgb_buff[1]);
-                rgb[2] = float(rgb_buff[2]);
+                rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
                 vertex.back().set_rgb(rgb);
 
             }else{
-                n.x = v[3];
-                n.y = v[4];
-                n.z = v[5];
+                n << v[3], v[4], v[5];
                 normal.push_back (n);
                 vertex.back().set_normal(n);
             }
         }else if (numOfVertexProperties == 7){
-            rgb[0] = float(rgb_buff[0]);
-            rgb[1] = float(rgb_buff[1]);
-            rgb[2] = float(rgb_buff[2]);
+            rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
             vertex.back().set_rgb(rgb);
         }else if (numOfVertexProperties == 9 || numOfVertexProperties == 10){
-            n.x = v[3];
-            n.y = v[4];
-            n.z = v[5];
-            rgb[0] = float(rgb_buff[0]);
-            rgb[1] = float(rgb_buff[1]);
-            rgb[2] = float(rgb_buff[2]);
+            n << v[3], v[4], v[5];
+            rgb << rgb_buff[0], rgb_buff[1], rgb_buff[2];
             normal.push_back (n);
             vertex.back().set_normal(n);
             vertex.back().set_rgb(rgb);
@@ -351,7 +331,7 @@ readASCII1Body (const std::string & filename,
             int f[3];
             int polygonSize;
             /*count = */fscanf (in, "%d %d %d %d", &polygonSize, &f[0], &f[1], &f[2]);
-            face.push_back(tripple(f[0],f[1],f[2]));
+            face.emplace_back(f[0],f[1],f[2]);
         }
     }
 

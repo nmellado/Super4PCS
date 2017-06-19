@@ -1444,7 +1444,7 @@ int fffr8r8(double *input,        /* I - array of values to be converted     */
     {
         if (scale == 1. && zero == 0.)      /* no scaling */
         {       
-            memcpy(output, input, ntodo * sizeof(double) );
+            memmove(output, input, ntodo * sizeof(double) );
         }
         else             /* must scale the data */
         {

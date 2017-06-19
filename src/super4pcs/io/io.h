@@ -7,9 +7,8 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <opencv2/highgui/highgui.hpp>
 
-#include "Eigen/Core"
+#include <Eigen/Core>
 
 #ifndef _MSC_VER
 #include <sys/time.h>
@@ -44,17 +43,22 @@ public:
 
 public:
   // Obj read/write simple functions.
-  bool ReadObject(const char *name, vector<Point3D> &v, vector<cv::Point2f> &tex_coords,
-                  vector<cv::Point3f> &normals, vector<tripple> &tris,
+  bool ReadObject(const char *name, vector<Point3D> &v,
+                  vector<Eigen::Matrix2f> &tex_coords,
+                  vector<typename Point3D::VectorType> &normals,
+                  vector<tripple> &tris,
                   vector<std::string> &mtls);
   bool WriteObject(const char *name, const vector<Point3D> &v,
-                   const vector<cv::Point2f> &tex_coords, const vector<cv::Point3f> &normals,
+                   const vector<Eigen::Matrix2f> &tex_coords,
+                   const vector<typename Point3D::VectorType> &normals,
                    const vector<tripple> &tris, const vector<string> &mtls);
 
-  bool WriteMatrix(const string& name, const cv::Mat& mat, MATRIX_MODE mode);
+  bool WriteMatrix(const string& name,
+                   const Eigen::Ref<const Eigen::Matrix<double, 4, 4> >& mat,
+                   MATRIX_MODE mode);
 private:
   bool
-  ReadPly(const char *name, vector<Point3D> &v, vector<cv::Point3f> &normals);
+  ReadPly(const char *name, vector<Point3D> &v, vector<typename Point3D::VectorType> &normals);
 
   /*!
    * \brief ReadPtx
@@ -69,18 +73,22 @@ private:
    */
   bool
   ReadPtx(const char *name, vector<Point3D> &v);
-  
-  bool 
-  ReadObj(const char *name, vector<Point3D> &v, vector<cv::Point2f> &tex_coords,
-          vector<cv::Point3f> &normals, vector<tripple> &tris,
-          vector<std::string> &mtls);
-                  
-  bool
-  WritePly(string name, const vector<Point3D> &v, const vector<cv::Point3f> &normals);
 
-  bool 
+  bool
+  ReadObj(const char *name, vector<Point3D> &v,
+          vector<Eigen::Matrix2f> &tex_coords,
+          vector<typename Point3D::VectorType> &normals,
+          vector<tripple> &tris,
+          vector<std::string> &mtls);
+
+  bool
+  WritePly(string name, const vector<Point3D> &v,
+           const vector<typename Point3D::VectorType> &normals);
+
+  bool
   WriteObj(string name, const vector<Point3D> &v,
-           const vector<cv::Point2f> &tex_coords, const vector<cv::Point3f> &normals,
+           const vector<Eigen::Matrix2f> &tex_coords,
+           const vector<typename Point3D::VectorType> &normals,
            const vector<tripple> &tris, const vector<string> &mtls);
 
 
@@ -91,7 +99,8 @@ private:
    * \return
    */
   std::ofstream &
-  formatPolyworksMatrix(const cv::Mat& mat, std::ofstream &sstr);
+  formatPolyworksMatrix(const Eigen::Ref<const Eigen::Matrix<double, 4, 4> >& mat,
+                        std::ofstream &sstr);
 }; // class IOMananger
 
 #endif // IO_H

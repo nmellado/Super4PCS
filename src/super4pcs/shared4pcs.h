@@ -45,100 +45,102 @@
 #define _SHARED_4PCS_H_
 
 #include <vector>
-#include <memory>
+#include <iostream>
+#include <fstream>
+#include <array>
 
-#include <opencv2/core/core.hpp>
-#include "Eigen/Core"
+#include <Eigen/Core>
 
 #include "utils/disablewarnings.h"
 
 namespace match_4pcs {
 
-namespace internal{
-inline void RGB2HSV(float r, float g, float b,
-                    float &h, float &s, float &v)
-{
-    float K = 0.f;
-
-    if (g < b)
-    {
-        std::swap(g, b);
-        K = -1.f;
-    }
-
-    if (r < g)
-    {
-        std::swap(r, g);
-        K = -2.f / 6.f - K;
-    }
-
-    float chroma = r - std::min(g, b);
-    h = std::abs(K + (g - b) / (6.f * chroma + 1e-20f));
-    s = chroma / (r + 1e-20f);
-    v = r;
-}
-}
-
 // The basic 3D point structure. A point potentially contains also directional
 // information and color.
-class Point3D : public cv::Point3f {
+//template <typename _Scalar = float>
+class Point3D {
  public:
-  inline Point3D(double x, double y, double z) : cv::Point3f(x, y, z) {}
-  inline Point3D(const cv::Point3f& other): cv::Point3f(other) {}
+  using Scalar = float; //_Scalar;
+  using VectorType = Eigen::Matrix<Scalar, 3, 1>;
+
+  inline Point3D(Scalar x, Scalar y, Scalar z) : pos_({ x, y, z}) {}
   inline Point3D(const Point3D& other):
-      cv::Point3f(other),
+      pos_(other.pos_),
       normal_(other.normal_),
-      rgb_(other.rgb_)/*,
-      hsv_(other.hsv_)*/ {}
+      rgb_(other.rgb_) {}
   template<typename Scalar>
   explicit inline Point3D(const Eigen::Matrix<Scalar, 3, 1>& other):
-      cv::Point3f(other(0), other(1), other(2)){
+      pos_({ other(0), other(1), other(2) }){
   }
 
-  inline Point3D() : cv::Point3f(0.0f, 0.0f, 0.0f) {}
-  inline const cv::Vec3f& rgb() const { return rgb_; }
-//  inline const cv::Vec3f& hsv() const { return hsv_; }
-  inline const cv::Point3f& normal() const { return normal_; }
-  inline void set_rgb(const cv::Vec3f& rgb) {
+  inline Point3D() {}
+  inline VectorType& pos() { return pos_ ; }
+  inline const VectorType& pos() const { return pos_ ; }
+  inline const VectorType& rgb() const { return rgb_; }
+
+  inline const VectorType& normal() const { return normal_; }
+  inline void set_rgb(const VectorType& rgb) {
       rgb_ = rgb;
-      hasColor_ = true;
-//      internal::RGB2HSV(rgb_[0]/255.f,rgb_[1]/255.f,rgb_[2]/255.f, hsv_[0],hsv_[1],hsv_[2]);
   }
-  inline void set_normal(const cv::Point3d& normal) {
-      double norm = cv::norm(normal);
-      normal_.x = normal.x / norm;
-      normal_.y = normal.y / norm;
-      normal_.z = normal.z / norm;
+  inline void set_normal(const VectorType& normal) {
+      normal_ = normal.normalized();
   }
-  inline void set_normal(const cv::Point3f& normal) {
-      float norm = cv::norm(normal);
-      normal_.x = normal.x / norm;
-      normal_.y = normal.y / norm;
-      normal_.z = normal.z / norm;
-  }
+
   inline void normalize() {
-    double n = cv::norm(*this);
-    x /= n;
-    y /= n;
-    z /= n;
+    pos_.normalize();
   }
-  inline bool hasColor() const { return hasColor_; }
+  inline bool hasColor() const { return rgb_.squaredNorm() > Scalar(0.001); }
+
+  Scalar& x() { return pos_.coeffRef(0); }
+  Scalar& y() { return pos_.coeffRef(1); }
+  Scalar& z() { return pos_.coeffRef(2); }
+
+  Scalar x() const { return pos_.coeff(0); }
+  Scalar y() const { return pos_.coeff(1); }
+  Scalar z() const { return pos_.coeff(2); }
+
+
 
  private:
   // Normal.
-  cv::Point3f normal_{0.0f, 0.0f, 0.0f};
+  VectorType pos_{0.0f, 0.0f, 0.0f};
+  // Normal.
+  VectorType normal_{0.0f, 0.0f, 0.0f};
   // Color.
-  cv::Vec3f rgb_{-1.0f, -1.0f, -1.0f};
-//  cv::Vec3f hsv_{-1.0f, -1.0f, -1.0f};
-  bool hasColor_ = false;
+  VectorType rgb_{-1.0f, -1.0f, -1.0f};
 };
 
-// Throughout this file the first model is called P, the second is Q
-// and the measure we adopt for the quality of a given transformation is the
-// Largest Common Pointset (LCP), normalized to the size of P thus lies in
-// [0,1] (See the paper for details).
 
-const float kLargeNumber = 1e9;
+
+// Holds a base from P. The base contains 4 points (indices) from the set P.
+struct Quadrilateral {
+    std::array <int, 4> vertices;
+    inline Quadrilateral(int vertex0, int vertex1, int vertex2, int vertex3) {
+        vertices = { vertex0, vertex1, vertex2, vertex3 };
+    }
+
+    inline bool operator< (const Quadrilateral& rhs) const {
+        return    vertices[0] != rhs[0] ? vertices[0] < rhs[0]
+                : vertices[1] != rhs[1] ? vertices[1] < rhs[1]
+                : vertices[2] != rhs[2] ? vertices[2] < rhs[2]
+                : vertices[3] < rhs[3];
+    }
+
+    inline bool operator== (const Quadrilateral& rhs) const {
+        return  vertices[0] == rhs[0] &&
+                vertices[1] == rhs[1] &&
+                vertices[2] == rhs[2] &&
+                vertices[3] == rhs[3];
+    }
+
+    int  operator[](int idx) const { return vertices[idx]; }
+    int& operator[](int idx)       { return vertices[idx]; }
+};
+
+inline std::ofstream& operator<<(std::ofstream& ofs, const Quadrilateral& q){
+    ofs << "[" << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << "]";
+    return ofs;
+}
 
 // ----- 4PCS Options -----
 // delta and overlap_estimation are the application parameters. All other
@@ -154,13 +156,13 @@ struct Match4PCSOptions {
   double overlap_estimation = 0.2;
 
   // Maximum normal difference.
-  double max_normal_difference = 10.0;
-  // Maximum translation distance.
-  double max_translation_distance = kLargeNumber;
-  // Maximum rotation angle.
-  double max_angle = kLargeNumber;
-  // Maximum color RGB distance between corresponding vertices.
-  double max_color_distance = 100.0;
+  double max_normal_difference = -1;
+  // Maximum translation distance. Set negative to ignore
+  double max_translation_distance = -1;
+  // Maximum rotation angle. Set negative to ignore
+  double max_angle = -1;
+  // Maximum color RGB distance between corresponding vertices. Set negative to ignore
+  double max_color_distance = -1;
   // Threshold on the value of the target function (LCP, see the paper).
   // It is used to terminate the process once we reached this value.
   double terminate_threshold = 1.0;
@@ -171,40 +173,6 @@ struct Match4PCSOptions {
   // an ANY TIME algorithm that can be stopped at any time, producing the best
   // solution so far.
   int max_time_seconds = 60;
-};
-
-class MatchShared4PCSImpl;
-
-
-
-class MatchSuper4PCSImpl;
-
-// Class for the computation of the 4PCS algorithm.
-class MatchSuper4PCS {
- public:
-  explicit MatchSuper4PCS(const Match4PCSOptions& options);
-
-  ~MatchSuper4PCS();
-
-  // Computes an approximation of the best LCP (directional) from Q to P
-  // and the rigid transformation that realizes it. The input sets may or may
-  // not contain normal information for any point.
-  // @param [in] P The first input set.
-  // @param [in] Q The second input set.
-  // as a fraction of the size of P ([0..1]).
-  // @param [out] transformation Rigid transformation matrix (4x4) that brings
-  // Q to the (approximate) optimal LCP.
-  // @return the computed LCP measure.
-  // The method updates the coordinates of the second set, Q, applying
-  // the found transformation.
-  float ComputeTransformation(const std::vector<Point3D>& P,
-                              std::vector<Point3D>* Q, cv::Mat* transformation);
-
-  const std::vector<Point3D>& getFirstSampled() const;
-  const std::vector<Point3D>& getSecondSampled() const;
-
- private:
-  std::unique_ptr<MatchSuper4PCSImpl> pimpl_;
 };
 
 } // namespace match_4pcs

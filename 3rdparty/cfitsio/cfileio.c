@@ -62,10 +62,11 @@ pthread_mutex_t Fitsio_InitLock = PTHREAD_MUTEX_INITIALIZER;
 /*--------------------------------------------------------------------------*/
 int fitsio_init_lock(void)
 {
-  static int need_to_init = 1;
   int status = 0;
   
 #ifdef _REENTRANT
+
+  static int need_to_init = 1;
 
   pthread_mutexattr_t mutex_init;
 
@@ -81,7 +82,7 @@ int fitsio_init_lock(void)
         return(status);
     }
 
-#ifdef linux
+#ifdef __GLIBC__
     status = pthread_mutexattr_settype(&mutex_init,
 				     PTHREAD_MUTEX_RECURSIVE_NP);
 #else
@@ -394,6 +395,64 @@ int ffdopn(fitsfile **fptr,      /* O - FITS file pointer                   */
 
     ffopen(fptr, name, mode, status);
 
+    return(*status);
+}
+/*--------------------------------------------------------------------------*/
+int ffeopn(fitsfile **fptr,      /* O - FITS file pointer                   */ 
+           const char *name,     /* I - full name of file to open           */
+           int mode,             /* I - 0 = open readonly; 1 = read/write   */
+           char *extlist,        /* I - list of 'good' extensions to move to */
+           int *hdutype,         /* O - type of extension that is moved to  */
+           int *status)          /* IO - error status                       */
+/*
+  Open an existing FITS file with either readonly or read/write access. and
+  if the primary array contains a null image (i.e., NAXIS = 0) then attempt to
+  move to the first extension named in the extlist of extension names. If
+  none are found, then simply move to the 2nd extension.
+*/
+{
+    int hdunum, naxis, thdutype, gotext=0;
+    char *ext, *textlist;
+    char *saveptr;
+  
+    if (*status > 0)
+        return(*status);
+
+    if (ffopen(fptr, name, mode, status) > 0)
+        return(*status);
+
+    fits_get_hdu_num(*fptr, &hdunum); 
+    fits_get_img_dim(*fptr, &naxis, status);
+
+    if( (hdunum == 1) && (naxis == 0) ){ 
+      /* look through the extension list */
+      if( extlist ){
+        gotext = 0;
+	textlist = malloc(strlen(extlist) + 1);
+	if (!textlist) {
+	    *status = MEMORY_ALLOCATION;
+	    return(*status);
+	}
+
+        strcpy(textlist, extlist);
+        for(ext=(char *)ffstrtok(textlist, " ",&saveptr); ext != NULL; 
+	    ext=(char *)ffstrtok(NULL," ",&saveptr)){
+	    fits_movnam_hdu(*fptr, ANY_HDU, ext, 0, status);
+	    if( *status == 0 ){
+	      gotext = 1;
+	      break;
+	    } else {
+	      *status = 0;
+	    }
+        }
+        free(textlist);      
+      }
+      if( !gotext ){
+        /* if all else fails, move to extension #2 and hope for the best */
+        fits_movabs_hdu(*fptr, 2, &thdutype, status);
+      }
+    }
+    fits_get_hdu_type(*fptr, hdutype, status);
     return(*status);
 }
 /*--------------------------------------------------------------------------*/
@@ -988,7 +1047,7 @@ move2hdu:
                fits_read_key(*fptr, TSTRING, "EXTNAME", tblname, NULL,&tstatus);
 
                if ( (!strstr(tblname, "GTI") && !strstr(tblname, "gti")) &&
-                    strncasecmp(tblname, "OBSTABLE", 8) )
+                    fits_strncasecmp(tblname, "OBSTABLE", 8) )
                   break;  /* found an interesting table */
             }
           }  /* end while */
@@ -1452,7 +1511,7 @@ int fits_already_open(fitsfile **fptr, /* I/O - FITS file pointer       */
     if (mode == 0)
         return(*status);
 
-    if(strcasecmp(urltype,"FILE://") == 0)
+    if(fits_strcasecmp(urltype,"FILE://") == 0)
       {
         fits_path2url(infile,tmpinfile,status);
 
@@ -1490,7 +1549,7 @@ int fits_already_open(fitsfile **fptr, /* I/O - FITS file pointer       */
             return(*status);
           }
 
-          if(strcasecmp(oldurltype,"FILE://") == 0)
+          if(fits_strcasecmp(oldurltype,"FILE://") == 0)
             {
               fits_path2url(oldinfile,tmpStr,status);
               
@@ -3606,6 +3665,8 @@ int ffdkinit(fitsfile **fptr,      /* O - FITS file pointer                   */
   extended filename syntax.
 */
 {
+    *fptr = 0;              /* initialize null file pointer, */
+                            /* regardless of the value of *status */
     if (*status > 0)
         return(*status);
 
@@ -3629,6 +3690,8 @@ int ffinit(fitsfile **fptr,      /* O - FITS file pointer                   */
     char tmplfile[FLEN_FILENAME], compspec[80];
     int handle, create_disk_file = 0;
 
+    *fptr = 0;              /* initialize null file pointer, */
+                            /* regardless of the value of *status */
     if (*status > 0)
         return(*status);
 
@@ -3637,8 +3700,6 @@ int ffinit(fitsfile **fptr,      /* O - FITS file pointer                   */
        create_disk_file = 1;
        *status = 0;
     }
-
-    *fptr = 0;              /* initialize null file pointer */
 
     if (need_to_initialize)  {          /* this is called only once */
         *status = fits_init_cfitsio();
@@ -4733,7 +4794,7 @@ int fits_register_driver(char *prefix,
 	int (*truncate)(int driverhandle, LONGLONG filesize),
 	int (*close)(int driverhandle),
 	int (*fremove)(char *filename),
-        int (*size)(int driverhandle, LONGLONG *size),
+        int (*size)(int driverhandle, LONGLONG *sizex),
 	int (*flush)(int driverhandle),
 	int (*seek)(int driverhandle, LONGLONG offset),
 	int (*read) (int driverhandle, void *buffer, long nbytes),
@@ -4901,7 +4962,7 @@ int ffifile2(char *url,       /* input filename */
             strcat(urltype, "stdin://");
         ptr1++;
     }
-    else if (!strncasecmp(ptr1, "stdin", 5))
+    else if (!fits_strncasecmp(ptr1, "stdin", 5))
     {
         if (urltype)
             strcat(urltype, "stdin://");
@@ -5412,21 +5473,21 @@ int ffifile2(char *url,       /* input filename */
            if (*tmptr == '@')  /* test for leading @ symbol */
                hasAt = 1;
 
-           if ( !strncasecmp(tmptr, "col ", 4) )
+           if ( !fits_strncasecmp(tmptr, "col ", 4) )
               colStart = 1;
 
-           if ( !strncasecmp(tmptr, "bin", 3) )
+           if ( !fits_strncasecmp(tmptr, "bin", 3) )
               binStart = 1;
 
-           if ( !strncasecmp(tmptr, "pix", 3) )
+           if ( !fits_strncasecmp(tmptr, "pix", 3) )
               pixStart = 1;
 
-           if ( !strncasecmp(tmptr, "compress ", 9) ||
-                !strncasecmp(tmptr, "compress]", 9) )
+           if ( !fits_strncasecmp(tmptr, "compress ", 9) ||
+                !fits_strncasecmp(tmptr, "compress]", 9) )
               compStart = 1;
 
-           if ( !strncasecmp(tmptr, "gtifilter(", 10) ||
-                !strncasecmp(tmptr, "regfilter(", 10) )
+           if ( !fits_strncasecmp(tmptr, "gtifilter(", 10) ||
+                !fits_strncasecmp(tmptr, "regfilter(", 10) )
            {
                rowFilter = 1;
            }
@@ -7065,6 +7126,8 @@ int fftplt(fitsfile **fptr,      /* O - FITS file pointer                   */
   Uses C fopen and fgets functions.
 */
 {
+    *fptr = 0;              /* initialize null file pointer, */
+                            /* regardless of the value of *status */
     if (*status > 0)
         return(*status);
 

@@ -48,17 +48,18 @@
 // source code and datasets are available for research use at
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
-#include "4pcs.h"
+#include "algorithms/4pcs.h"
+#include "algorithms/super4pcs.h"
 
-#include "Eigen/Dense"
+#include <Eigen/Dense>
 
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core/eigen.hpp>
+#include "accelerators/pairExtraction/bruteForceFunctor.h"
 #include "accelerators/pairExtraction/intersectionFunctor.h"
 #include "accelerators/pairExtraction/intersectionPrimitive.h"
+#include "utils/timer.h"
 #include "bbox.h"
 
 #include <sys/time.h>
@@ -72,84 +73,71 @@
 //#include "normalHealSet.h"
 
 using namespace match_4pcs;
+using namespace Super4PCS;
 
-namespace Utilities{
-
-    static double Timer_getTime(void)
-    {
-        struct timeval tv;
-        struct timezone tz;
-        gettimeofday(&tv, &tz);
-        return (double)tv.tv_sec + 1.e-6 * (double)tv.tv_usec;
-    }
-
-    typedef double Timer;
-
-    static inline void startTimer(Timer& timer) { timer = Timer_getTime(); }
-    static inline void stopTimer(Timer& timer) { timer = Timer_getTime() - timer; }
-}
-
-struct PairCreationFunctor{
+struct MyPairCreationFunctor{
   typedef std::pair<unsigned int, unsigned int>ResPair;
   std::vector< ResPair >pairs;
-  
+
   std::vector<unsigned int> ids;
-  
+
   inline void beginPrimitiveCollect(int primId){
   }
-  
+
   inline void endPrimitiveCollect(int primId){
   }
   inline void process(int primId, int pointId){
     //if(pointId >= 10)
-    pairs.push_back(ResPair(pointId, primId));
+      if (primId>pointId)
+        pairs.emplace_back(pointId, primId);
   }
 };
 
 
 /*!
  * \brief Generate a set of random points and spheres, and test the pair extraction
- 
+
    Two tests are operated here:
     - Check the validity of the sphere to point intersection test
-    - Check the rendering 
-    
-   Note here that rendering timings are not optimal because we have a volume 
+    - Check the rendering
+
+   Note here that rendering timings are not optimal because we have a volume
    uniformly sampled and not a surface.
-   
+
  */
 template<typename Scalar, typename Point, typename Primitive, typename Functor>
-void testFunction( Scalar r, Scalar epsilon, 
-                   unsigned int nbPoints, unsigned int nbPrimitives){
-                   
+void testFunction( Scalar r, Scalar epsilon,
+                   unsigned int nbPoints,
+                   unsigned int minNodeSize){
+
   // Init required structures
-  Utilities::Timer t; 
+  Super4PCS::Utils::Timer t;
   std::vector< std::pair<unsigned int, unsigned int> > p2;
-  p2.reserve(nbPoints*nbPrimitives);
-  
-  PairCreationFunctor functor;
+  p2.reserve(nbPoints*nbPoints);
+
+  MyPairCreationFunctor functor;
   functor.ids.clear();
   for(unsigned int i = 0; i < nbPoints; i++)
     functor.ids.push_back(i);
-  functor.pairs.reserve(nbPoints*nbPrimitives);
-  
-  // Init Random Positions  
-  std::vector<Point> points;
-  
-  Point half (Point::Ones()/2.f);  
-  for(unsigned int i = 0; i != nbPoints; i++){
-    Point p (0.5f*Point::Random() + half);
-    points.push_back(p);   
-  } 
-  
-  // Init random Spheres
-  std::vector<Primitive> primitives; 
-  for(unsigned int i = 0; i != nbPrimitives; i++){
-    Point p (0.5f*Point::Random() + half);
+  functor.pairs.reserve(nbPoints*nbPoints);
 
-    primitives.push_back(Primitive(p, r));
-  } 
-  
+  //std::cout << "**************************" << std::endl;
+  //std::cout << "Epsilon = " << epsilon << std::endl;
+
+  // Init Random Positions
+  std::vector<Point> points;
+  std::vector<Primitive> primitives;
+
+  //std::cout << "Points: " << std::endl;
+  Point half (Point::Ones()/2.f);
+  for(unsigned int i = 0; i != nbPoints; i++){
+    // generate points on a sphere
+    Point p (0.5f*Point::Random().normalized() + half);
+    points.push_back(p);
+    primitives.emplace_back(p, r);
+    //std::cout << p.transpose() << std::endl;
+  }
+
   // Test test intersection procedure
   // Here we compare the brute force pair extraction and the sphere to point
   // intersection procedure
@@ -157,38 +145,63 @@ void testFunction( Scalar r, Scalar epsilon,
     Primitive& sphere = primitives.front();
     for(unsigned int i = 0; i != nbPoints; i++){
       const Point&p = points[i];
-      VERIFY( sphere.intersectPoint(p, epsilon) == 
+      VERIFY( sphere.intersectPoint(p, epsilon) ==
               SQR((p - sphere.center()).norm()- sphere.radius()) < SQR(epsilon));
-    }  
+    }
   }
-  
-    
+
+
   // Test Rendering process
   {
-    Functor IF;  
-    
+    Functor IF;
+
     // Extract pairs using rendering process
-    Utilities::startTimer(t);
-    IF.process(primitives, points, epsilon, 20, functor);
-    Utilities::stopTimer(t); 
-           
-     
+    t.reset();
+    IF.process(primitives, points, epsilon, minNodeSize, functor);
+    const auto IFtimestep = t.elapsed();
+
+
     // Extract pairs using brute force
-    Utilities::startTimer(t); 
+    t.reset();
     for(unsigned int i = 0; i != nbPoints; i++)
-      for(unsigned int j = i+1; j < primitives.size(); j++)
+      for(unsigned int j = i+1; j < nbPoints; j++)
          if (primitives[j].intersectPoint(points[i], epsilon))
-          p2.push_back(std::pair<unsigned int, unsigned int>(i,j));
-    Utilities::stopTimer(t);
-    
+          p2.emplace_back(i,j);
+    const auto BFtimestep = t.elapsed();
+
+    std::cout << "Timers (" << (IFtimestep.count() < BFtimestep.count()
+                                ? "PASSED" : "NOT PASSED")
+              << "): \t Functor: " << IFtimestep.count()/1000
+              << "\t BruteForce: " << BFtimestep.count()/1000 << std::endl;
+
     // Check we get the same set size
-    VERIFY( functor.pairs.size() == p2.size());
+    std::cout << "Size check (" << (functor.pairs.size() == p2.size()
+                                ? "PASSED" : "NOT PASSED")
+              << "): \t Functor: " << functor.pairs.size()
+              << " \t BruteForce: " << p2.size() << std::endl;
+
+    // sort to ensure containers consistency
+    std::sort(functor.pairs.begin(), functor.pairs.end());
+    std::sort(p2.begin(), p2.end());
+
+
+//    std::cout << "Functor: " << std::endl;
+//    for (const auto&p0 : functor.pairs)
+//        std::cout << "\t" << p0.first << " - " << p0.second << std::endl;
+//    std::cout << "Brute Force: " << std::endl;
+//    for (const auto&p0 : p2)
+//        std::cout << "\t" << p0.first << " - " << p0.second << std::endl;
+
+
+    VERIFY( functor.pairs.size() == p2.size() );
+    VERIFY( std::equal(functor.pairs.begin(), functor.pairs.end(), p2.begin()));
+
   }
 }
 
 
-template<typename Scalar, 
-         int Dim, 
+template<typename Scalar,
+         int Dim,
          template <typename,typename,int,typename> class _Functor>
 void callSubTests()
 {
@@ -197,24 +210,100 @@ void callSubTests()
     typedef  Eigen::Matrix<Scalar, Dim, 1> EigenPoint;
     typedef  HyperSphere< EigenPoint, Dim, Scalar > Sphere;
     typedef _Functor<Sphere, EigenPoint, Dim, Scalar> Functor;
-    
+
     Scalar   r = 0.5; // radius of the spheres
-    Scalar eps = 0.125/8.; // epsilon value
-    
-    unsigned int nbPoint = 10000;  // size of Q point cloud
-    unsigned int nbPrim  = 500;    // number of primitive queries
-    
-    for(int i = 0; i < g_repeat; ++i)
+    Scalar eps = GetRoundedEpsilonValue(0.125/16.); // epsilon value
+    unsigned int nbPoint = 2500;  // size of Q point cloud
+    int minNodeSize = 50;
+
+    for(int i = 0; i < Testing::g_repeat; ++i)
     {
         CALL_SUBTEST(( testFunction<Scalar,
                                     EigenPoint,
                                     Sphere,
-                                    Functor>(r, eps, nbPoint, nbPrim) ));
+                                    Functor>(r, eps, nbPoint, minNodeSize) ));
     }
 }
 
+template <typename MatchType>
+void callMatchSubTests()
+{
+    using Scalar = typename MatchType::Scalar;
+    using PairsVector = typename MatchType::PairsVector;
+
+    match_4pcs::Match4PCSOptions opt;
+    opt.delta = 0.1;
+    opt.overlap_estimation = 0.5;
+
+    const size_t nbPointP = 200;
+    const size_t nbPointQ = 150;
+    // Computes distance between pairs.
+    Scalar distance1 = 0.3;
+    Scalar distance2 = 0.5;
+    Scalar normal_angle1 = 0.6;
+    Scalar normal_angle2 = 0.4;
+
+    Scalar pair_distance_epsilon = MatchType::distance_factor * opt.delta;
+
+
+    for(int i = 0; i < Testing::g_repeat; ++i)
+    {
+
+        // generate input point cloud
+        std::vector<Point3D> P, Q;
+        Testing::generateSphereCloud(P, nbPointP);
+        Testing::generateSphereCloud(Q, nbPointQ);
+
+        std::vector<std::pair<int, int>> gtpairs1, gtpairs2;
+        Testing::extractPairs(distance1, pair_distance_epsilon, Q, gtpairs1);
+        Testing::extractPairs(distance2, pair_distance_epsilon, Q, gtpairs2);
+
+        std::sort(gtpairs1.begin(), gtpairs1.end());
+        std::sort(gtpairs2.begin(), gtpairs2.end());
+
+
+        // extract point using matcher
+        MatchType match (opt);
+        match.init(P, Q);
+
+        std::vector<std::pair<int, int>> pairs1, pairs2;
+        match.ExtractPairs(distance1,
+                           normal_angle1,
+                           pair_distance_epsilon,
+                           0,
+                           1,
+                           &pairs1);
+        match.ExtractPairs(distance2,
+                           normal_angle2,
+                           pair_distance_epsilon,
+                           2,
+                           3,
+                           &pairs2);
+
+        std::sort(pairs1.begin(), pairs1.end());
+        std::sort(pairs2.begin(), pairs2.end());
+
+        // Check we get the same set size
+        std::cout << "Size check 1 (" << (pairs1.size() == gtpairs1.size()
+                                          ? "PASSED" : "NOT PASSED")
+                  << "): \t Functor: " << pairs1.size()
+                  << " \t GT: " << gtpairs1.size() << std::endl;
+        std::cout << "Size check 2 (" << (pairs2.size() == gtpairs2.size()
+                                          ? "PASSED" : "NOT PASSED")
+                  << "): \t Functor: " << pairs2.size()
+                  << " \t GT: " << gtpairs2.size() << std::endl;
+
+        VERIFY( gtpairs1.size() == pairs1.size() );
+        VERIFY( std::equal(pairs1.begin(), pairs1.end(), gtpairs1.begin()));
+
+        VERIFY( gtpairs2.size() == pairs2.size() );
+        VERIFY( std::equal(pairs2.begin(), pairs2.end(), gtpairs2.begin()));
+    }
+
+}
+
 int main(int argc, const char **argv) {
-    if(!init_testing(argc, argv))
+    if(!Testing::init_testing(argc, argv))
     {
         return EXIT_FAILURE;
     }
@@ -223,22 +312,49 @@ int main(int argc, const char **argv) {
     using std::endl;
     using namespace Super4PCS::Accelerators::PairExtraction;
 
-    cout << "Extract pairs in 2 dimensions..." << endl;
+
+    cout << "Extract pairs in 2 dimensions (BRUTE FORCE)..." << endl;
+    callSubTests<float, 2, BruteForceFunctor>();
+    callSubTests<double, 2, BruteForceFunctor>();
+    callSubTests<long double, 2, BruteForceFunctor>();
+    cout << "Ok..." << endl;
+
+    cout << "Extract pairs in 2 dimensions (RENDERING)..." << endl;
     callSubTests<float, 2, IntersectionFunctor>();
     callSubTests<double, 2, IntersectionFunctor>();
     callSubTests<long double, 2, IntersectionFunctor>();
     cout << "Ok..." << endl;
 
-    cout << "Extract pairs in 3 dimensions..." << endl;
+    cout << "Extract pairs in 3 dimensions (BRUTE FORCE)..." << endl;
+    callSubTests<float, 3, BruteForceFunctor>();
+    callSubTests<double, 3, BruteForceFunctor>();
+    callSubTests<long double, 3, BruteForceFunctor>();
+    cout << "Ok..." << endl;
+
+    cout << "Extract pairs in 3 dimensions (RENDERING)..." << endl;
     callSubTests<float, 3, IntersectionFunctor>();
     callSubTests<double, 3, IntersectionFunctor>();
     callSubTests<long double, 3, IntersectionFunctor>();
     cout << "Ok..." << endl;
 
-    cout << "Extract pairs in 4 dimensions..." << endl;
+    cout << "Extract pairs in 4 dimensions (BRUTE FORCE)..." << endl;
+    callSubTests<float, 4, BruteForceFunctor>();
+    callSubTests<double, 4, BruteForceFunctor>();
+    callSubTests<long double, 4, BruteForceFunctor>();
+    cout << "Ok..." << endl;
+
+    cout << "Extract pairs in 4 dimensions (RENDERING)..." << endl;
     callSubTests<float, 4, IntersectionFunctor>();
     callSubTests<double, 4, IntersectionFunctor>();
     callSubTests<long double, 4, IntersectionFunctor>();
+    cout << "Ok..." << endl;
+
+    cout << "Extract pairs using Match4PCS" << endl;
+    callMatchSubTests<Match4PCS>();
+    cout << "Ok..." << endl;
+
+    cout << "Extract pairs using Match4PCS" << endl;
+    callMatchSubTests<MatchSuper4PCS>();
     cout << "Ok..." << endl;
 
     return EXIT_SUCCESS;

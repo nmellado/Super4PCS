@@ -29,11 +29,17 @@ ExternalProject_Add(dataset-standford-bunny
 )
 
 #############################################
+## testing files
+set (testing_SRCS
+    testing.h
+)
+
+#############################################
 ## pair extraction
 set(pair_extraction_SRCS
     pair_extraction.cc
 )
-add_executable(pair_extraction ${pair_extraction_SRCS})
+add_executable(pair_extraction ${pair_extraction_SRCS} ${testing_SRCS})
 add_dependencies(buildtests pair_extraction)
 add_test(NAME pair_extraction
          #CONFIGURATIONS Release
@@ -45,7 +51,7 @@ add_test(NAME pair_extraction
 set(quad_extraction_SRCS
     quad_extraction.cc
 )
-add_executable(quad_extraction ${quad_extraction_SRCS})
+add_executable(quad_extraction ${quad_extraction_SRCS} ${testing_SRCS})
 add_dependencies(buildtests quad_extraction)
 add_test(NAME quad_extraction
          #CONFIGURATIONS Release
@@ -60,7 +66,7 @@ set(matching_SRCS
 find_package(Boost 1.55.0 COMPONENTS system filesystem REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
-add_executable(matching ${matching_SRCS} ${io_SRC})
+add_executable(matching ${matching_SRCS} ${testing_SRCS})
 add_dependencies(buildtests matching dataset-standford-armadillo dataset-standford-bunny)
 
 set (matching_subtests 0 1)
@@ -72,7 +78,8 @@ foreach(subtest_id ${matching_subtests})
 endforeach()
 
 target_link_libraries(quad_extraction ${Chealpix_LIBS} super4pcs_accel super4pcs_algo)
-target_link_libraries(matching super4pcs_io super4pcs_accel super4pcs_algo)
+target_link_libraries(pair_extraction super4pcs_accel super4pcs_algo super4pcs_utils)
+TARGET_LINK_LIBRARIES(pair_extraction ${Chealpix_LIBS} )
+target_link_libraries(matching super4pcs_io super4pcs_accel super4pcs_algo super4pcs_utils)
 target_link_libraries(matching ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
-TARGET_LINK_LIBRARIES(matching ${ANN_LIBS} )
 TARGET_LINK_LIBRARIES(matching ${Chealpix_LIBS} )

@@ -50,7 +50,8 @@
 // source code and datasets are available for research use at
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
-#include "4pcs.h"
+#include "algorithms/4pcs.h"
+#include "algorithms/super4pcs.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
@@ -58,21 +59,23 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core/eigen.hpp>
 
 #include <boost/filesystem.hpp>
 
 #include "io/io.h"
+#include "utils/geometry.h"
 
 #include "testing.h"
+
+#define WRITE_OUTPUT_FILES
 
 #define sqr(x) ((x) * (x))
 
 using namespace std;
 using namespace match_4pcs;
+using namespace Super4PCS;
 
-typedef double Scalar;
+using Scalar = Point3D::Scalar;
 enum {Dim = 3};
 typedef Eigen::Transform<Scalar, Dim, Eigen::Affine> Transform;
 
@@ -90,61 +93,26 @@ std::array<std::string, nbSet> confFiles = {
 };
 
 std::array<Scalar, nbSet> deltas  = {
-    0.001,
-    0.001,
+    0.0015,
+    0.0015,
 };
 
 std::array<Scalar, nbSet> overlaps = {
     0.5,
-    0.7,
+    0.6,
 };
 
 std::array<Scalar, nbSet> n_points = {
-    900,
-    700,
+    300,
+    300,
 };
 
-// Maximum norm of RGB values between corresponded points. 1e9 means don't use.
-double max_color = 1e9;
-
-// Maximum angle (degrees) between corresponded normals.
-double norm_diff = 360.0;
 
 // Maximum allowed computation time.
 int max_time_seconds = 1e9;
 
 bool use_super4pcs = true;
 
-void CleanInvalidNormals( vector<Point3D> &v, 
-                          vector<cv::Point3f> &normals){
-  if (v.size() == normals.size()){
-    vector<Point3D>::iterator itV = v.begin();
-    vector<cv::Point3f>::iterator itN = normals.begin();
-  
-    float norm;
-    unsigned int nb = 0;
-    for( ; itV != v.end(); ){
-      norm = cv::norm((*itV).normal());
-      if (norm < 0.1){
-        itN = normals.erase(itN);
-        itV = v.erase(itV);
-        nb++;
-      }else{
-        if (norm != 1.){
-          (*itN).x /= norm;
-          (*itN).y /= norm;
-          (*itN).z /= norm;
-        }
-        itV++;
-        itN++;
-      }
-    }
-    
-    if (nb != 0){
-      cout << "Removed " << nb << " invalid points/normals" << endl; 
-    }
-  }
-}
 
 /*!
   Read a configuration file from Standford 3D shape repository and
@@ -222,44 +190,47 @@ void test_model(const vector<Transform> &transforms,
                 vector<Point3D> &mergedset,
                 int i,
                 int param_i){
+    using namespace Super4PCS;
+
     const string input1 = files.at(i-1);
     const string input2 = files.at(i);
 
     cout << "Matching " << input2.c_str() << endl;
 
     vector<Point3D> set1, set2;
-    vector<cv::Point2f> tex_coords1, tex_coords2;
-    vector<cv::Point3f> normals1, normals2;
+    vector<Eigen::Matrix2f> tex_coords1, tex_coords2;
+    vector<typename Point3D::VectorType> normals1, normals2;
     vector<tripple> tris1, tris2;
     vector<std::string> mtls1, mtls2;
 
-    IOManager iomananger;
-    VERIFY(iomananger.ReadObject((char *)input1.c_str(), set1, tex_coords1, normals1, tris1, mtls1));
-    VERIFY(iomananger.ReadObject((char *)input2.c_str(), set2, tex_coords2, normals2, tris2, mtls2));
+    IOManager iomanager;
+    VERIFY(iomanager.ReadObject((char *)input1.c_str(), set1, tex_coords1, normals1, tris1, mtls1));
+    VERIFY(iomanager.ReadObject((char *)input2.c_str(), set2, tex_coords2, normals2, tris2, mtls2));
 
     // clean only when we have pset to avoid wrong face to point indexation
     if (tris1.size() == 0)
-        CleanInvalidNormals(set1, normals1);
+        Utils::CleanInvalidNormals(set1, normals1);
     if (tris2.size() == 0)
-        CleanInvalidNormals(set2, normals2);
+        Utils::CleanInvalidNormals(set2, normals2);
 
     // first transform the first mesh to its gt coordinates:
     // we compare only pairwise matching, so we don't want to
     // accumulate error during the matching process
     // Transforms Q by the new transformation.
     {
-        cv::Mat transformation = cv::Mat::eye(4, 4, CV_64F);
-        cv::eigen2cv(transforms[i-1].inverse().matrix(), transformation);
-        for (int i = 0; i < set1.size(); ++i) {
-            cv::Mat first(4, 1, CV_64F), transformed;
-            first.at<double>(0, 0) = set1[i].x;
-            first.at<double>(1, 0) = set1[i].y;
-            first.at<double>(2, 0) = set1[i].z;
-            first.at<double>(3, 0) = 1;
-            transformed = transformation * first;
-            set1[i].x = transformed.at<double>(0, 0);
-            set1[i].y = transformed.at<double>(1, 0);
-            set1[i].z = transformed.at<double>(2, 0);
+        Match4PCSBase::MatrixType transformation = transforms[i-1].inverse().matrix();
+        for (int j = 0; j < set1.size(); ++j) {
+            set1[j].pos() = (transformation * set1[j].pos().homogeneous()).head<3>();
+
+//            cv::Mat first(4, 1, CV_64F), transformed;
+//            first.at<double>(0, 0) = set1[j].x();
+//            first.at<double>(1, 0) = set1[j].y();
+//            first.at<double>(2, 0) = set1[j].z();
+//            first.at<double>(3, 0) = 1;
+//            transformed = transformation * first;
+//            set1[j].x() = transformed.at<double>(0, 0);
+//            set1[j].y() = transformed.at<double>(1, 0);
+//            set1[j].z() = transformed.at<double>(2, 0);
         }
     }
 
@@ -269,11 +240,10 @@ void test_model(const vector<Transform> &transforms,
     Match4PCSOptions options;
 
     // Set parameters.
-    cv::Mat mat = cv::Mat::eye(4, 4, CV_64F);
+    //cv::Mat mat = cv::Mat::eye(4, 4, CV_64F);
+    Match4PCSBase::MatrixType mat;
     options.overlap_estimation = overlaps[param_i];
     options.sample_size = n_points[param_i];
-    options.max_normal_difference = norm_diff;
-    options.max_color_distance = max_color;
     options.max_time_seconds = max_time_seconds;
     options.delta = deltas[param_i];
 
@@ -291,7 +261,7 @@ void test_model(const vector<Transform> &transforms,
              << " -c " << options.max_color_distance
              << " -t " << options.max_time_seconds
              << endl;
-        score = matcher.ComputeTransformation(mergedset, &set2, &mat);
+        score = matcher.ComputeTransformation(mergedset, &set2, mat);
     }else{
         Match4PCS matcher(options);
         cout << "./Super4PCS -i "
@@ -305,7 +275,7 @@ void test_model(const vector<Transform> &transforms,
              << " -t " << options.max_time_seconds
              << " -x "
              << endl;
-        score = matcher.ComputeTransformation(mergedset, &set2, &mat);
+        score = matcher.ComputeTransformation(mergedset, &set2, mat);
     }
 
 
@@ -313,7 +283,7 @@ void test_model(const vector<Transform> &transforms,
     stringstream iss;
     iss << input2;
     iss << "_aligned.ply";
-    iomananger.WriteObject(iss.str().c_str(),
+    iomanager.WriteObject(iss.str().c_str(),
                            set2,
                            tex_coords2,
                            normals2,
@@ -321,11 +291,7 @@ void test_model(const vector<Transform> &transforms,
                            mtls2);
 #endif
 
-    // convert matrix to eigen matrix, and
-    Eigen::Matrix<Scalar,4, 4> mat_eigen;
-    cv::cv2eigen(mat,mat_eigen);
-
-    Transform transformEst (mat_eigen);
+    Transform transformEst (mat);
 
     cout << "Reference: " << endl << transforms[i].matrix() << endl;
     cout << "Estimation: " << endl << transformEst.matrix() << endl;
@@ -357,10 +323,10 @@ void test_model(const vector<Transform> &transforms,
     stringstream iss2;
     iss2 << input1;
     iss2 << "_merged.ply";
-    iomananger.WriteObject(iss2.str().c_str(),
+    iomanager.WriteObject(iss2.str().c_str(),
                            mergedset,
-                           vector<cv::Point2f>(),
-                           vector<cv::Point3f>(),
+                           vector<Eigen::Matrix2f>(),
+                           vector<typename Point3D::VectorType>(),
                            vector<tripple>(),
                            vector<std::string>());
 #endif
@@ -371,7 +337,7 @@ int main(int argc, const char **argv) {
 
     const char* custom_argv [1] = {"matching"};
 
-    if(!init_testing(1, custom_argv))
+    if(!Testing::init_testing(1, custom_argv))
     {
         return EXIT_FAILURE;
     }

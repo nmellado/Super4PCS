@@ -6,18 +6,31 @@ find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 #############################################
-set(accel_SRC
-    ${accel_ROOT}/normalHealSet.cpp)
-set(accel_INCLUDE 
+
+set(accel_INCLUDE
     ${accel_ROOT}/kdtree.h
     ${accel_ROOT}/pairExtraction/bruteForceFunctor.h
     ${accel_ROOT}/pairExtraction/intersectionFunctor.h
     ${accel_ROOT}/pairExtraction/intersectionNode.h
     ${accel_ROOT}/pairExtraction/intersectionPrimitive.h
-    ${accel_ROOT}/normalHealSet.h
     ${accel_ROOT}/normalset.h
     ${accel_ROOT}/normalset.hpp
     ${accel_ROOT}/bbox.h
     ${accel_ROOT}/utils.h)
 
-add_library(super4pcs_accel ${accel_SRC} ${accel_INCLUDE})
+if(SUPER4PCS_USE_CHEALPIX)
+    include_directories(${Chealpix_INCLUDE_DIR})
+    set(chealpix_files
+        ${accel_ROOT}/normalHealSet.cpp
+        ${accel_ROOT}/normalHealSet.h)
+
+    add_library(super4pcs_accel ${accel_INCLUDE} ${chealpix_files})
+    target_link_libraries(super4pcs_accel ${Chealpix_LIBS} )
+    add_dependencies(super4pcs_accel  chealpix)
+
+    add_definitions(-DUSE_OPENCV)
+else ()
+    add_library(super4pcs_accel INTERFACE)
+    target_include_directories(super4pcs_accel INTERFACE ${accel_ROOT})
+    target_sources(super4pcs_accel INTERFACE ${accel_INCLUDE})
+endif(SUPER4PCS_USE_CHEALPIX)

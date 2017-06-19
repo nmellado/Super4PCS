@@ -1047,7 +1047,7 @@ int fffi2i2(short *input,         /* I - array of values to be converted     */
     {
         if (scale == 1. && zero == 0.)      /* no scaling */
         {       
-            memcpy(output, input, ntodo * sizeof(short) );
+            memmove(output, input, ntodo * sizeof(short) );
         }
         else             /* must scale the data */
         {

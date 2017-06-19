@@ -48,252 +48,114 @@
 // source code and datasets are available for research use at
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
-#include "4pcs.h"
+#include "algorithms/4pcs.h"
+#include "algorithms/super4pcs.h"
 
 #include "Eigen/Dense"
 
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core/eigen.hpp>
-#include "accelerators/normalHealSet.h"
-#include "accelerators/normalset.h"
-#include "accelerators/pairExtraction/bruteForceFunctor.h"
-#include "bbox.h"
-
-#include <sys/time.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <utility> // pair
 
 #include "testing.h"
 
-//#include "normalset.h"
-//#include "normalHealSet.h"
-
 using namespace match_4pcs;
-
-namespace Utilities{
-
-    static double Timer_getTime(void)
-    {
-        struct timeval tv;
-        struct timezone tz;
-        gettimeofday(&tv, &tz);
-        return (double)tv.tv_sec + 1.e-6 * (double)tv.tv_usec;
-    }
-
-    typedef double Timer;
-
-    static inline void startTimer(Timer& timer) { timer = Timer_getTime(); }
-    static inline void stopTimer(Timer& timer) { timer = Timer_getTime() - timer; }
-}
-
-/*!
- * \brief Generate a set of random points and spheres, and test the pair extraction
- 
-   Two tests are operated here:
-    - Check the validity of the sphere to point intersection test
-    - Check the rendering 
-    
-   Note here that rendering timings are not optimal because we have a volume 
-   uniformly sampled and not a surface.
-   
- */
-template<typename Scalar,
-         int Dim,
-         typename Point,
-         typename NormalSet>
-void testFunction( Scalar epsilon,
-                   unsigned int nbPoints){
-
-  using PairFunctor = Super4PCS::Accelerators::PairExtraction::
-    BruteForceFunctor<Point, Dim, Scalar>;
-
-  Utilities::Timer t; 
-
-  auto getRandomPoint = [](Scalar factor = Scalar(1)){
-      static const Point half (Point::Ones()/Scalar(2));
-      return Point (Scalar(0.5 * factor)*Point::Random() + half);
-  };
+using namespace Super4PCS;
 
 
-
-  // Init random basis
-  struct Basis{
-      Point a, b, c, d;
-      Scalar inv1, inv2;
-  } ;
-  Basis basis;
-
-  // get random positions in [0:0.5]^n
-  Scalar factor (0.2);
-  basis.a = getRandomPoint(factor);
-  basis.b = getRandomPoint(factor);
-  basis.inv1 = factor*Scalar(rand() % 10000) / Scalar(10000);
-  basis.inv2 = factor*Scalar(rand() % 10000) / Scalar(10000);
-  Point tmp = getRandomPoint(factor);
-  Point pivot = basis.a + (basis.b-basis.a) * basis.inv1;
-  basis.c = pivot - tmp * basis.inv2;
-  basis.d = pivot + tmp * (Scalar(1) - basis.inv2);
-
-  std::cout << "Basis: "
-            << "\n  " << basis.a.transpose()
-            << "\n  " << basis.b.transpose()
-            << "\n  " << basis.c.transpose()
-            << "\n  " << basis.d.transpose() << std::endl;
-
-  NormalSet _set(epsilon);
-
-  struct IndexedPoint{
-      Point p, n;
-      int id;
-  };
-
-
-  // generate random point cloud
-  std::vector< Point > points;
-  points.reserve(nbPoints);
-
-  for(unsigned int i = 0; i != nbPoints; i++){
-      points.push_back(Point::Random());
-  }
-
-  struct ExtractFunctor{
-      Basis basis;
-      std::vector< std::pair<int,int> >pairs1;
-      std::vector< std::pair<int,int> >pairs2;
-      std::vector< Point > &points;
-      Scalar epsilon;
-      inline ExtractFunctor(std::vector< Point > &p) : points(p) {}
-
-      inline
-      void process(int i, int j){
-          if (i>j){
-              if (std::abs(  (points[j] - points[i]).norm()
-                           - (basis.b   - basis.a).norm())
-                      < epsilon)
-                  pairs1.push_back(std::pair<int,int>(i,j));
-              if (std::abs(  (points[j] - points[i]).norm()
-                           - (basis.d   - basis.c).norm())
-                      < epsilon)
-                  pairs2.push_back(std::pair<int,int>(i,j));
-          }
-      }
-  };
-  ExtractFunctor extractfunctor (points);
-  extractfunctor.basis  = basis;
-  extractfunctor.epsilon = epsilon;
-
-  //extract pairs
-  PairFunctor pfunctor;
-  pfunctor.process(points, points, epsilon, 0, extractfunctor);
-/*      IndexedPoint p;
-
-      p.p  = getRandomPoint();
-      p.n  = getRandomPoint().normalized();
-      p.id = i;
-
-      points.push_back(p);
-      _set.addElement(p.p,p.n, p.id)*/;
- //
-
-  //////////////////////////////////////////////////////////////////////////////
-  /// quadrangles extraction
-
-  // Compute the angle formed by the two vectors of the basis
-  Point3D b1 ((basis.b - basis.a).eval());  b1.normalize();
-  Point3D b2 ((basis.d - basis.c).eval());  b2.normalize();
-  double alpha = b1.dot(b2);
-
-
-  struct Quadrangle { std::array<int, 4> ids; };
-  std::vector< Quadrangle > gt_quads;
-  for(unsigned int i_a = 0; i_a < nbPoints; ++i_a){
-//      const Point& p_a = points.
-//      for(unsigned int i_b = i_a+1; i_b < nbPoints; ++i_b){
-//          for(unsigned int i_c = 0; i_c < nbPoints; ++i_c){
-//              for(unsigned int i_d = i_c+1; i_d < nbPoints; ++i_d){
-
-//              }
-//          }
-//      }
-  }
-
-  
-//  // Init random Spheres
-//  std::vector<Primitive> primitives;
-//  for(unsigned int i = 0; i != nbPrimitives; i++){
-//    Point p (0.5f*Point::Random() + half);
-
-//    primitives.push_back(Primitive(p, r));
-//  }
-  
-//  // Test test intersection procedure
-//  // Here we compare the brute force pair extraction and the sphere to point
-//  // intersection procedure
-//  {
-//    Primitive& sphere = primitives.front();
-//    for(unsigned int i = 0; i != nbPoints; i++){
-//      const Point&p = points[i];
-//      VERIFY( sphere.intersectPoint(p, epsilon) ==
-//              SQR((p - sphere.center()).norm()- sphere.radius()) < SQR(epsilon));
-//    }
-//  }
-  
-    
-//  // Test Rendering process
-//  {
-//    Functor IF;
-    
-//    // Extract pairs using rendering process
-//    Utilities::startTimer(t);
-//    IF.process(primitives, points, epsilon, 20, functor);
-//    Utilities::stopTimer(t);
-           
-     
-//    // Extract pairs using brute force
-//    Utilities::startTimer(t);
-//    for(unsigned int i = 0; i != nbPoints; i++)
-//      for(unsigned int j = i+1; j < primitives.size(); j++)
-//         if (primitives[j].intersectPoint(points[i], epsilon))
-//          p2.push_back(std::pair<unsigned int, unsigned int>(i,j));
-//    Utilities::stopTimer(t);
-    
-//    // Check we get the same set size
-//    VERIFY( functor.pairs.size() == p2.size());
-//  }
-}
-
-
-template<typename Scalar, 
-         int Dim>
+template <typename MatchRef, typename MatchType>
 void callSubTests()
 {
-    typedef  Eigen::Matrix<Scalar, Dim, 1> EigenPoint;
+    using Scalar = typename MatchType::Scalar;
+    using PairsVector = typename MatchType::PairsVector;
 
-    Scalar eps = 0.125/8.; // epsilon value
-    
-    unsigned int nbPoint = 1000;  // size of Q point cloud
+    match_4pcs::Match4PCSOptions opt;
+    opt.delta = 0.1;
+    opt.overlap_estimation = 0.9;
 
-    using NormalSet0 = Super4PCS::IndexedNormalHealSet;
-    using NormalSet1 = Super4PCS::IndexedNormalSet <EigenPoint, Dim, 6, Scalar>;
-    
-    for(int i = 0; i < g_repeat; ++i)
+    const size_t nbPointP = 10;
+    const size_t nbPointQ = 15;
+
+    Scalar pair_distance_epsilon = MatchType::distance_factor * opt.delta;
+
+    for(int i = 0; i < Testing::g_repeat; ++i)
     {
-//        CALL_SUBTEST(( testFunction<Scalar,
-//                                    EigenPoint,
-//                                    NormalSet0>(eps, nbPoint) ));
-        CALL_SUBTEST(( testFunction<Scalar,
-                                    Dim,
-                                    EigenPoint,
-                                    NormalSet1>(eps, nbPoint) ));
+        // generate input point cloud
+        std::vector<Point3D> P, Q;
+        Testing::generateSphereCloud(P, nbPointP);
+        Testing::generateSphereCloud(Q, nbPointQ);
+
+        Scalar inv1, inv2;
+        int b1, b2, b3, b4;
+
+        ///////////////////
+        /// prepare matcher and init 4-points basis
+        MatchRef  ref(opt);
+        MatchType match (opt);
+        match.init(P, Q); ref.init(P, Q);
+        int maxTry = 5;
+        while( maxTry-- >= 0 &&
+               ! match.SelectQuadrilateral(inv1, inv2, b1, b2, b3, b4) );
+        VERIFY (maxTry >= 0);
+
+        const auto& base = match.base3D();
+
+        // Computes distance between pairs.
+        const Scalar distance1 = (base[0].pos()- base[1].pos()).norm();
+        const Scalar distance2 = (base[2].pos()- base[3].pos()).norm();
+
+        ///////////////////
+        /// extract pairs
+        std::vector<std::pair<int, int>> pairs1, pairs2;
+        Testing::extractPairs(distance1, pair_distance_epsilon, Q, pairs1);
+        Testing::extractPairs(distance2, pair_distance_epsilon, Q, pairs2);
+
+        ///////////////////
+        /// extract quads
+        std::vector<match_4pcs::Quadrilateral> congruent_ref, congruent_quads;
+        if (ref.FindCongruentQuadrilaterals(inv1, inv2,
+                                            MatchType::distance_factor * opt.delta,
+                                            MatchType::distance_factor * opt.delta,
+                                            pairs1,
+                                            pairs2,
+                                            &congruent_ref)) {
+            VERIFY (match.FindCongruentQuadrilaterals(inv1, inv2,
+                                                      MatchType::distance_factor * opt.delta,
+                                                      MatchType::distance_factor * opt.delta,
+                                                      pairs1,
+                                                      pairs2,
+                                                      &congruent_quads));
+
+            std::cout << congruent_ref.size() << std::endl;
+            std::cout << congruent_quads.size() << std::endl;
+
+            std::sort(congruent_ref.begin(), congruent_ref.end());
+            std::sort(congruent_quads.begin(), congruent_quads.end());
+
+//            for(const Quadrilateral& q : congruent_ref)
+//                std::cout << "[" << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << "]  ";
+//            std::cout << std::endl;
+
+//            for(const Quadrilateral& q : congruent_quads)
+//                std::cout << "[" << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << "]  ";
+//            std::cout << std::endl;
+
+            // we check that all the quads found by Match exist in ref superset
+//            for(const Quadrilateral& q : congruent_quads){
+//                auto it =
+//                std::find(congruent_ref.cbegin(), congruent_ref.cend(), q);
+//                VERIFY (it != congruent_ref.cend());
+//            }
+
+            // TODO: Add more tests to be sure that Match will find the real
+            // congruent set in ref superset.
+            //   - implement quads filtering, and compare filtered sets.
+        }
     }
 }
 
 int main(int argc, const char **argv) {
-    if(!init_testing(argc, argv))
+    if(!Testing::init_testing(argc, argv))
     {
         return EXIT_FAILURE;
     }
@@ -301,23 +163,10 @@ int main(int argc, const char **argv) {
     using std::cout;
     using std::endl;
 
-//    cout << "Extract pairs in 2 dimensions..." << endl;
-//    callSubTests<float, 2>();
-//    callSubTests<double, 2>();
-//    callSubTests<long double, 2>();
-//    cout << "Ok..." << endl;
-
-    cout << "Extract pairs in 3 dimensions..." << endl;
-    callSubTests<float, 3>();
-    callSubTests<double, 3>();
-    callSubTests<long double, 3>();
+    cout << "Compare quad extraction between 4PCS and Super4PCS" << endl;
+    callSubTests<Match4PCS, MatchSuper4PCS>();
     cout << "Ok..." << endl;
 
-//    cout << "Extract pairs in 4 dimensions..." << endl;
-//    callSubTests<float, 4>();
-//    callSubTests<double, 4>();
-//    callSubTests<long double, 4>();
-//    cout << "Ok..." << endl;
 
     return EXIT_SUCCESS;
 }

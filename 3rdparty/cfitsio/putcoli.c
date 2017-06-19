@@ -953,11 +953,9 @@ int ffi2fstr(short *input,     /* I - array of values to be converted  */
 {
     long ii;
     double dvalue;
-    char *cptr, *tptr;
+    char *cptr;
     
     cptr = output;
-    tptr = output;
-
 
     if (scale == 1. && zero == 0.)
     {       

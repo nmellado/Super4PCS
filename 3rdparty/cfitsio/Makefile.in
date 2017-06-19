@@ -1,6 +1,5 @@
 #
 # Makefile for cfitsio library:
-#       libcfits.a
 #
 # Oct-96 : original version by 
 #
@@ -18,6 +17,9 @@
 # testprog targets. See also changes and comments in configure.in
 
 
+# Default library name:
+PACKAGE		= cfitsio
+
 # CFITSIO version numbers:
 CFITSIO_MAJOR	= @CFITSIO_MAJOR@
 CFITSIO_MINOR	= @CFITSIO_MINOR@
@@ -26,6 +28,7 @@ CFITSIO_SONAME	= @CFITSIO_SONAME@
 prefix		= @prefix@
 exec_prefix	= @exec_prefix@
 DESTDIR		= 
+CFITSIO_BIN	= ${DESTDIR}@bindir@
 CFITSIO_LIB	= ${DESTDIR}@libdir@
 CFITSIO_INCLUDE	= ${DESTDIR}@includedir@
 INSTALL_DIRS	= @INSTALL_ROOT@ ${CFITSIO_INCLUDE} ${CFITSIO_LIB} ${CFITSIO_LIB}/pkgconfig
@@ -36,9 +39,11 @@ ARCHIVE =	@ARCHIVE@
 RANLIB =	@RANLIB@
 CC =		@CC@
 CFLAGS =	@CFLAGS@
+CPPFLAGS =	@CPPFLAGS@
 SSE_FLAGS =	@SSE_FLAGS@
 FC =		@FC@
-LDFLAGS =	$(CFLAGS)
+LDFLAGS =	@LDFLAGS@
+LDFLAGS_BIN =	@LDFLAGS_BIN@
 DEFS =		@DEFS@
 LIBS =		@LIBS@
 FLEX =		flex
@@ -89,72 +94,88 @@ all:
 all-nofitsio:
 		${MAKE} stand_alone "FITSIO_SRC="
 
-stand_alone:	libcfitsio.a
+stand_alone:	lib${PACKAGE}.a
 
-libcfitsio.a:	${OBJECTS}
-		${ARCHIVE} libcfitsio.a ${OBJECTS}; \
-		${RANLIB} libcfitsio.a;
+lib${PACKAGE}.a:	${OBJECTS}
+		${ARCHIVE} $@ ${OBJECTS}; \
+		${RANLIB} $@;
 
-shared: libcfitsio${SHLIB_SUFFIX}
+shared: lib${PACKAGE}${SHLIB_SUFFIX}
 
-libcfitsio${SHLIB_SUFFIX}: ${OBJECTS}
+lib${PACKAGE}${SHLIB_SUFFIX}: ${OBJECTS}
 		${SHLIB_LD} ${LDFLAGS} -o ${CFITSIO_SHLIB} ${OBJECTS} -lm ${LIBS}
 		@if [ "x${CFITSIO_SHLIB_SONAME}" != x ]; then \
 			ln -sf ${CFITSIO_SHLIB} ${CFITSIO_SHLIB_SONAME}; \
 			ln -sf ${CFITSIO_SHLIB_SONAME} $@; \
 		fi
 
-install:	libcfitsio.a $(INSTALL_DIRS)
-		/bin/cp -a libcfitsio* ${CFITSIO_LIB}
+install:	lib${PACKAGE}.a ${INSTALL_DIRS}
+		@for lib in lib${PACKAGE}.a lib${PACKAGE}${SHLIB_SUFFIX} \
+				${CFITSIO_SHLIB} ${CFITSIO_SHLIB_SONAME}; do \
+		    if [ -f $$lib ]; then \
+			echo "/bin/cp -a $$lib ${CFITSIO_LIB}"; \
+			/bin/cp -a $$lib ${CFITSIO_LIB}; \
+		    fi; \
+		done
 		/bin/cp fitsio.h fitsio2.h longnam.h drvrsmem.h ${CFITSIO_INCLUDE}
 		/bin/cp cfitsio.pc ${CFITSIO_LIB}/pkgconfig
+		@for task in ${FPACK_UTILS} ${UTILS}; do \
+		    if [ -f $$task ]; then \
+			if [ ! -d ${CFITSIO_BIN} ]; then mkdir -p ${CFITSIO_BIN}; fi; \
+			echo "/bin/cp $$task ${CFITSIO_BIN}"; \
+			/bin/cp $$task ${CFITSIO_BIN}; \
+		    fi; \
+		done
 
 .c.o:
-		$(CC) -c -o ${<D}/${@F} $(CFLAGS) $(DEFS) $<
+		${CC} -c -o ${<D}/${@F} ${CFLAGS} ${CPPFLAGS} ${DEFS} $<
+
+UTILS		= cookbook fitscopy imcopy smem speed testprog
+
+FPACK_UTILS	= fpack funpack
+
+utils:		${FPACK_UTILS} ${UTILS}
 
 swapproc.o:	swapproc.c
-		$(CC) -c $(CFLAGS) $(SSE_FLAGS) $(DEFS) $<
+		${CC} -c ${CFLAGS} ${CPPFLAGS} ${SSE_FLAGS} ${DEFS} $<
 
-smem:		smem.o libcfitsio.a ${OBJECTS}
-		${CC} $(CFLAGS) $(DEFS) -o smem smem.o -L. -lcfitsio -lm
+smem:		smem.o lib${PACKAGE}.a ${OBJECTS}
+		${CC} ${LDFLAGS_BIN} ${DEFS} -o $@ ${@}.o -L. -l${PACKAGE} -lm
 
-testprog:	testprog.o libcfitsio.a ${OBJECTS}
-		${CC} $(CFLAGS) $(DEFS) -o testprog testprog.o -L. -lcfitsio -lm ${LIBS}
+testprog:	testprog.o lib${PACKAGE}.a ${OBJECTS}
+		${CC} ${LDFLAGS_BIN} ${DEFS} -o $@ ${@}.o -L. -l${PACKAGE} -lm ${LIBS}
 
-fpack:		fpack.o fpackutil.o libcfitsio.a ${OBJECTS}
-		${CC} $(CFLAGS) $(DEFS) -o fpack fpack.o fpackutil.o libcfitsio.a -lm ${LIBS}
+fpack:		fpack.o fpackutil.o lib${PACKAGE}.a ${OBJECTS}
+		${CC} ${LDFLAGS_BIN} ${DEFS} -o $@ ${@}.o fpackutil.o -L. -l${PACKAGE} -lm ${LIBS}
 
-funpack:	funpack.o fpackutil.o libcfitsio.a ${OBJECTS}
-		${CC} $(CFLAGS) $(DEFS) -o funpack funpack.o fpackutil.o libcfitsio.a -lm ${LIBS}
+funpack:	funpack.o fpackutil.o lib${PACKAGE}.a ${OBJECTS}
+		${CC} ${LDFLAGS_BIN} ${DEFS} -o $@ ${@}.o fpackutil.o -L. -l${PACKAGE} -lm ${LIBS}
 
-fitscopy:	fitscopy.o libcfitsio.a ${OBJECTS}
-		${CC} $(CFLAGS) $(DEFS) -o fitscopy fitscopy.o -L. -lcfitsio -lm ${LIBS}
+fitscopy:	fitscopy.o lib${PACKAGE}.a ${OBJECTS}
+		${CC} ${LDFLAGS_BIN} ${DEFS} -o $@ ${@}.o -L. -l${PACKAGE} -lm ${LIBS}
 
-speed:		speed.o libcfitsio.a ${OBJECTS}
-		${CC} $(CFLAGS) $(DEFS) -o speed speed.o -L. -lcfitsio -lm ${LIBS}
+speed:		speed.o lib${PACKAGE}.a ${OBJECTS}
+		${CC} ${LDFLAGS_BIN} ${DEFS} -o $@ ${@}.o -L. -l${PACKAGE} -lm ${LIBS}
 
-imcopy:		imcopy.o libcfitsio.a ${OBJECTS}
-		${CC} $(CFLAGS) $(DEFS) -o imcopy imcopy.o -L. -lcfitsio -lm ${LIBS}
+imcopy:		imcopy.o lib${PACKAGE}.a ${OBJECTS}
+		${CC} ${LDFLAGS_BIN} ${DEFS} -o $@ ${@}.o -L. -l${PACKAGE} -lm ${LIBS}
 
-listhead:	listhead.o libcfitsio.a ${OBJECTS}
-		${CC} $(CFLAGS) $(DEFS) -o listhead listhead.o -L. -lcfitsio -lm ${LIBS}
-
-cookbook:	cookbook.o libcfitsio.a ${OBJECTS}
-		${CC} $(CFLAGS) $(DEFS) -o cookbook cookbook.o -L. -lcfitsio -lm ${LIBS}
+cookbook:	cookbook.o lib${PACKAGE}.a ${OBJECTS}
+		${CC} ${LDFLAGS_BIN} ${DEFS} -o $@ ${@}.o -L. -l${PACKAGE} -lm ${LIBS}
 
 eval:		# Rebuild eval_* files from flex/bison source
-		$(FLEX) -t eval.l > eval_l.c1
+		${FLEX} -t eval.l > eval_l.c1
 		# Note workaround for yyfree=fffree conflict
 		/bin/sed -e 's/yy/ff/g' -e 's/YY/FF/g' eval_l.c1 -e 's/fffree/yyfffree/g' > eval_l.c
 		/bin/rm -f eval_l.c1
-		$(BISON) -d -v -y eval.y
+		${BISON} -d -v -y eval.y
 		/bin/sed -e 's/yy/ff/g' -e 's/YY/FF/g' y.tab.c > eval_y.c
 		/bin/sed -e 's/yy/ff/g' -e 's/YY/FF/g' y.tab.h > eval_tab.h
 		/bin/rm -f y.tab.c y.tab.h
 
 clean:
-	-	/bin/rm -f *.o zlib/*.o libcfitsio* fpack funpack \
-			smem testprog y.output so_locations
+	-	/bin/rm -rf *.o zlib/*.o *.dSYM lib${PACKAGE}* y.output so_locations \
+		${UTILS} ${FPACK_UTILS} testprog.fit
 
 distclean:	clean
 	-	/bin/rm -f Makefile cfitsio.pc config.log config.status configure.lineno
@@ -173,5 +194,5 @@ cfitsioLibSrcs:
 # case
 objs: ${CORE_OBJECTS}
 
-$(INSTALL_DIRS):
+${INSTALL_DIRS}:
 	@if [ ! -d $@ ]; then mkdir -p $@; fi

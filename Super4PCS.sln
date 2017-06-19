@@ -1,15 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Super4pcs", "src\Super4pcs\Super4pcs.vcxproj", "{EC169232-18F7-4DD8-9DEB-6AEF670BDD99}"
 	ProjectSection(ProjectDependencies) = postProject
-		{A7D00B21-CB9C-4BBB-8DEE-51025104F867} = {A7D00B21-CB9C-4BBB-8DEE-51025104F867}
 		{FE684FAA-7321-32F9-A0BD-0DA034AAB6FF} = {FE684FAA-7321-32F9-A0BD-0DA034AAB6FF}
 	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ann", "3rdparty\ann_1.1.2\dll.vcxproj", "{A7D00B21-CB9C-4BBB-8DEE-51025104F867}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cfitsio", "3rdparty\cfitsio\cfitsio.vcxproj", "{FE684FAA-7321-32F9-A0BD-0DA034AAB6FF}"
 EndProject
@@ -29,14 +26,6 @@ Global
 		{EC169232-18F7-4DD8-9DEB-6AEF670BDD99}.Release|x64.Build.0 = Release|x64
 		{EC169232-18F7-4DD8-9DEB-6AEF670BDD99}.Release|x86.ActiveCfg = Release|Win32
 		{EC169232-18F7-4DD8-9DEB-6AEF670BDD99}.Release|x86.Build.0 = Release|Win32
-		{A7D00B21-CB9C-4BBB-8DEE-51025104F867}.Debug|x64.ActiveCfg = Debug|x64
-		{A7D00B21-CB9C-4BBB-8DEE-51025104F867}.Debug|x64.Build.0 = Debug|x64
-		{A7D00B21-CB9C-4BBB-8DEE-51025104F867}.Debug|x86.ActiveCfg = Debug|Win32
-		{A7D00B21-CB9C-4BBB-8DEE-51025104F867}.Debug|x86.Build.0 = Debug|Win32
-		{A7D00B21-CB9C-4BBB-8DEE-51025104F867}.Release|x64.ActiveCfg = Release|x64
-		{A7D00B21-CB9C-4BBB-8DEE-51025104F867}.Release|x64.Build.0 = Release|x64
-		{A7D00B21-CB9C-4BBB-8DEE-51025104F867}.Release|x86.ActiveCfg = Release|Win32
-		{A7D00B21-CB9C-4BBB-8DEE-51025104F867}.Release|x86.Build.0 = Release|Win32
 		{FE684FAA-7321-32F9-A0BD-0DA034AAB6FF}.Debug|x64.ActiveCfg = Debug|x64
 		{FE684FAA-7321-32F9-A0BD-0DA034AAB6FF}.Debug|x64.Build.0 = Debug|x64
 		{FE684FAA-7321-32F9-A0BD-0DA034AAB6FF}.Debug|x86.ActiveCfg = Release|Win32

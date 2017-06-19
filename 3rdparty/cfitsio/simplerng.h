@@ -21,7 +21,7 @@
 extern void simplerng_setstate(unsigned int u, unsigned int v);
 extern void simplerng_getstate(unsigned int *u, unsigned int *v);
 extern void simplerng_srand(unsigned int seed);
-extern double simplerng_getuniform();
-extern double simplerng_getnorm();
+extern double simplerng_getuniform(void);
+extern double simplerng_getnorm(void);
 extern int simplerng_getpoisson(double lambda);
 extern double simplerng_logfactorial(int n);

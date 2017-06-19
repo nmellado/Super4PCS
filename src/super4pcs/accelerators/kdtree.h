@@ -220,7 +220,7 @@ public:
         _doQueryDistIndicesWithFunctor(queryPoint,
                                       sqdist,
                                       [&result,this](unsigned int i){
-            result.push_back(typename Container::value_type(mPoints[i]));
+            result.push_back(mPoints[i]);
         });
     }
 
@@ -230,12 +230,27 @@ public:
     template<typename IndexContainer = std::vector<Index> >
     inline void
     doQueryDistIndices(const VectorType& queryPoint,
-                       float sqdist,
+                       Scalar sqdist,
                        IndexContainer& result){
         _doQueryDistIndicesWithFunctor(queryPoint,
                                       sqdist,
                                       [&result,this](unsigned int i){
-            result.push_back(typename IndexContainer::value_type(mIndices[i]));
+            result.push_back(mIndices[i]);
+        });
+    }
+
+    /*!
+     * \brief Performs distance query and return indices
+     */
+    template<typename Functor>
+    inline void
+    doQueryDistProcessIndices(const VectorType& queryPoint,
+                       Scalar sqdist,
+                       Functor f){
+        _doQueryDistIndicesWithFunctor(queryPoint,
+                                      sqdist,
+                                      [f,this](unsigned int i){
+            f(mIndices[i]);
         });
     }
 
@@ -285,7 +300,7 @@ protected:
     template<typename Functor >
     inline void
     _doQueryDistIndicesWithFunctor(const VectorType& queryPoint,
-                                   float sqdist,
+                                   Scalar sqdist,
                                    Functor f);
 protected:
 
@@ -343,11 +358,15 @@ KdTree<Scalar, Index>::finalize()
 {
     mNodes.clear();
     mNodes.reserve(4*mPoints.size()/_nofPointsPerCell);
-    mNodes.push_back(KdNode());
+    mNodes.emplace_back();
     mNodes.back().leaf = 0;
+#ifdef DEBUG
     std::cout << "create tree" << std::endl;
+#endif
     createTree(0, 0, mPoints.size(), 1, _nofPointsPerCell, _maxDepth);
+#ifdef DEBUG
     std::cout << "create tree ... DONE (" << mPoints.size() << " points)" << std::endl;
+#endif
 }
 
 template<typename Scalar, typename Index>
@@ -449,9 +468,8 @@ KdTree<Scalar, Index>::doQueryRestrictedClosestIndex(
 template<typename Scalar, typename Index>
 template<typename Functor >
 void
-KdTree<Scalar, Index>::_doQueryDistIndicesWithFunctor(
-        const VectorType& queryPoint,
-        float sqdist,
+KdTree<Scalar, Index>::_doQueryDistIndicesWithFunctor(const VectorType& queryPoint,
+        Scalar sqdist,
         Functor f)
 {
     mNodeStack[0].nodeId = 0;

@@ -1,56 +1,61 @@
-To build CFITSIO library on an Intel Mac as a Universal Binary
+By default, the CFITSIO library will be a "Universal Binary" (i.e.
+32- and 64-bit compatible) under Mac OS X when built in the standard
+way, i.e.
 
-Unzip the library:
-- tar xzf cfitsio3060.tar.gz (or whatever version this is)
-
+- tar xzf cfitsio3370.tar.gz (or whatever version this is)
 - cd cfitsio/
-
-- copy the cfitsio-xcodeproj.zip file here
-
-- unzip cfitsio-xcodeproj.zip
-
-- start Xcode and open cfitsio.xcodeproj
-
-- expand the "Targets" menu under "Groups & Files" 
-
-- choose one of the following build options:
-
-  * right-click on Build PPC -> Build "Build PPC"
-
-  * right-click on Build i386 -> Build "Build i386"
-
-  * right-click on Build x86_64 -> Build "Build x86_64"
-
-  * right-click on Build Universal -> Build "Build Universal"
-    (Builds all three of the above options, i.e. a Universal Binary
-     usable on ppc, i386, and x86_64 architectures)
-
-  (For some reason clicking on the menu "Build" icon doesn't seem to
-   work correctly, but the right-click menus do).
-
--------------------------------------------------------
-
-Another way to build the universal binary:
-
-- unpack the cfitsio source code tar file
-- cd cfitsio
-
-Set the CFLAGS environment variable for building a Universal Binary:
-
-  C-Shell variants:
-  setenv CFLAGS "-arch ppc -arch i386 -arch x86_64 -g -O2"
-
-  Bourne Shell variants:
-  export CFLAGS="-arch ppc -arch i386 -arch x86_64 -g -O2"
-
-Then proceed with the standard cfitsio build, i.e.:
 
 - ./configure
 - make
 - make install
 
+---------------------------------------------------------------------
+To install CFITSIO using MacPorts:
+---------------------------------------------------------------------
 
--------------------------------------------------------
+If you have MacPorts installed, you may install CFITSIO simply with
+the command
+
+  $ sudo port install cfitsio +universal
+
+For more information, please visit:
+
+http://macports.org
+https://trac.macports.org/browser/trunk/dports/science/cfitsio/Portfile
+
+---------------------------------------------------------------------
+To install CFITSIO using Homebrew:
+---------------------------------------------------------------------
+
+If you have Homebrew installed, you may install CFITSIO simply with
+the command
+
+  $ brew install cfitsio
+
+For more information, please visit:
+
+http://brew.sh
+http://brewformulas.org/Cfitsio
+
+---------------------------------------------------------------------
+To build CFITSIO using the XCode GUI:
+---------------------------------------------------------------------
+
+- tar xzf cfitsio3370.tar.gz (or whatever version this is)
+- cd cfitsio/
+
+- Start Xcode and open cfitsio.xcodeproj/project.pbxproj,
+  or just "open" the file from a terminal command line,
+
+   $ open cfitsio.xcodeproj/project.pbxproj
+
+  and this will start up XCode for you.
+
+- Press the Build (or "Play") button in the upper left
+  corner of the GUI.
+
+---------------------------------------------------------------------
+---------------------------------------------------------------------
 
 Below, are the old (and now obsolete) instructions for building CFITSIO
 on classic Mac OS-9 or earlier versions:

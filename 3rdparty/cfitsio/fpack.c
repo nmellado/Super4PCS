@@ -386,10 +386,9 @@ fp_msg (" -n <noise>  Rescale scaled-integer images to reduce noise and improve 
 fp_msg (" -v          Verbose mode; list each file as it is processed.\n");
 fp_msg (" -T          Show compression algorithm comparison test statistics; files unchanged.\n");
 fp_msg (" -R <file>   Write the comparison test report (above) to a text file.\n");
-fp_msg (" -table      Compress FITS binary tables using prototype method, as well as compress\n");
-fp_msg ("             any image HDUs. This option is intended for experimental use.\n");
-fp_msg (" -tableonly  Compress only FITS binary tables using prototype method; do not compress\n");
-fp_msg ("             any image HDUs. This option is intended for experimental use.\n");
+fp_msg (" -table      Compress FITS binary tables as well as compress any image HDUs.\n");
+fp_msg (" -tableonly  Compress only FITS binary tables; do not compress any image HDUs.\n");
+fp_msg ("             \n");
 
 fp_msg ("\nkeywords shared with funpack:\n");
 

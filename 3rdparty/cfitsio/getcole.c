@@ -1349,7 +1349,7 @@ int fffr4r4(float *input,         /* I - array of values to be converted     */
     {
         if (scale == 1. && zero == 0.)      /* no scaling */
         {       
-            memcpy(output, input, ntodo * sizeof(float) );
+            memmove(output, input, ntodo * sizeof(float) );
         }
         else             /* must scale the data */
         {

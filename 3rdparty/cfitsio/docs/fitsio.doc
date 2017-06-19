@@ -218,40 +218,14 @@ contain a set of Fortran wrapper routines which may be compatible with
 some, but probably not all, available Fortran compilers.  To test if
 they are compatible, compile the program testf77.f and try linking to
 these dll libraries.  If these libraries do not work with a particular
-Fortran compiler, then there are 2 possible solutions.  The first
-solution would be to modify the file cfortran.h for that particular
+Fortran compiler, then it may be necessary to modify the file 
+"cfortran.h" to support that particular
 combination of C and Fortran compilers, and then rebuild the CFITSIO
-dll library.  This will require, however, a some expertise in
+dll library.  This will require, however, some expertise in
 mixed language programming.
-The other solution is to use the older v5.03 Fortran-77 implementation
-of FITSIO that is still available from the FITSIO web-site.  This
-version is no longer supported, but it does provide the basic functions
-for reading and writing FITS files and should be compatible with most
-Fortran compilers.
 
-CFITSIO has currently been tested on the following platforms:
--
-  OPERATING SYSTEM           COMPILER
-   Sun OS                     gcc and cc (3.0.1)
-   Sun Solaris                gcc and cc
-   Silicon Graphics IRIX      gcc and cc
-   Silicon Graphics IRIX64    MIPS
-   Dec Alpha OSF/1            gcc and cc
-   DECstation  Ultrix         gcc
-   Dec Alpha OpenVMS          cc 
-   DEC VAX/VMS                gcc and cc
-   HP-UX                      gcc
-   IBM AIX                    gcc
-   Linux                      gcc
-   MkLinux                    DR3
-   Windows 95/98/NT           Borland C++ V4.5
-   Windows 95/98/NT/ME/XP     Microsoft/Compaq Visual C++ v5.0, v6.0
-   Windows 95/98/NT           Cygwin gcc
-   OS/2                       gcc + EMX
-   MacOS 7.1 or greater       Metrowerks 10.+
--
-CFITSIO will probably run on most other Unix platforms.  Cray
-supercomputers are currently not supported.
+CFITSIO should be compatible with most current ANCI C and C++ compilers:  
+Cray supercomputers are currently not supported.
 
 **B.  Testing the Library
  
@@ -1121,13 +1095,6 @@ keyword, so this local convention is in compliance with the
 FITS standard, although other FITS readers are not required to
 recognize this convention.
 
-The Binary Table definition document that was approved by the IAU in
-1994 contains an appendix describing an alternate convention for
-specifying arrays of fixed or variable length strings in a binary table
-character column (with the form 'rA:SSTRw/nnn)'.  This appendix was not
-officially voted on by the IAU and hence is still provisional.  FITSIO
-does not currently support this proposal.
-
 ***3.  Keyword Units Strings
 
 One deficiency of the current FITS Standard is that it does not define
@@ -1176,8 +1143,10 @@ contain any printable ASCII text characters, including spaces.  The
 equals sign marks the end of the keyword name and is followed by the
 usual value and comment fields just as in standard FITS keywords.
 Further details of this convention are described at
-http://arcdev.hq.eso.org/dicb/dicd/dic-1-1.4.html (search for
-HIERARCH).
+http://fits.gsfc.nasa.gov/registry/hierarch\_keyword.html
+and in Section 4.4 of the ESO Data Interface Control Document that
+is linked to from 
+http://archive.eso.org/cms/tools-documentation/eso-data-interface-control.html.
 
 This convention allows a much broader range of keyword names 
 than is allowed by the FITS Standard.  Here are more examples
@@ -2476,19 +2445,36 @@ wild card searches.
 -
         FTGKY[EDJKLS](unit,keyword, > keyval,comment,status)
 -
->7  Get a sequence of numbered keyword values.  These
+>7  Read a string-valued keyword and return the string length, the value string, 
+    and/or the comment field. The first routine, FTGKSL, simply
+    returns the length of the character string value of the specified keyword.
+    The second routine, FTGSKY, also returns up to maxchar characters 
+    of the keyword value string, starting with the firstchar character, 
+    and the keyword comment string.
+    The length argument returns the total length of the keyword value string
+    regardless of how much of the string is actually returned (which 
+    depends on the value of the firstchar and maxchar arguments).  These 
+    routines support string keywords that use the CONTINUE convention to
+    continue long string values over multiple FITS header records.  Normally,
+    string-valued keywords have a maximum length of 68 characters, however,
+>   CONTINUE'd string keywords may be arbitrarily long. 
+-
+       FTGKSL(unit,keyword, > length,status)
+       FTGSKY(unit,keyword,firstchar,maxchar,> keyval,length,comment,status)
+-
+>8  Get a sequence of numbered keyword values.  These
 >   routines do not support wild card characters in the root name.
 -
         FTGKN[EDJKLS](unit,keyroot,startno,max_keys, > keyvals,nfound,status)
 -
->8  Get the value of a floating point keyword, returning the integer and
+>9  Get the value of a floating point keyword, returning the integer and
     fractional parts of the value in separate subroutine arguments.
     This subroutine may be used to read any keyword but is especially
 >   useful for reading the 'triple precision' keywords written by FTPKYT.
 -
         FTGKYT(unit,keyword, > intval,dblval,comment,status)
 -
->9  Get the physical units string in an existing keyword.  This
+>10  Get the physical units string in an existing keyword.  This
     routine uses a local convention, shown in the following example,
     in which the keyword units are
     enclosed in square brackets in the beginning of the keyword comment
@@ -3731,8 +3717,8 @@ The following utility subroutines may be useful for certain applications:
                      XTENSION, TFIELDS, TTYPEn, TBCOLn, TFORMn, THEAP,
                      and the first 4 COMMENT keywords in the primary array
                      that define the FITS format.
-  TYP_CMPRS_KEY  20  The experimental keywords used in the compressed 
-                     image format ZIMAGE, ZCMPTYPE, ZNAMEn, ZVALn,
+  TYP_CMPRS_KEY  20  The keywords used in the compressed image  or table
+                     format, including ZIMAGE, ZCMPTYPE, ZNAMEn, ZVALn,
                      ZTILEn, ZBITPIX, ZNAXISn, ZSCALE, ZZERO, ZBLANK
   TYP_SCAL_KEY   30  BSCALE, BZERO, TSCALn, TZEROn
   TYP_NULL_KEY   40  BLANK, TNULLn
@@ -5776,8 +5762,13 @@ the entire line is treated as a FITS comment keyword (with a blank
 keyword name) and is copied verbatim into the FITS header.
 
 The KEYVALUE field may have any allowed  FITS  data type: character
-string, logical, integer, real, complex integer, or complex real.  The
-character string values need not be enclosed in single quote characters
+string, logical, integer, real, complex integer, or complex real.  Integer
+values must be within the allowed range of a 'signed long' variable;  
+some C compilers only suppport 4-byte long integers with a range 
+from -2147483648 to +2147483647, whereas other C compilers support 8-byte
+integers with a range of plus or minus 2**63.  
+
+The character string values need not be enclosed in single quote characters
 unless they are necessary to distinguish the string from a different
 data type (e.g.  2.0 is a real but '2.0' is a string).  The keyword has
 an undefined (null) value if the template record only contains blanks
@@ -6086,6 +6077,8 @@ do not need to be enclosed in quotes.
         FTGNXK(unit,inclist,ninc,exclist,nexc, > card,status)
         FTGKEY(unit,keyword, > value,comment,status) 
         FTGKY[EDJKLS](unit,keyword, > keyval,comment,status)
+        FTGKSL(unit,keyword, > length,status)
+        FTGSKY(unit,keyword,firstchar,maxchar,> keyval,length,comment,status)
         FTGKN[EDJKLS](unit,keyroot,startno,max_keys, > keyvals,nfound,status)
         FTGKYT(unit,keyword, > intval,dblval,comment,status)
         FTGUNT(unit,keyword, > units,status)

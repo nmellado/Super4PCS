@@ -1,13 +1,13 @@
-#include "4pcs.h"
+#include "algorithms/4pcs.h"
+#include "algorithms/super4pcs.h"
 #include "Eigen/Dense"
 
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/core/eigen.hpp>
 
 #include "io/io.h"
+#include "utils/geometry.h"
 
 #define sqr(x) ((x) * (x))
 
@@ -47,14 +47,14 @@ double overlap = 0.2;
 double thr = 1.0;
 
 // Maximum norm of RGB values between corresponded points. 1e9 means don't use.
-double max_color = 150;
+double max_color = -1;
 
 // Number of sampled points in both files. The 4PCS allows a very aggressive
 // sampling.
 int n_points = 200;
 
 // Maximum angle (degrees) between corresponded normals.
-double norm_diff = 90.0;
+double norm_diff = -1;
 
 // Maximum allowed computation time.
 int max_time_seconds = 10;
@@ -116,48 +116,17 @@ void getArgs(int argc, char **argv) {
 }
 
 
-void CleanInvalidNormals( vector<Point3D> &v, 
-                          vector<cv::Point3f> &normals){
-  if (v.size() == normals.size()){
-    vector<Point3D>::iterator itV = v.begin();
-    vector<cv::Point3f>::iterator itN = normals.begin();
-  
-    float norm;
-    unsigned int nb = 0;
-    for( ; itV != v.end(); ){
-      norm = cv::norm((*itV).normal());
-      if (norm < 0.1){
-        itN = normals.erase(itN);
-        itV = v.erase(itV);
-        nb++;
-      }else{
-        if (norm != 1.){
-          (*itN).x /= norm;
-          (*itN).y /= norm;
-          (*itN).z /= norm;
-        }
-        itV++;
-        itN++;
-      }
-    }
-    
-    if (nb != 0){
-      cout << "Removed " << nb << " invalid points/normals" << endl; 
-    }
-  }
-}
-
-
 int main(int argc, char **argv) {
+  using namespace Super4PCS;
 
   vector<Point3D> set1, set2;
-  vector<cv::Point2f> tex_coords1, tex_coords2;
-  vector<cv::Point3f> normals1, normals2;
+  vector<Eigen::Matrix2f> tex_coords1, tex_coords2;
+  vector<typename Point3D::VectorType> normals1, normals2;
   vector<tripple> tris1, tris2;
   vector<std::string> mtls1, mtls2;
 
   getArgs(argc, argv);
-  
+
   IOManager iomananger;
 
   // Read the inputs.
@@ -172,33 +141,33 @@ int main(int argc, char **argv) {
     perror("Can't read input set2");
     exit(-1);
   }
-  
+
   // clean only when we have pset to avoid wrong face to point indexation
   if (tris1.size() == 0)
-    CleanInvalidNormals(set1, normals1);
+    Utils::CleanInvalidNormals(set1, normals1);
   if (tris2.size() == 0)
-    CleanInvalidNormals(set2, normals2);
+    Utils::CleanInvalidNormals(set2, normals2);
 
   // Our matcher.
-  Match4PCSOptions options;  
+  Match4PCSOptions options;
 
   // Set parameters.
-  cv::Mat mat = cv::Mat::eye(4, 4, CV_64F);
+  Match4PCSBase::MatrixType mat;
   options.overlap_estimation = overlap;
   options.sample_size = n_points;
   options.max_normal_difference = norm_diff;
   options.max_color_distance = max_color;
   options.max_time_seconds = max_time_seconds;
   options.delta = delta;
-  // Match and return the score (estimated overlap or the LCP).  
-  float score = 0;
-  
+  // Match and return the score (estimated overlap or the LCP).
+  typename Point3D::Scalar score = 0;
+
   try {
 
-	  if (use_super4pcs) {
-		  MatchSuper4PCS matcher(options);
-		  cout << "Use Super4PCS" << endl;
-          score = matcher.ComputeTransformation(set1, &set2, &mat);
+      if (use_super4pcs) {
+          MatchSuper4PCS matcher(options);
+          cout << "Use Super4PCS" << endl;
+          score = matcher.ComputeTransformation(set1, &set2, mat);
 
           if(! outputSampled1.empty() ){
               std::cout << "Exporting Sampled cloud 1 to "
@@ -206,8 +175,8 @@ int main(int argc, char **argv) {
                         << "..." << std::flush;
               iomananger.WriteObject((char *)outputSampled1.c_str(),
                                      matcher.getFirstSampled(),
-                                     vector<cv::Point2f>(),
-                                     vector<cv::Point3f>(),
+                                     vector<Eigen::Matrix2f>(),
+                                     vector<typename Point3D::VectorType>(),
                                      vector<tripple>(),
                                      vector<string>());
               std::cout << "DONE" << std::endl;
@@ -218,57 +187,47 @@ int main(int argc, char **argv) {
                         << "..." << std::flush;
               iomananger.WriteObject((char *)outputSampled2.c_str(),
                                      matcher.getSecondSampled(),
-                                     vector<cv::Point2f>(),
-                                     vector<cv::Point3f>(),
+                                     vector<Eigen::Matrix2f>(),
+                                     vector<typename Point3D::VectorType>(),
                                      vector<tripple>(),
                                      vector<string>());
               std::cout << "DONE" << std::endl;
           }
-	  }
-	  else {
-		  Match4PCS matcher(options);
-		  cout << "Use old 4PCS" << endl;
-          score = matcher.ComputeTransformation(set1, &set2, &mat);
+      }
+      else {
+          Match4PCS matcher(options);
+          cout << "Use old 4PCS" << endl;
+          score = matcher.ComputeTransformation(set1, &set2, mat);
       }
 
   }
   catch (const std::exception& e) {
-	  std::cout << "[Error]: " << e.what() << '\n';
-	  std::cout << "Aborting with code -2 ..." << std::endl;
-	  return -2;
+      std::cout << "[Error]: " << e.what() << '\n';
+      std::cout << "Aborting with code -2 ..." << std::endl;
+      return -2;
   }
   catch (...) {
-	  std::cout << "[Unknown Error]: Aborting with code -3 ..." << std::endl;
-	  return -3;
+      std::cout << "[Unknown Error]: Aborting with code -3 ..." << std::endl;
+      return -3;
   }
 
   cout << "Score: " << score << endl;
-  cerr <<  score << endl;
-  printf("(Homogeneous) Transformation from %s to %s:\n", input2.c_str(),
-         input1.c_str());
-  printf(
-      "\n\n%25.3f %25.3f %25.3f %25.3f\n%25.3f %25.3f %25.3f %25.3f\n%25.3f "
-      "%25.3f %25.3f %25.3f\n%25.3f %25.3f %25.3f %25.3f\n\n",
-      mat.at<double>(0, 0), mat.at<double>(0, 1), mat.at<double>(0, 2),
-      mat.at<double>(0, 3), mat.at<double>(1, 0), mat.at<double>(1, 1),
-      mat.at<double>(1, 2), mat.at<double>(1, 3), mat.at<double>(2, 0),
-      mat.at<double>(2, 1), mat.at<double>(2, 2), mat.at<double>(2, 3),
-      mat.at<double>(3, 0), mat.at<double>(3, 1), mat.at<double>(3, 2),
-      mat.at<double>(3, 3));
+  cout <<"(Homogeneous) Transformation from " << input2.c_str()
+       << " to "<< input1.c_str() << ":\n";
+
+  cout << mat << std::endl;
 
 
   if(! outputMat.empty() ){
       std::cout << "Exporting Matrix to "
                 << outputMat.c_str()
                 << "..." << std::flush;
-      iomananger.WriteMatrix(outputMat, mat, IOManager::POLYWORKS);
+      iomananger.WriteMatrix(outputMat, mat.cast<double>(), IOManager::POLYWORKS);
       std::cout << "DONE" << std::endl;
   }
-  
+
   if (! output.empty() ){
-      if(tris2.size() == 0) {
-        output = defaultPlyOutput;
-      }
+
       std::cout << "Exporting Registered geometry to "
                 << output.c_str()
                 << "..." << std::flush;

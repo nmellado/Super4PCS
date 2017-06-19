@@ -5,6 +5,10 @@
 #include <vector>
 #include "shared4pcs.h"
 
+#include "accelerators/pairExtraction/bruteForceFunctor.h"
+#include "accelerators/pairExtraction/intersectionFunctor.h"
+#include "accelerators/pairExtraction/intersectionPrimitive.h"
+
 template <typename _Scalar>
 struct PairCreationFunctor{
 
@@ -14,6 +18,7 @@ private:
 public:
   using Scalar      = _Scalar;
   using PairsVector = std::vector<std::pair<int, int>>;
+  using VectorType  = typename Point3D::VectorType;
 
   // Processing data
   Scalar norm_threshold;
@@ -39,7 +44,7 @@ public:
   std::vector< Primitive > primitives;
 
 private:
-  cv::Point3f segment1;
+  VectorType segment1;
   std::vector<Point3D> base_3D_;
   int base_point1_, base_point2_;
 
@@ -95,9 +100,7 @@ public:
     // Compute bounding box on fine data to be SURE to have all points in the
     // unit bounding box
     for (unsigned int i = 0; i < nSamples; ++i) {
-        PairCreationFunctor::Point q ( Q_[i].x,
-                                       Q_[i].y,
-                                       Q_[i].z );
+        const VectorType &q = Q_[i].pos();
       points.push_back(q);
       bbox.extendTo(q);
     }
@@ -114,7 +117,7 @@ public:
     for (unsigned int i = 0; i < nSamples; ++i) {
       points[i] = worldToUnit(points[i]);
 
-      primitives.push_back(Primitive(points[i], Scalar(1.)));
+      primitives.emplace_back(points[i], Scalar(1.));
       ids.push_back(i);
     }
 
@@ -133,13 +136,13 @@ public:
   }
 
   inline void setBase( int base_point1, int base_point2,
-                       std::vector<Point3D>& base_3D){
+                       const std::vector<Point3D>& base_3D){
     base_3D_     = base_3D;
     base_point1_ = base_point1;
     base_point2_ = base_point2;
 
-    segment1 = base_3D_[base_point2_] - base_3D_[base_point1_];
-    segment1 *= 1.0 / cv::norm(segment1);
+    segment1 = (base_3D_[base_point2_].pos() -
+                base_3D_[base_point1_].pos()).normalized();
   }
 
 
@@ -147,57 +150,72 @@ public:
   inline void endPrimitiveCollect(int /*primId*/){ }
 
 
+  //! FIXME Pair filtering is the same than 4pcs. Need refactoring
   inline void process(int i, int j){
     if (i>j){
       const Point3D& p = Q_[j];
       const Point3D& q = Q_[i];
 
+      // Compute the distance and two normal angles to ensure working with
+      // wrong orientation. We want to verify that the angle between the
+      // normals is close to the angle between normals in the base. This can be
+      // checked independent of the full rotation angles which are not yet
+      // defined by segment matching alone..
+      const Scalar distance = (q.pos() - p.pos()).norm();
 #ifndef MULTISCALE
-      const float distance = cv::norm(q - p);
       if (std::abs(distance - pair_distance) > pair_distance_epsilon) return;
 #endif
-      const bool use_normals = norm(q.normal()) > 0 && norm(p.normal()) > 0;
-      bool normals_good = true;
-      if (use_normals) {
-        const Scalar first_normal_angle = cv::norm(q.normal() - p.normal());
-        const Scalar second_normal_angle = cv::norm(q.normal() + p.normal());
-        // Take the smaller normal distance.
-        const Scalar first_norm_distance =
-            std::min(std::abs(first_normal_angle - pair_normals_angle),
-                     std::abs(second_normal_angle - pair_normals_angle));
-        // Verify appropriate angle between normals and distance.
-        normals_good = first_norm_distance < norm_threshold;
-      }
-      if (!normals_good) return;
-      cv::Point3f segment2 = q - p;
-      segment2 *= 1.0 / cv::norm(segment2);
-      // Verify restriction on the rotation angle, translation and colors.
-      const bool use_rgb = (p.rgb()[0] >= 0 && q.rgb()[0] >= 0 &&
-                            base_3D_[base_point1_].rgb()[0] >= 0 &&
-                            base_3D_[base_point2_].rgb()[0] >= 0);
-      const bool rgb_good =
-          use_rgb ? cv::norm(p.rgb() - base_3D_[base_point1_].rgb()) <
-                            options_.max_color_distance &&
-                        cv::norm(q.rgb() - base_3D_[base_point2_].rgb()) <
-                            options_.max_color_distance
-                  : true;
-      const bool dist_good = cv::norm(p - base_3D_[base_point1_]) <
-                                 options_.max_translation_distance &&
-                             cv::norm(q - base_3D_[base_point2_]) <
-                                 options_.max_translation_distance;
 
-      if (std::acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0 &&
-          dist_good && rgb_good) {
-        // Add ordered pair.
-        pairs->push_back(std::pair<int, int>(j, i));
+      if ( options_.max_normal_difference > 0 &&
+           q.normal().squaredNorm() > 0 &&
+           p.normal().squaredNorm() > 0) {
+          const Scalar norm_threshold =
+                  0.5 * options_.max_normal_difference * M_PI / 180.0;
+          const double first_normal_angle = (q.normal() - p.normal()).norm();
+          const double second_normal_angle = (q.normal() + p.normal()).norm();
+          // Take the smaller normal distance.
+          const Scalar first_norm_distance =
+                  std::min(std::abs(first_normal_angle - pair_normals_angle),
+                           std::abs(second_normal_angle - pair_normals_angle));
+          // Verify appropriate angle between normals and distance.
+
+          if (!first_norm_distance < norm_threshold) return;
       }
-      // The same for the second order.
-      segment2 = p - q;
-      segment2 *= 1.0 / cv::norm(segment2);
-      if (std::acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0 &&
-          dist_good && rgb_good) {
-        // Add ordered pair.
-        pairs->push_back(std::pair<int, int>(i, j));
+      // Verify restriction on the rotation angle, translation and colors.
+      if (options_.max_color_distance > 0) {
+          const bool use_rgb = (p.rgb()[0] >= 0 && q.rgb()[0] >= 0 &&
+                  base_3D_[base_point1_].rgb()[0] >= 0 &&
+                  base_3D_[base_point2_].rgb()[0] >= 0);
+          bool color_good = (p.rgb() - base_3D_[base_point1_].rgb()).norm() <
+                  options_.max_color_distance &&
+                  (q.rgb() - base_3D_[base_point2_].rgb()).norm() <
+                  options_.max_color_distance;
+
+          if (use_rgb && ! color_good) return;
+      }
+
+      if (options_.max_translation_distance > 0) {
+          const bool dist_good = (p.pos() - base_3D_[base_point1_].pos()).norm() <
+                  options_.max_translation_distance &&
+                  (q.pos() - base_3D_[base_point2_].pos()).norm() <
+                  options_.max_translation_distance;
+          if (! dist_good) return;
+      }
+
+      // need cleaning here
+      if (options_.max_angle > 0){
+          VectorType segment2 = (q.pos() - p.pos()).normalized();
+          if (std::acos(segment1.dot(segment2)) <= options_.max_angle * M_PI / 180.0) {
+              pairs->emplace_back(j, i);
+          }
+
+          if (std::acos(segment1.dot(- segment2)) <= options_.max_angle * M_PI / 180.0) {
+              // Add ordered pair.
+              pairs->emplace_back(i, j);
+          }
+      }else {
+          pairs->emplace_back(j, i);
+          pairs->emplace_back(i, j);
       }
     }
   }

@@ -44,6 +44,7 @@
  *              express or implied warranty.
  */
 
+#include "fitsio2.h"
 #include <stdio.h>		/* define stderr, FD, and NULL */
 #include <stdlib.h>
 #include <stddef.h>  /* stddef.h is apparently needed to define size_t */
@@ -1403,6 +1404,7 @@ char *keyword0;	/* character string containing the name of the keyword
 	char line[100];
 	char *vpos, *cpar = NULL;
 	char *q1, *q2 = NULL, *v1, *v2, *c1, *brack1, *brack2;
+        char *saveptr;
 	int ipar, i;
 
 	squot[0] = 39;
@@ -1515,7 +1517,7 @@ char *keyword0;	/* character string containing the name of the keyword
 		cwhite[0] = ' ';
 		cwhite[1] = '\0';
 		for (i = 1; i <= ipar; i++) {
-		    cpar = strtok (v1,cwhite);
+		    cpar = ffstrtok (v1,cwhite,&saveptr);
 		    v1 = NULL;
 		    }
 		if (cpar != NULL) {
