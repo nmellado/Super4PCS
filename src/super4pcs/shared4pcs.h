@@ -81,7 +81,6 @@ class Point3D {
   inline const VectorType& normal() const { return normal_; }
   inline void set_rgb(const VectorType& rgb) {
       rgb_ = rgb;
-      hasColor_ = true;
   }
   inline void set_normal(const VectorType& normal) {
       normal_ = normal.normalized();
@@ -90,7 +89,7 @@ class Point3D {
   inline void normalize() {
     pos_.normalize();
   }
-  inline bool hasColor() const { return hasColor_; }
+  inline bool hasColor() const { return rgb_.squaredNorm() > Scalar(0.001); }
 
   Scalar& x() { return pos_.coeffRef(0); }
   Scalar& y() { return pos_.coeffRef(1); }
@@ -109,8 +108,6 @@ class Point3D {
   VectorType normal_{0.0f, 0.0f, 0.0f};
   // Color.
   VectorType rgb_{-1.0f, -1.0f, -1.0f};
-
-  bool hasColor_ = false;
 };
 
 
