@@ -12,6 +12,7 @@ Copyright 2014 Nicolas Mellado
 Authors: Nicolas Mellado, Dror Aiger
 
 ## News
+* 19th June 2017: Super4PCS v1.0.0-alpha is available.
 * 18th May 2016: Super4PCS [v0.2.1-alpha](https://github.com/nmellado/Super4PCS/releases/tag/v0.2.1-alpha) is available, fixing a problematic crash introduced in previous release.
 * 3rd May 2016: Super4PCS [v0.2-alpha](https://github.com/nmellado/Super4PCS/releases/tag/v0.2-alpha) is out !
 * 23th March 2016: Super4PCS can now be compiled with Visual Studio 2015! Checkout the [Wiki](http://github.com/nmellado/Super4PCS/wiki) for more details.

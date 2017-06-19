@@ -1,0 +1,21 @@
+Super4PCS-V1.0.0-alpha
+======================
+
+
+ - Dependencies:
+   - remove ANN dependency,
+   - remove dependency to Chealpix. Can be controlled by the option SUPER4PCS_USE_CHEALPIX. This options will be available for some time for experiment purposes. During this time, Chealpix and Cfitsio files will still be shipped with Super4PCS source code.
+   - OpenCV is required only to load meshes textures. This dependency can be removed by switching option IO_USE_OPENCV to FALSE,
+ - remove duplicate code between 4PCS and Super4PCS,
+ - clean code structure,
+ - demo dataset + run script added
+
+
+This release has been tested on:
+    Debian 4.9.30-1
+        clang version 3.8.1-24
+        gcc version 6.3.0 20170516
+    Microsoft Windows 10
+        VS 2017
+
+This release fixes issues 34 and 29.
