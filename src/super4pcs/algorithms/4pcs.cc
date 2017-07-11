@@ -149,7 +149,7 @@ Match4PCS::ExtractPairs(Scalar pair_distance,
                 std::abs(second_normal_angle - pair_normals_angle));
         // Verify appropriate angle between normals and distance.
 
-        if (!first_norm_distance < norm_threshold) continue;
+        if (first_norm_distance > norm_threshold) continue;
       }
       // Verify restriction on the rotation angle, translation and colors.
       if (options_.max_color_distance > 0) {
