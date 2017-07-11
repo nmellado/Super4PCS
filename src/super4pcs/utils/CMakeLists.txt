@@ -15,7 +15,10 @@ set(utils_INCLUDE
 
 # use library target, to make accessible to test routines
 add_library(super4pcs_utils INTERFACE)
-target_sources(super4pcs_utils INTERFACE ${utils_INCLUDE})
+
+if(CMAKE_VERSION VERSION_GREATER 3.1)
+    target_sources(super4pcs_utils INTERFACE ${utils_INCLUDE})
+endif(CMAKE_VERSION VERSION_GREATER 3.1)
 
 #
 # HACK: have the files showing in the IDE, under the name 'super4pcs_utils_IDE'
