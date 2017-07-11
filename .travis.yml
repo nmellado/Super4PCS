@@ -15,12 +15,14 @@ addons:
       - gcc-5
       - libeigen3-dev
       - libboost-filesystem-dev
+      - libboost-system-dev
 
 install:
     - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
     - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
 
 before_script:
+  - apt-cache search libboost-filesystem
   - mkdir build
   - cd build
   - cmake .. -DSUPER4PCS_COMPILE_TESTS=TRUE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=FALSE -DDL_DATASETS=FALSE
