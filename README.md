@@ -11,6 +11,8 @@ Copyright 2014 Nicolas Mellado
 
 Authors: Nicolas Mellado, Dror Aiger
 
+[![Build Status](https://api.travis-ci.org/nmellado/Super4PCS.svg?branch=travis-setup)](https://travis-ci.org/nmellado/Super4PCS)
+
 ## News
 * 5th July 2017: Super4PCS got the SGP Software Award 2017 !
 * 19th June 2017: Super4PCS v1.0.0-alpha is available.
