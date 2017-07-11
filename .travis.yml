@@ -23,7 +23,7 @@ install:
 before_script:
   - mkdir build
   - cd build
-  - cmake ..
+  - cmake .. -DSUPER4PCS_COMPILE_TESTS=TRUE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=FALSE -DDL_DATASETS=FALSE
 
 script: make buildtests && make test
 
