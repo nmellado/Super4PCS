@@ -2,9 +2,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(accel_ROOT "${SRC_DIR}/accelerators")
 
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
-
 #############################################
 
 set(accel_INCLUDE
