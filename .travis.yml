@@ -35,7 +35,7 @@ before_install:
         travis_retry wget --no-check-certificate --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${DEPS_DIR}/boost${BOOST_VERSION}
         pushd ${DEPS_DIR}/boost${BOOST_VERSION}
         # configure and install
-        ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=program_options,date_time
+        ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=system,filesystem
         ./b2 toolset=clang cxxflags="-stdlib=libc++ -nostdinc++ -cxx-isystem /usr/include/c++/v1/" linkflags="-stdlib=libc++"
         ./b2 -d0 install
         popd
