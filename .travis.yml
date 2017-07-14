@@ -81,11 +81,6 @@ matrix:
     - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=Off
       os: linux
       addons: *gcc49
-        apt:
-          packages:
-            - g++-4.9
-          sources:
-            - ubuntu-toolchain-r-test
 
     # gcc-5 Release
     - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=Off
@@ -131,11 +126,6 @@ matrix:
     - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=On
       os: linux
       addons: *gcc49
-        apt:
-          packages:
-            - g++-4.9
-          sources:
-            - ubuntu-toolchain-r-test
 
     # gcc-5 Release
     - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=On
