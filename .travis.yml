@@ -77,10 +77,10 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.8
 
-    # gcc-4.9 Release
-    - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=Off
-      os: linux
-      addons: *gcc49
+#    # gcc-4.9 Release
+#    - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=Off
+#      os: linux
+#      addons: *gcc49
 
     # gcc-5 Release
     - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=Off
@@ -122,10 +122,10 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.8
 
-    # gcc-4.9 Release
-    - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=On
-      os: linux
-      addons: *gcc49
+#    # gcc-4.9 Release
+#    - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=On
+#      os: linux
+#      addons: *gcc49
 
     # gcc-5 Release
     - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=On
