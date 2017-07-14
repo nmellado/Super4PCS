@@ -24,7 +24,6 @@ ExternalProject_Add(dataset-standford-bunny
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
 )
-add_dependencies(buildtests dataset-standford-armadillo dataset-standford-bunny)
 
 #############################################
 ## testing files
@@ -82,6 +81,7 @@ if (Boost_FOUND)
     endforeach()
     target_link_libraries(matching super4pcs_io super4pcs_accel super4pcs_algo super4pcs_utils)
     target_link_libraries(matching ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+    add_dependencies(matching dataset-standford-armadillo dataset-standford-bunny)
     if(SUPER4PCS_USE_CHEALPIX)
         target_link_libraries(matching ${Chealpix_LIBS} )
     endif(SUPER4PCS_USE_CHEALPIX)
