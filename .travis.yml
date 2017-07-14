@@ -4,30 +4,114 @@ compiler:
   - gcc
   - clang
 
-cache: ccache
-
-addons:
-  apt:
-    sources:
-      - llvm-toolchain-precise
-      - ubuntu-toolchain-r-test
-    packages:
-      - clang-3.8
-      - g++-5
-      - gcc-5
-      - libboost-filesystem-dev
-      - libboost-system-dev
-
-install:
-    - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
-    - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.8" CC="clang-3.8"; fi
-
-before_script:
-  - mkdir build
-  - cd build
-  - cmake .. -DSUPER4PCS_COMPILE_TESTS=TRUE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=FALSE -DDL_DATASETS=FALSE -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX
+os:
+  - linux
+  - osx
 
 script: make buildtests && make test
+
+cache:
+  directories:
+    - ${TRAVIS_BUILD_DIR}/deps/cmake
+
+env:
+  global:
+    - DEPS_DIR=${TRAVIS_BUILD_DIR}/deps
+    - BOOST_URL="http://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.tar.gz"
+    - BOOST_VERSION="1_63_0"
+
+
+before_install:
+  - export CHECKOUT_PATH=`pwd`;
+    - |
+    if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      brew update
+      brew install gnu-which --with-default-names
+    fi
+  - if [ -n "$GCC_VERSION" ]; then export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}"; fi
+  - if [ -n "$CLANG_VERSION" ]; then export CXX="clang++-${CLANG_VERSION}" CC="clang-${CLANG_VERSION}"; fi
+  - which $CXX
+  - which $CC
+  - which valgrind
+  - $CXX --version
+  # Download and install Boost
+  # Adapted from Boost.Compute (under the Boost License)
+  # Copyright Jakub Szuppe 2016.
+  - |
+    if [[ ${TRAVIS_OS_NAME} == "linux" && ${BOOST} == "On" ]]; then
+      if [ ! -f "${DEPS_DIR}/boost/${BOOST_VERSION}_cached" ]; then
+        # create dirs for source and install
+        mkdir -p ${DEPS_DIR}/boost${BOOST_VERSION}
+        mkdir -p ${DEPS_DIR}/boost
+        rm -rf ${DEPS_DIR}/boost/*
+        # download
+        travis_retry wget --no-check-certificate --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${DEPS_DIR}/boost${BOOST_VERSION}
+        pushd ${DEPS_DIR}/boost${BOOST_VERSION}
+        # configure and install
+        ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=program_options,date_time
+        ./b2 toolset=clang cxxflags="-stdlib=libc++ -nostdinc++ -cxx-isystem /usr/include/c++/v1/" linkflags="-stdlib=libc++"
+        ./b2 -d0 install
+        popd
+        touch ${DEPS_DIR}/boost/${BOOST_VERSION}_cached
+      else
+        echo 'Using cached Boost ${BOOST_VERSION} libraries.'
+      fi
+    fi
+
+matrix:
+  include:
+    - env: BUILD_TYPE=Release BOOST=Off
+      os: osx
+      compiler: clang
+          # clang 3.6 C++11/14 Release libc++
+    - env: CLANG_VERSION=3.6 BUILD_TYPE=Release BOOST=Off
+      os: linux
+      addons: &clang36
+        apt:
+          packages:
+            - clang-3.6
+            - g++-5
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.6
+
+    # clang 3.8 C++11/14 Release ASAN libc++
+    - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=Off
+      os: linux
+      addons: &clang38
+        apt:
+          packages:
+            - util-linux
+            - clang-3.8
+            - g++-5
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
+
+    - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=Off
+      os: linux
+      addons: *gcc49
+
+      # gcc-5 C++11/C++14 Release
+    - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=Off
+      os: linux
+      addons: &gcc5
+        apt:
+          packages:
+            - g++-5
+          sources:
+            - ubuntu-toolchain-r-test
+
+install:
+  - cd $CHECKOUT_PATH
+
+
+  - mkdir -p build
+  - cd build
+  - if [ "$GCC_VERSION" == "5" ]; then CXX_FLAGS="${CXX_FLAGS} -DRANGES_CXX_CONSTEXPR=RANGES_CXX_CONSTEXPR11"; fi
+  - if [ -n "$CLANG_VERSION" ]; then CXX_FLAGS="${CXX_FLAGS} -D__extern_always_inline=inline"; fi
+  - cmake .. -DSUPER4PCS_COMPILE_TESTS=TRUE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=FALSE -DDL_DATASETS=FALSE -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+  - make -j2 VERBOSE=1
 
 
 # safelist
