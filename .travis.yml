@@ -1,13 +1,5 @@
 language: cpp
 
-compiler:
-  - gcc
-  - clang
-
-os:
-  - linux
-  - osx
-
 script: make buildtests && make test
 
 cache:
@@ -89,9 +81,64 @@ matrix:
     - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=Off
       os: linux
       addons: *gcc49
+        apt:
+          packages:
+            - g++-4.9
+          sources:
+            - ubuntu-toolchain-r-test
 
     # gcc-5 Release
     - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=Off
+      os: linux
+      addons: &gcc5
+        apt:
+          packages:
+            - g++-5
+          sources:
+            - ubuntu-toolchain-r-test
+
+    # mac clang Release
+    - env: BUILD_TYPE=Release BOOST=On
+      os: osx
+      compiler: clang
+
+    # clang 3.6 Release
+    - env: CLANG_VERSION=3.6 BUILD_TYPE=Release BOOST=On
+      os: linux
+      addons: &clang36
+        apt:
+          packages:
+            - clang-3.6
+            - g++-5
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.6
+
+    # clang 3.8 Release
+    - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=On
+      os: linux
+      addons: &clang38
+        apt:
+          packages:
+            - util-linux
+            - clang-3.8
+            - g++-5
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.8
+
+    # gcc-4.9 Release
+    - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=On
+      os: linux
+      addons: *gcc49
+        apt:
+          packages:
+            - g++-4.9
+          sources:
+            - ubuntu-toolchain-r-test
+
+    # gcc-5 Release
+    - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=On
       os: linux
       addons: &gcc5
         apt:
