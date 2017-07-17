@@ -150,5 +150,5 @@ install:
 
 # safelist
 branches:
-  only:
-  - travis-setup
+  except:
+  - gh-pages
