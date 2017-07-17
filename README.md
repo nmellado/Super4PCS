@@ -26,7 +26,7 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/Sup
 ## Related pages
 * For everyone: [Sup4PCS website](http://nmellado.github.io/Super4PCS/): news, gallery, tutorials, ...
 * For users: [Sup4PCS wiki](http://github.com/nmellado/Super4PCS/wiki): compilation instruction, usage, ...
-* For the *I-like-to-read-Computer&Graphics-papers* people: [paper project page](http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS).
+* For researchers and advanced users: [paper project page](http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS).
 
 
 ## Paper Abstract
