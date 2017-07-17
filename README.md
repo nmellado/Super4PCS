@@ -12,10 +12,11 @@ Copyright 2014 Nicolas Mellado
 Authors: Nicolas Mellado, Dror Aiger
 
 Linux and MacOS: [![Build Status](https://api.travis-ci.org/nmellado/Super4PCS.svg?branch=travis-setup)](https://travis-ci.org/nmellado/Super4PCS)
+
 Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/Super4PCS/Super4PCS?branch=master&svg=true)](https://ci.appveyor.com/project/nmellado/super4pcs)
 
 ## News
-* 17th July 2017: CI integration (Windows, MacOS and Linux) enabled. Currently, only compilation is tested, performances monitoring will be added in upcoming release.
+* 17th July 2017: CI integration (Windows, MacOS and Linux) enabled. Currently, only compilation is tested, but performances monitoring will be added in upcoming release.
 * 5th July 2017: Super4PCS got the SGP Software Award 2017 !
 * 19th June 2017: Super4PCS v1.0.0-alpha is available.
 * 18th May 2016: Super4PCS [v0.2.1-alpha](https://github.com/nmellado/Super4PCS/releases/tag/v0.2.1-alpha) is available, fixing a problematic crash introduced in previous release.
