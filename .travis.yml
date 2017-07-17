@@ -1,6 +1,13 @@
 language: cpp
 
-script: make buildtests && make test
+jobs:
+  include:
+    - stage: compile libraries
+      script: make
+    - stage: compile tests
+      script: make buildtests
+    - stage: run tests
+      script: make tests
 
 cache:
   directories:
