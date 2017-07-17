@@ -6,13 +6,12 @@ os: Visual Studio 2015
 
 # build platform, i.e. Win32 (instead of x86), x64, Any CPU. This setting is optional.
 platform:
+  - x86
   - x64
 
 # specify custom environment variables
 environment:
   MSVC_DEFAULT_OPTIONS: ON
-  BOOST_ROOT: C:\Libraries\boost_1_59_0
-  BOOST_LIBRARYDIR: C:\Libraries\boost_1_59_0\lib32-msvc-14.0
 
 # build configuration, i.e. Debug, Release, etc.
 configuration:
@@ -44,10 +43,10 @@ before_build:
   - cmd: cd C:\projects\Super4PCS
   - cmd: md build
   - cmd: cd build
-  # We generate project files for Visual Studio 12 because the boost binaries installed on the test server are for Visual Studio 12.
+
   - cmd: if "%platform%"=="Win32" set CMAKE_GENERATOR_NAME=Visual Studio 14 2015
   - cmd: if "%platform%"=="x64"   set CMAKE_GENERATOR_NAME=Visual Studio 14 2015 Win64
-  - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DCMAKE_BUILD_TYPE=%configuration% -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS="ON"  -DSUPER4PCS_COMPILE_TESTS=FALSE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=FALSE -DDL_DATASETS=FALSE  ..
+  - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DCMAKE_BUILD_TYPE=%configuration% -DSUPER4PCS_COMPILE_TESTS=FALSE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=FALSE -DDL_DATASETS=FALSE  ..
 
 build:
   project: C:\projects\Super4PCS\build\Super4PCS.sln # path to Visual Studio solution or project
