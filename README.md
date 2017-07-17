@@ -11,7 +11,7 @@ Copyright 2014 Nicolas Mellado
 
 Authors: Nicolas Mellado, Dror Aiger
 
-Linux and MacOS: [![Build Status](https://api.travis-ci.org/nmellado/Super4PCS.svg?branch=travis-setup)](https://travis-ci.org/nmellado/Super4PCS)
+Linux and MacOS: [![Build Status](https://api.travis-ci.org/nmellado/Super4PCS.svg?branch=master)](https://travis-ci.org/nmellado/Super4PCS)
 
 Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/Super4PCS/Super4PCS?branch=master&svg=true)](https://ci.appveyor.com/project/nmellado/super4pcs)
 
