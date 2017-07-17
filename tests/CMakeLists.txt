@@ -1,8 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
-
 include_directories(${SRC_DIR})
 include_directories(${SRC_DIR}/accelerators)
 include_directories(${SRC_DIR}/io)
@@ -44,7 +41,10 @@ add_dependencies(buildtests pair_extraction)
 add_test(NAME pair_extraction
          #CONFIGURATIONS Release
          COMMAND pair_extraction)
-
+target_link_libraries(pair_extraction super4pcs_accel super4pcs_algo super4pcs_utils)
+if(SUPER4PCS_USE_CHEALPIX)
+    target_link_libraries(pair_extraction ${Chealpix_LIBS} )
+endif(SUPER4PCS_USE_CHEALPIX)
 
 #############################################
 ## quad extraction
@@ -56,6 +56,10 @@ add_dependencies(buildtests quad_extraction)
 add_test(NAME quad_extraction
          #CONFIGURATIONS Release
          COMMAND quad_extraction)
+target_link_libraries(quad_extraction super4pcs_accel super4pcs_algo)
+if(SUPER4PCS_USE_CHEALPIX)
+    target_link_libraries(quad_extraction ${Chealpix_LIBS} )
+endif(SUPER4PCS_USE_CHEALPIX)
 
 #############################################
 ## matching
@@ -63,23 +67,23 @@ set(matching_SRCS
     matching.cc
 )
 
-find_package(Boost 1.55.0 COMPONENTS system filesystem REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
+find_package(Boost 1.54 COMPONENTS system filesystem QUIET)
+if (Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+    add_executable(matching ${matching_SRCS} ${testing_SRCS})
+    add_dependencies(buildtests matching)
+    set (matching_subtests 0 1)
+    foreach(subtest_id ${matching_subtests})
+        add_test(NAME "matching_${subtest_id}"
+                 #CONFIGURATIONS Release
+                 COMMAND matching ${subtest_id})
+        set_tests_properties ( "matching_${subtest_id}" PROPERTIES TIMEOUT 600) # in seconds
+    endforeach()
+    target_link_libraries(matching super4pcs_io super4pcs_accel super4pcs_algo super4pcs_utils)
+    target_link_libraries(matching ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+    add_dependencies(matching dataset-standford-armadillo dataset-standford-bunny)
+    if(SUPER4PCS_USE_CHEALPIX)
+        target_link_libraries(matching ${Chealpix_LIBS} )
+    endif(SUPER4PCS_USE_CHEALPIX)
+endif (Boost_FOUND)
 
-add_executable(matching ${matching_SRCS} ${testing_SRCS})
-add_dependencies(buildtests matching dataset-standford-armadillo dataset-standford-bunny)
-
-set (matching_subtests 0 1)
-foreach(subtest_id ${matching_subtests})
-    add_test(NAME "matching_${subtest_id}"
-             #CONFIGURATIONS Release
-             COMMAND matching ${subtest_id})
-    set_tests_properties ( "matching_${subtest_id}" PROPERTIES TIMEOUT 600) # in seconds
-endforeach()
-
-target_link_libraries(quad_extraction ${Chealpix_LIBS} super4pcs_accel super4pcs_algo)
-target_link_libraries(pair_extraction super4pcs_accel super4pcs_algo super4pcs_utils)
-TARGET_LINK_LIBRARIES(pair_extraction ${Chealpix_LIBS} )
-target_link_libraries(matching super4pcs_io super4pcs_accel super4pcs_algo super4pcs_utils)
-target_link_libraries(matching ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
-TARGET_LINK_LIBRARIES(matching ${Chealpix_LIBS} )
