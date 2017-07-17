@@ -127,8 +127,8 @@ distSegmentToSegment(const VectorType& p1, const VectorType& p2,
       s2 = a;
     }
   }
-  invariant1 = (abs(s1) < kSmallNumber ? 0.0 : s1 / s2);
-  invariant2 = (abs(t1) < kSmallNumber ? 0.0 : t1 / t2);
+  invariant1 = (std::abs(s1) < kSmallNumber ? 0.0 : s1 / s2);
+  invariant2 = (std::abs(t1) < kSmallNumber ? 0.0 : t1 / t2);
 
   return ( w + (invariant1 * u) - (invariant2 * v)).norm();
 }
@@ -869,10 +869,10 @@ Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
   Perform_N_steps(number_of_trials_, transformation, Q);
 
 #ifdef TEST_GLOBAL_TIMINGS
-  cout << "----------- Timings (msec) -------------"           << endl;
-  cout << " Total computation time  : " << totalTime           << endl;
-  cout << " Total verify time       : " << verifyTime          << endl;
-  cout << "    Kdtree query         : " << kdTreeTime          << endl;
+  std::cout << "----------- Timings (msec) -------------"          << std::endl;
+  std::cout << " Total computation time  : " << totalTime          << std::endl;
+  std::cout << " Total verify time       : " << verifyTime         << std::endl;
+  std::cout << "    Kdtree query         : " << kdTreeTime         << std::endl;
 #endif
 
   return best_LCP_;
