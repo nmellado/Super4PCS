@@ -48,18 +48,18 @@ endif(SUPER4PCS_USE_CHEALPIX)
 
 #############################################
 ## quad extraction
-set(quad_extraction_SRCS
-    quad_extraction.cc
-)
-add_executable(quad_extraction ${quad_extraction_SRCS} ${testing_SRCS})
-add_dependencies(buildtests quad_extraction)
-add_test(NAME quad_extraction
-         #CONFIGURATIONS Release
-         COMMAND quad_extraction)
-target_link_libraries(quad_extraction super4pcs_accel super4pcs_algo)
-if(SUPER4PCS_USE_CHEALPIX)
-    target_link_libraries(quad_extraction ${Chealpix_LIBS} )
-endif(SUPER4PCS_USE_CHEALPIX)
+#set(quad_extraction_SRCS
+#    quad_extraction.cc
+#)
+#add_executable(quad_extraction ${quad_extraction_SRCS} ${testing_SRCS})
+#add_dependencies(buildtests quad_extraction)
+#add_test(NAME quad_extraction
+#         #CONFIGURATIONS Release
+#         COMMAND quad_extraction)
+#target_link_libraries(quad_extraction super4pcs_accel super4pcs_algo)
+#if(SUPER4PCS_USE_CHEALPIX)
+#    target_link_libraries(quad_extraction ${Chealpix_LIBS} )
+#endif(SUPER4PCS_USE_CHEALPIX)
 
 #############################################
 ## matching
