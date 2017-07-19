@@ -9,8 +9,6 @@ cache:
 env:
   global:
     - DEPS_DIR=${TRAVIS_BUILD_DIR}/deps
-    - BOOST_URL="http://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.tar.gz"
-    - BOOST_VERSION="1_63_0"
 
 
 before_install:
@@ -21,29 +19,7 @@ before_install:
   - which $CXX
   - which $CC
   - $CXX --version
-  # Download and install Boost
-  # Adapted from Boost.Compute (under the Boost License)
-  # Copyright Jakub Szuppe 2016.
-  - |
-    if [[ ${TRAVIS_OS_NAME} == "linux" && ${BOOST} == "On" ]]; then
-      if [ ! -f "${DEPS_DIR}/boost/${BOOST_VERSION}_cached" ]; then
-        # create dirs for source and install
-        mkdir -p ${DEPS_DIR}/boost${BOOST_VERSION}
-        mkdir -p ${DEPS_DIR}/boost
-        rm -rf ${DEPS_DIR}/boost/*
-        # download
-        travis_retry wget --no-check-certificate --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${DEPS_DIR}/boost${BOOST_VERSION}
-        pushd ${DEPS_DIR}/boost${BOOST_VERSION}
-        # configure and install
-        ./bootstrap.sh --prefix=${DEPS_DIR}/boost/ --with-libraries=system,filesystem
-        ./b2 toolset=clang cxxflags="-stdlib=libc++ -nostdinc++ -cxx-isystem /usr/include/c++/v1/" linkflags="-stdlib=libc++"
-        ./b2 -d0 install
-        popd
-        touch ${DEPS_DIR}/boost/${BOOST_VERSION}_cached
-      else
-        echo 'Using cached Boost ${BOOST_VERSION} libraries.'
-      fi
-    fi
+  
 
 matrix:
   include:
@@ -103,6 +79,8 @@ matrix:
       addons: &clang36
         apt:
           packages:
+            - libboost-filesystem-dev
+            - libboost-system-dev
             - clang-3.6
             - g++-5
           sources:
@@ -115,6 +93,8 @@ matrix:
       addons: &clang38
         apt:
           packages:
+            - libboost-filesystem-dev
+            - libboost-system-dev
             - util-linux
             - clang-3.8
             - g++-5
@@ -133,6 +113,8 @@ matrix:
       addons: &gcc5
         apt:
           packages:
+            - libboost-filesystem-dev
+            - libboost-system-dev
             - g++-5
           sources:
             - ubuntu-toolchain-r-test
