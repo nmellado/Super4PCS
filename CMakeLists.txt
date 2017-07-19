@@ -81,7 +81,7 @@ endif()
 ################################################################################
 if (ENABLE_TIMING)
     ADD_DEFINITIONS( -DTEST_GLOBAL_TIMINGS )
-    message ("OPT: Enable timing recording")
+    message (STATUS "OPT: Enable timing recording")
 endif (ENABLE_TIMING)
 
 if (DL_DATASETS)
@@ -127,7 +127,7 @@ if( NOT EIGEN3_INCLUDE_DIR )
     endif()
 endif( NOT EIGEN3_INCLUDE_DIR )
 include_directories(${EIGEN3_INCLUDE_DIR})
-message("-- Eigen3 root path: ${EIGEN3_INCLUDE_DIR}")
+message(STATUS "-- Eigen3 root path: ${EIGEN3_INCLUDE_DIR}")
 
 ################################################################################
 ## Tests
