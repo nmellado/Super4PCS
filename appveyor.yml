@@ -55,5 +55,5 @@ build:
 
 test: on
 test_script:
-  - cmd: make buildtests && make test
+  - cmd: ctest --build-config %configuration% --parallel 4 --output-on-failure
 
