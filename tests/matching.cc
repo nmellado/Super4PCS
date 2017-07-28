@@ -50,8 +50,11 @@
 // source code and datasets are available for research use at
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
-#include "algorithms/4pcs.h"
-#include "algorithms/super4pcs.h"
+#include "super4pcs/algorithms/4pcs.h"
+#include "super4pcs/algorithms/super4pcs.h"
+#include "super4pcs/io/io.h"
+#include "super4pcs/utils/geometry.h"
+
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
@@ -62,9 +65,6 @@
 
 #include <boost/filesystem.hpp>
 
-#include "io/io.h"
-#include "utils/geometry.h"
-
 #include "testing.h"
 
 #define WRITE_OUTPUT_FILES
@@ -72,7 +72,6 @@
 #define sqr(x) ((x) * (x))
 
 using namespace std;
-using namespace match_4pcs;
 using namespace Super4PCS;
 
 using Scalar = Point3D::Scalar;

@@ -3,17 +3,16 @@
 
 #include <iostream>
 #include <vector>
-#include "shared4pcs.h"
+#include "super4pcs/shared4pcs.h"
 
-#include "accelerators/pairExtraction/bruteForceFunctor.h"
-#include "accelerators/pairExtraction/intersectionFunctor.h"
-#include "accelerators/pairExtraction/intersectionPrimitive.h"
+#include "super4pcs/accelerators/pairExtraction/bruteForceFunctor.h"
+#include "super4pcs/accelerators/pairExtraction/intersectionFunctor.h"
+#include "super4pcs/accelerators/pairExtraction/intersectionPrimitive.h"
+
+namespace Super4PCS {
 
 template <typename _Scalar>
 struct PairCreationFunctor{
-
-private:
-  using Point3D = match_4pcs::Point3D;
 
 public:
   using Scalar      = _Scalar;
@@ -27,7 +26,7 @@ public:
   double pair_distance_epsilon;
 
   // Shared data
-  match_4pcs::Match4PCSOptions options_;
+  Match4PCSOptions options_;
   const std::vector<Point3D>& Q_;
 
   PairsVector* pairs;
@@ -37,7 +36,7 @@ public:
 
   // Internal data
   typedef Eigen::Matrix<Scalar, 3, 1> Point;
-  typedef Super4PCS::Accelerators::PairExtraction::HyperSphere
+  typedef Accelerators::PairExtraction::HyperSphere
   < typename PairCreationFunctor::Point, 3, Scalar> Primitive;
 
   std::vector< /*Eigen::Map<*/typename PairCreationFunctor::Point/*>*/ > points;
@@ -54,7 +53,7 @@ private:
 
 public:
   inline PairCreationFunctor(
-    match_4pcs::Match4PCSOptions options,
+    Match4PCSOptions options,
     const std::vector<Point3D>& Q)
     :options_(options), Q_(Q),
      pairs(NULL), _ratio(1.f)
@@ -220,5 +219,7 @@ public:
     }
   }
 };
+
+} // namespace Super4PCS
 
 #endif // PAIRCREATIONFUNCTOR_H

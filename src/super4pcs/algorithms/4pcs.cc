@@ -42,14 +42,14 @@
 // and applications.
 
 
-#include "4pcs.h"
-#include "match4pcsBase.h"
-#include "accelerators/utils.h"
+#include "super4pcs/algorithms/4pcs.h"
+#include "super4pcs/algorithms/match4pcsBase.h"
+#include "super4pcs/accelerators/utils.h"
 
 #include <fstream>
 #include <time.h>  //clock
 
-namespace match_4pcs {
+namespace Super4PCS {
 
 Match4PCS::Match4PCS(const Match4PCSOptions& options)
     : Base(options) { }
@@ -65,7 +65,7 @@ bool Match4PCS::FindCongruentQuadrilaterals(
         Scalar distance_threshold2,
         const std::vector<std::pair<int, int>>& P_pairs,
         const std::vector<std::pair<int, int>>& Q_pairs,
-        std::vector<match_4pcs::Quadrilateral>* quadrilaterals) const {
+        std::vector<Super4PCS::Quadrilateral>* quadrilaterals) const {
   if (quadrilaterals == nullptr) return false;
 
   size_t number_of_points = 2 * P_pairs.size();

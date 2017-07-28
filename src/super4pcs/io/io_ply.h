@@ -18,6 +18,8 @@ readHeader ( const char *filename,
              unsigned int & numOfVertexProperties,
              bool         & haveColor )
 {
+    using namespace std;
+
     // use binary mode to preserve end line symbols on linux and windows
     ifstream in (filename, std::ios_base::in | std::ios_base::binary);
     if (!in){
@@ -145,11 +147,13 @@ readBinary1Body (const std::string & filename,
                  unsigned int numOfVertexProperties,
                  bool         haveColor,
                  bool bigEndian,
-                 vector<Point3D>& vertex,
-                 vector<typename Point3D::VectorType>& normal,
-                 vector<tripple>& face )
+                 std::vector<Super4PCS::Point3D>& vertex,
+                 std::vector<typename Super4PCS::Point3D::VectorType>& normal,
+                 std::vector<tripple>& face )
 {
     //size_t count;
+    using namespace std;
+    using namespace Super4PCS;
 
     FILE * in = fopen (filename.c_str (), "r");
     if (!in){
@@ -243,10 +247,12 @@ readASCII1Body (const std::string & filename,
                 unsigned int numOfFaces,
                 unsigned int numOfVertexProperties,
                 bool         haveColor,
-                vector<Point3D>& vertex,
-                vector<typename Point3D::VectorType>& normal,
-                vector<tripple>& face )
+                std::vector<Super4PCS::Point3D>& vertex,
+                std::vector<typename Super4PCS::Point3D::VectorType>& normal,
+                std::vector<tripple>& face )
 {
+    using namespace std;
+    using namespace Super4PCS;
 
     FILE * in = fopen (filename.c_str (), "r");
     if (!in){

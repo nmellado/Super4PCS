@@ -48,7 +48,7 @@
 #ifndef _BRUTE_FORCE_FUNCTOR_H_
 #define _BRUTE_FORCE_FUNCTOR_H_
 
-#include "intersectionNode.h"
+#include "super4pcs/accelerators/pairExtraction/intersectionNode.h"
 #include <list>
 #include <iostream>
 

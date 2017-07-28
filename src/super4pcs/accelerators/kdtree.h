@@ -47,10 +47,10 @@
 #ifndef KDTREE_H
 #define KDTREE_H
 
-#include "utils/disablewarnings.h"
-#include "bbox.h"
+#include "super4pcs/utils/disablewarnings.h"
+#include "super4pcs/accelerators/bbox.h"
 
-#include "Eigen/Core"
+#include <Eigen/Core>
 
 #include <limits>
 #include <iostream>

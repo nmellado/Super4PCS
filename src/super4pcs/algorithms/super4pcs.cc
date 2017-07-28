@@ -44,18 +44,14 @@
 // source code and datasets are available for research use at
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
-#include "super4pcs.h"
-
-#include "Eigen/Core"
-#include "Eigen/Geometry"                 // MatrixBase.homogeneous()
-#include "Eigen/SVD"                      // Transform.computeRotationScaling()
+#include "super4pcs/algorithms/super4pcs.h"
+#include "super4pcs/accelerators/bbox.h"
 
 #ifdef SUPER4PCS_USE_CHEALPIX
-#include "accelerators/normalHealSet.h"
+#include "super4pcs/accelerators/normalHealSet.h"
 #else
-#include "accelerators/normalset.h"
+#include "super4pcs/accelerators/normalset.h"
 #endif
-#include "accelerators/bbox.h"
 
 #include <fstream>
 #include <array>
@@ -64,7 +60,7 @@
 
 //#define MULTISCALE
 
-namespace match_4pcs {
+namespace Super4PCS {
 
 
 MatchSuper4PCS::MatchSuper4PCS(const Match4PCSOptions& options)
@@ -83,7 +79,7 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
         Scalar distance_threshold2,
         const std::vector<std::pair<int, int>>& P_pairs,
         const std::vector<std::pair<int, int>>& Q_pairs,
-        std::vector<match_4pcs::Quadrilateral>* quadrilaterals) const {
+        std::vector<Quadrilateral>* quadrilaterals) const {
 
     typedef PairCreationFunctor<Scalar>::Point Point;
 
@@ -244,4 +240,4 @@ MatchSuper4PCS::Initialize(const std::vector<Point3D>& /*P*/,
 }
 
 
-} // namespace match_4pcs
+} // namespace Super4PCS

@@ -46,9 +46,9 @@
 
 #include <vector>
 
-#include "shared4pcs.h"
-#include "sampling.h"
-#include "accelerators/kdtree.h"
+#include "super4pcs/shared4pcs.h"
+#include "super4pcs/sampling.h"
+#include "super4pcs/accelerators/kdtree.h"
 
 #ifdef TEST_GLOBAL_TIMINGS
 #   include "utils/timer.h"
@@ -60,7 +60,6 @@ namespace Super4PCS{
 class Match4PCSBase {
 
 public:
-    using Point3D = match_4pcs::Point3D;
     using PairsVector =  std::vector< std::pair<int, int> >;
     using Scalar = typename Point3D::Scalar;
     using VectorType = typename Point3D::VectorType;
@@ -147,9 +146,9 @@ protected:
     // Current trial.
     int current_trial_;
     // KdTree used to compute the LCP
-    Super4PCS::KdTree<Scalar> kd_tree_;
+    KdTree<Scalar> kd_tree_;
     // Parameters.
-    match_4pcs::Match4PCSOptions options_;
+    Match4PCSOptions options_;
 
 #ifdef TEST_GLOBAL_TIMINGS
 
@@ -163,7 +162,7 @@ protected:
 
 protected:
 
-    Match4PCSBase(const match_4pcs::Match4PCSOptions& options);
+    Match4PCSBase(const Match4PCSOptions& options);
 
 
     // Computes the mean distance between points in Q and their nearest neighbor.
@@ -290,7 +289,7 @@ public:
                                 Scalar distance_threshold2,
                                 const PairsVector& P_pairs,
                                 const PairsVector& Q_pairs,
-                                std::vector<match_4pcs::Quadrilateral>* quadrilaterals) const = 0;
+                                std::vector<Quadrilateral>* quadrilaterals) const = 0;
 
     // Loop over the set of congruent 4-points and test compatiliby with the
     // input base.
@@ -299,7 +298,7 @@ public:
                          int base_id2,
                          int base_id3,
                          int base_id4,
-                         const std::vector<match_4pcs::Quadrilateral> &congruent_quads,
+                         const std::vector<Quadrilateral> &congruent_quads,
                          size_t &nbCongruent);
 private:
     void initKdTree();

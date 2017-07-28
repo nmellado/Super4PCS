@@ -1,6 +1,4 @@
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-set(io_ROOT "${SRC_DIR}/io")
+set(io_ROOT "${SRC_DIR}/super4pcs/io")
 
 #############################################
 set(io_SRC

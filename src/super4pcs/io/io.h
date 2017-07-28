@@ -1,8 +1,8 @@
 #ifndef IO_H
 #define IO_H
 
-#include "shared4pcs.h"
-#include "utils/disablewarnings.h"
+#include "super4pcs/shared4pcs.h"
+#include "super4pcs/utils/disablewarnings.h"
 
 #include <fstream>
 #include <iostream>
@@ -31,10 +31,6 @@ struct tripple {
   tripple(int _a, int _b, int _c) : a(_a), b(_b), c(_c) {}
 };
 
-
-using namespace std;
-using namespace match_4pcs;
-
 class IOManager{
 public:
   enum MATRIX_MODE {
@@ -43,22 +39,27 @@ public:
 
 public:
   // Obj read/write simple functions.
-  bool ReadObject(const char *name, vector<Point3D> &v,
-                  vector<Eigen::Matrix2f> &tex_coords,
-                  vector<typename Point3D::VectorType> &normals,
-                  vector<tripple> &tris,
-                  vector<std::string> &mtls);
-  bool WriteObject(const char *name, const vector<Point3D> &v,
-                   const vector<Eigen::Matrix2f> &tex_coords,
-                   const vector<typename Point3D::VectorType> &normals,
-                   const vector<tripple> &tris, const vector<string> &mtls);
+  bool ReadObject(const char *name,
+                  std::vector<Super4PCS::Point3D> &v,
+                  std::vector<Eigen::Matrix2f> &tex_coords,
+                  std::vector<typename Super4PCS::Point3D::VectorType> &normals,
+                  std::vector<tripple> &tris,
+                  std::vector<std::string> &mtls);
+  bool WriteObject(const char *name,
+                   const std::vector<Super4PCS::Point3D> &v,
+                   const std::vector<Eigen::Matrix2f> &tex_coords,
+                   const std::vector<typename Super4PCS::Point3D::VectorType> &normals,
+                   const std::vector<tripple> &tris,
+                   const std::vector<std::string> &mtls);
 
-  bool WriteMatrix(const string& name,
+  bool WriteMatrix(const std::string& name,
                    const Eigen::Ref<const Eigen::Matrix<double, 4, 4> >& mat,
                    MATRIX_MODE mode);
 private:
   bool
-  ReadPly(const char *name, vector<Point3D> &v, vector<typename Point3D::VectorType> &normals);
+  ReadPly(const char *name,
+          std::vector<Super4PCS::Point3D> &v,
+          std::vector<typename Super4PCS::Point3D::VectorType> &normals);
 
   /*!
    * \brief ReadPtx
@@ -72,24 +73,28 @@ private:
    *            http://github.com/adasta/pcl_io_extra/blob/master/src/ptx_io.cpp
    */
   bool
-  ReadPtx(const char *name, vector<Point3D> &v);
+  ReadPtx(const char *name,
+          std::vector<Super4PCS::Point3D> &v);
 
   bool
-  ReadObj(const char *name, vector<Point3D> &v,
-          vector<Eigen::Matrix2f> &tex_coords,
-          vector<typename Point3D::VectorType> &normals,
-          vector<tripple> &tris,
-          vector<std::string> &mtls);
+  ReadObj(const char *name,
+          std::vector<Super4PCS::Point3D> &v,
+          std::vector<Eigen::Matrix2f> &tex_coords,
+          std::vector<typename Super4PCS::Point3D::VectorType> &normals,
+          std::vector<tripple> &tris,
+          std::vector<std::string> &mtls);
 
   bool
-  WritePly(string name, const vector<Point3D> &v,
-           const vector<typename Point3D::VectorType> &normals);
+  WritePly(std::string name,
+           const std::vector<Super4PCS::Point3D> &v,
+           const std::vector<typename Super4PCS::Point3D::VectorType> &normals);
 
   bool
-  WriteObj(string name, const vector<Point3D> &v,
-           const vector<Eigen::Matrix2f> &tex_coords,
-           const vector<typename Point3D::VectorType> &normals,
-           const vector<tripple> &tris, const vector<string> &mtls);
+  WriteObj(std::string name,
+           const std::vector<Super4PCS::Point3D> &v,
+           const std::vector<Eigen::Matrix2f> &tex_coords,
+           const std::vector<typename Super4PCS::Point3D::VectorType> &normals,
+           const std::vector<tripple> &tris, const std::vector<std::string> &mtls);
 
 
   /*!

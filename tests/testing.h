@@ -57,7 +57,7 @@
 #include <sstream>
 #include <ctime>
 
-#include "shared4pcs.h"
+#include "super4pcs/shared4pcs.h"
 
 #define DEFAULT_REPEAT 10
 
@@ -67,9 +67,8 @@
 namespace Super4PCS {
 namespace Testing {
 static inline void
-generateSphereCloud (std::vector<match_4pcs::Point3D>& cloud,
+generateSphereCloud (std::vector<Point3D>& cloud,
                      size_t len){
-  using match_4pcs::Point3D;
   cloud.resize(len);
   for(auto& p : cloud)
   {
@@ -86,7 +85,7 @@ template <typename Scalar, typename PairsVector>
 static inline void
 extractPairs( Scalar pair_distance,
               Scalar pair_distance_epsilon,
-              const std::vector<match_4pcs::Point3D>& cloud,
+              const std::vector<Point3D>& cloud,
               PairsVector& pairs){
     pairs.clear();
     pairs.reserve(2 * cloud.size());

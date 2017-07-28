@@ -48,7 +48,7 @@
 #ifndef _INTERSECTION_H_
 #define _INTERSECTION_H_
 
-#include "intersectionNode.h"
+#include "super4pcs/accelerators/pairExtraction/intersectionNode.h"
 #include <list>
 #include <iostream>
 

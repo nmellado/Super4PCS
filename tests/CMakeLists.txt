@@ -1,8 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories(${SRC_DIR})
-include_directories(${SRC_DIR}/accelerators)
-include_directories(${SRC_DIR}/io)
 
 #############################################
 ## start by downloading standford datasets, that will be used

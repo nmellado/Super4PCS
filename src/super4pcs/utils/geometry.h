@@ -47,7 +47,7 @@
 #ifndef _UTILS_GEOMETRY_H_
 #define _UTILS_GEOMETRY_H_
 
-#include "disablewarnings.h"
+#include "super4pcs/utils/disablewarnings.h"
 
 namespace Super4PCS{
 namespace Utils{
@@ -76,7 +76,7 @@ static inline void CleanInvalidNormals( PointContainer &v,
     }
 
     if (nb != 0){
-      cout << "Found " << nb << " vertices with invalid normals" << endl;
+      std::cout << "Found " << nb << " vertices with invalid normals" << std::endl;
     }
   }
 }

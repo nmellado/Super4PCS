@@ -48,8 +48,8 @@
 #ifndef _INDEXED_NORMAL_SET_H_
 #define _INDEXED_NORMAL_SET_H_
 
-#include "utils/disablewarnings.h"
-#include "utils.h"
+#include "super4pcs/utils/disablewarnings.h"
+#include "super4pcs/accelerators/utils.h"
 
 namespace Super4PCS{
 
@@ -152,6 +152,6 @@ public:
 
 } // namespace Super4PCS
 
-#include "normalset.hpp"
+#include "super4pcs/accelerators/normalset.hpp"
 
 #endif // _INDEXED_NORMAL_SET_H_
