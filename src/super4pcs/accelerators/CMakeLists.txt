@@ -21,7 +21,7 @@ if(SUPER4PCS_USE_CHEALPIX)
         ${accel_ROOT}/normalHealSet.cpp
         ${accel_ROOT}/normalHealSet.h)
 
-    add_library(super4pcs_accel ${accel_INCLUDE} ${chealpix_files})
+    add_library(super4pcs_accel SHARED ${accel_INCLUDE} ${chealpix_files})
     target_link_libraries(super4pcs_accel ${Chealpix_LIBS} )
     add_dependencies(super4pcs_accel  chealpix)
 
@@ -37,3 +37,9 @@ else ()
         set_target_properties(super4pcs_accel PROPERTIES LINKER_LANGUAGE CXX)
     endif(CMAKE_VERSION VERSION_GREATER 3.1)
 endif(SUPER4PCS_USE_CHEALPIX)
+
+
+install( TARGETS super4pcs_accel
+    RUNTIME DESTINATION ${INSTALL_DIR}/bin
+    LIBRARY DESTINATION ${INSTALL_DIR}/lib
+    ARCHIVE DESTINATION ${INSTALL_DIR}/lib )

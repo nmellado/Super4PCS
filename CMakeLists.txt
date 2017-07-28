@@ -23,6 +23,10 @@ OPTION (ENABLE_TIMING "Enable computation time recording" FALSE)
 OPTION (SUPER4PCS_USE_CHEALPIX "Use Chealpix for orientation filtering (deprecated)" FALSE)
 OPTION (DL_DATASETS "Download demo datasets and associated run scripts" FALSE)
 
+if(NOT INSTALL_DIR)
+  set(INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+endif(NOT INSTALL_DIR)
+
 
 # add the binary tree to the search path for include files
 include_directories("${PROJECT_BINARY_DIR}")
@@ -162,10 +166,16 @@ add_subdirectory(${SRC_DIR}/io)
 add_subdirectory(${SRC_DIR}/utils)
 add_subdirectory(${SRC_DIR}/accelerators)
 
-add_library(super4pcs_algo  ${Super4PCS_SRC} ${Super4PCS_INCLUDE})
+add_library(super4pcs_algo SHARED ${Super4PCS_SRC} ${Super4PCS_INCLUDE})
 
 # add the executable
 add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs_test.cc)
 
 TARGET_LINK_LIBRARIES(super4pcs_algo super4pcs_io super4pcs_accel)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} super4pcs_algo super4pcs_utils)
+
+install( TARGETS super4pcs_algo ${PROJECT_NAME}
+    RUNTIME DESTINATION ${INSTALL_DIR}/bin
+    LIBRARY DESTINATION ${INSTALL_DIR}/lib
+    ARCHIVE DESTINATION ${INSTALL_DIR}/lib )
+
