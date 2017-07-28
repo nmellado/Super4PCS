@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 project (Super4PCS)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-set(SRC_DIR ${PROJECT_SOURCE_DIR}/src/super4pcs/)
+set(SRC_DIR ${PROJECT_SOURCE_DIR}/src/)
 
 ################################################################################
 ## Configuration file
@@ -27,9 +27,6 @@ if(NOT INSTALL_DIR)
   set(INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 endif(NOT INSTALL_DIR)
 
-
-# add the binary tree to the search path for include files
-include_directories("${PROJECT_BINARY_DIR}")
 
 ################################################################################
 ## GUARDS
@@ -148,28 +145,28 @@ endif(SUPER4PCS_COMPILE_TESTS)
 
 include_directories(${SRC_DIR})
 set(Super4PCS_SRC
-    ${SRC_DIR}/algorithms/match4pcsBase.cc
-    ${SRC_DIR}/algorithms/4pcs.cc
-    ${SRC_DIR}/algorithms/super4pcs.cc
+    ${SRC_DIR}/super4pcs/algorithms/match4pcsBase.cc
+    ${SRC_DIR}/super4pcs/algorithms/4pcs.cc
+    ${SRC_DIR}/super4pcs/algorithms/super4pcs.cc
 )
 set(Super4PCS_INCLUDE
-    ${SRC_DIR}/sampling.h
-    ${SRC_DIR}/shared4pcs.h
-    ${SRC_DIR}/pairExtraction.h
-    ${SRC_DIR}/algorithms/match4pcsBase.h
-    ${SRC_DIR}/algorithms/4pcs.h
-    ${SRC_DIR}/algorithms/super4pcs.h
-    ${SRC_DIR}/pairCreationFunctor.h
+    ${SRC_DIR}/super4pcs/sampling.h
+    ${SRC_DIR}/super4pcs/shared4pcs.h
+    ${SRC_DIR}/super4pcs/pairExtraction.h
+    ${SRC_DIR}/super4pcs/algorithms/match4pcsBase.h
+    ${SRC_DIR}/super4pcs/algorithms/4pcs.h
+    ${SRC_DIR}/super4pcs/algorithms/super4pcs.h
+    ${SRC_DIR}/super4pcs/pairCreationFunctor.h
 )
 
-add_subdirectory(${SRC_DIR}/io)
-add_subdirectory(${SRC_DIR}/utils)
-add_subdirectory(${SRC_DIR}/accelerators)
+add_subdirectory(${SRC_DIR}/super4pcs/io)
+add_subdirectory(${SRC_DIR}/super4pcs/utils)
+add_subdirectory(${SRC_DIR}/super4pcs/accelerators)
 
 add_library(super4pcs_algo SHARED ${Super4PCS_SRC} ${Super4PCS_INCLUDE})
 
 # add the executable
-add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs_test.cc)
+add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs/super4pcs_test.cc)
 
 TARGET_LINK_LIBRARIES(super4pcs_algo super4pcs_io super4pcs_accel)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} super4pcs_algo super4pcs_utils)

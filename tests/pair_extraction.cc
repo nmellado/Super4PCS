@@ -48,19 +48,19 @@
 // source code and datasets are available for research use at
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
-#include "algorithms/4pcs.h"
-#include "algorithms/super4pcs.h"
+#include "super4pcs/algorithms/4pcs.h"
+#include "super4pcs/algorithms/super4pcs.h"
+#include "super4pcs/accelerators/pairExtraction/bruteForceFunctor.h"
+#include "super4pcs/accelerators/pairExtraction/intersectionFunctor.h"
+#include "super4pcs/accelerators/pairExtraction/intersectionPrimitive.h"
+#include "super4pcs/utils/timer.h"
+#include "super4pcs/accelerators/bbox.h"
 
 #include <Eigen/Dense>
 
 #include <fstream>
 #include <iostream>
 #include <string>
-#include "accelerators/pairExtraction/bruteForceFunctor.h"
-#include "accelerators/pairExtraction/intersectionFunctor.h"
-#include "accelerators/pairExtraction/intersectionPrimitive.h"
-#include "utils/timer.h"
-#include "bbox.h"
 
 #include <sys/time.h>
 #include <unistd.h>
@@ -69,10 +69,6 @@
 
 #include "testing.h"
 
-//#include "normalset.h"
-//#include "normalHealSet.h"
-
-using namespace match_4pcs;
 using namespace Super4PCS;
 
 struct MyPairCreationFunctor{
@@ -231,7 +227,7 @@ void callMatchSubTests()
     using Scalar = typename MatchType::Scalar;
     using PairsVector = typename MatchType::PairsVector;
 
-    match_4pcs::Match4PCSOptions opt;
+    Match4PCSOptions opt;
     opt.delta = 0.1;
     opt.overlap_estimation = 0.5;
 

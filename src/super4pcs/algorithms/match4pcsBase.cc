@@ -41,19 +41,17 @@
 // Use google search on "4-points congruent sets" to see many related papers
 // and applications.
 
-#include "match4pcsBase.h"
-#include "shared4pcs.h"
+#include "super4pcs/algorithms/match4pcsBase.h"
+#include "super4pcs/shared4pcs.h"
+#include "super4pcs/sampling.h"
+#include "super4pcs/accelerators/kdtree.h"
 
 #include <vector>
 #include <chrono>
 
-#include "Eigen/Core"
-#include "Eigen/Geometry"                 // MatrixBase.homogeneous()
-#include "Eigen/SVD"                      // Transform.computeRotationScaling()
-
-#include "shared4pcs.h"
-#include "sampling.h"
-#include "accelerators/kdtree.h"
+#include <Eigen/Core>
+#include <Eigen/Geometry>                 // MatrixBase.homogeneous()
+#include <Eigen/SVD>                      // Transform.computeRotationScaling()
 
 const double pi = std::acos(-1);
 
@@ -136,7 +134,7 @@ distSegmentToSegment(const VectorType& p1, const VectorType& p2,
 
 namespace Super4PCS{
 
-Match4PCSBase::Match4PCSBase(const match_4pcs::Match4PCSOptions& options)
+Match4PCSBase::Match4PCSBase(const Match4PCSOptions& options)
   :number_of_trials_(0),
     max_base_diameter_(-1),
     P_mean_distance_(1.0),
@@ -494,7 +492,7 @@ bool Match4PCSBase::TryCongruentSet(
         int base_id2,
         int base_id3,
         int base_id4,
-        const std::vector<match_4pcs::Quadrilateral>& congruent_quads,
+        const std::vector<Quadrilateral>& congruent_quads,
         size_t &nbCongruent){
     std::array<std::pair<Point3D, Point3D>,4> congruent_points;
 
@@ -992,7 +990,7 @@ bool Match4PCSBase::TryOneBase() {
   const Scalar distance2 = (base_3D_[2].pos()- base_3D_[3].pos()).norm();
 
   std::vector<std::pair<int, int>> pairs1, pairs2;
-  std::vector<match_4pcs::Quadrilateral> congruent_quads;
+  std::vector<Quadrilateral> congruent_quads;
 
   // Compute normal angles.
   const Scalar normal_angle1 = (base_3D_[0].normal() - base_3D_[1].normal()).norm();

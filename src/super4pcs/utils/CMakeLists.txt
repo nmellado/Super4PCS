@@ -1,10 +1,4 @@
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-set(utils_ROOT "${SRC_DIR}/utils")
-
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
-
+set(utils_ROOT "${SRC_DIR}/super4pcs/utils")
 
 #############################################
 
@@ -25,7 +19,6 @@ if(CMAKE_VERSION VERSION_GREATER 3.1)
     add_custom_target(super4pcs_utils_IDE SOURCES ${utils_INCLUDE})
 else ()
     add_library(super4pcs_utils STATIC ${utils_INCLUDE})
-    include_directories(${utils_ROOT})
     set_target_properties(super4pcs_utils PROPERTIES LINKER_LANGUAGE CXX)
 endif(CMAKE_VERSION VERSION_GREATER 3.1)
 

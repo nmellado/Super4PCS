@@ -1,6 +1,4 @@
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-set(accel_ROOT "${SRC_DIR}/accelerators")
+set(accel_ROOT "${SRC_DIR}/super4pcs/accelerators")
 
 #############################################
 
@@ -29,11 +27,9 @@ if(SUPER4PCS_USE_CHEALPIX)
 else ()
     if(CMAKE_VERSION VERSION_GREATER 3.1)
         add_library(super4pcs_accel INTERFACE)
-        target_include_directories(super4pcs_accel INTERFACE ${accel_ROOT})
         target_sources(super4pcs_accel INTERFACE ${accel_INCLUDE})
     else ()
         add_library(super4pcs_accel STATIC ${accel_INCLUDE})
-        include_directories(${accel_ROOT})
         set_target_properties(super4pcs_accel PROPERTIES LINKER_LANGUAGE CXX)
     endif(CMAKE_VERSION VERSION_GREATER 3.1)
 endif(SUPER4PCS_USE_CHEALPIX)

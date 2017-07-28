@@ -47,15 +47,15 @@
 #ifndef _SUPER4PCS_H_
 #define _SUPER4PCS_H_
 
-#include "match4pcsBase.h"
-#include "pairCreationFunctor.h"
+#include "super4pcs/algorithms/match4pcsBase.h"
+#include "super4pcs/pairCreationFunctor.h"
 
-namespace match_4pcs {
+namespace Super4PCS {
 
 // Class for the computation of the 4PCS algorithm.
-class MatchSuper4PCS : public Super4PCS::Match4PCSBase {
+class MatchSuper4PCS : public Match4PCSBase {
  public:
-  using Base        = Super4PCS::Match4PCSBase;
+  using Base        = Match4PCSBase;
   using Scalar      = typename Base::Scalar;
   using PairsVector = typename Base::PairsVector;
 
@@ -115,7 +115,7 @@ public:
          Scalar distance_threshold2,
          const PairsVector& P_pairs,
          const PairsVector& Q_pairs,
-         std::vector<match_4pcs::Quadrilateral>* quadrilaterals) const override;
+         std::vector<Quadrilateral>* quadrilaterals) const override;
 
 protected:
  // Initializes the data structures and needed values before the match
@@ -126,6 +126,6 @@ protected:
  void Initialize(const std::vector<Point3D>& P,
                  const std::vector<Point3D>& Q) override;
 };
-} // namespace match_4pcs
+} // namespace Super4PCS
 
 #endif  // _4PCS_H_

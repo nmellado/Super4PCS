@@ -52,7 +52,7 @@
 #define SQR(a)		((a)*(a))
 #endif
 
-#include "Eigen/Core"
+#include <Eigen/Core>
 
 namespace Super4PCS{
 namespace Accelerators{

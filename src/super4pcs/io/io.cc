@@ -1,5 +1,5 @@
-#include "io.h"
-#include "io_ply.h"
+#include "super4pcs/io/io.h"
+#include "super4pcs/io/io_ply.h"
 
 #include <Eigen/Geometry>
 
@@ -11,6 +11,7 @@
 #define LINE_BUF_SIZE 100
 
 using namespace std;
+using namespace Super4PCS;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Read

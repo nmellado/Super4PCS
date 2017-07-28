@@ -44,16 +44,16 @@
 #ifndef _SHARED_4PCS_H_
 #define _SHARED_4PCS_H_
 
+#include "super4pcs/utils/disablewarnings.h"
+
+#include <Eigen/Core>
+
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include <array>
 
-#include <Eigen/Core>
-
-#include "utils/disablewarnings.h"
-
-namespace match_4pcs {
+namespace Super4PCS {
 
 // The basic 3D point structure. A point potentially contains also directional
 // information and color.
@@ -175,7 +175,7 @@ struct Match4PCSOptions {
   int max_time_seconds = 60;
 };
 
-} // namespace match_4pcs
+} // namespace Super4PCS
 
 
 
