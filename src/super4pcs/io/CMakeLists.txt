@@ -8,7 +8,7 @@ set(io_INCLUDE
     ${io_ROOT}/io_ply.h)
 
 # use library target, to make accessible to test routines
-add_library(super4pcs_io SHARED ${io_SRC} ${io_INCLUDE})
+add_library(super4pcs_io ${io_SRC} ${io_INCLUDE})
 
 
 if(IO_USE_OPENCV)
