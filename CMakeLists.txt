@@ -163,7 +163,7 @@ add_subdirectory(${SRC_DIR}/super4pcs/io)
 add_subdirectory(${SRC_DIR}/super4pcs/utils)
 add_subdirectory(${SRC_DIR}/super4pcs/accelerators)
 
-add_library(super4pcs_algo SHARED ${Super4PCS_SRC} ${Super4PCS_INCLUDE})
+add_library(super4pcs_algo ${Super4PCS_SRC} ${Super4PCS_INCLUDE})
 
 # add the executable
 add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs/super4pcs_test.cc)

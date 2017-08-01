@@ -19,7 +19,7 @@ if(SUPER4PCS_USE_CHEALPIX)
         ${accel_ROOT}/normalHealSet.cpp
         ${accel_ROOT}/normalHealSet.h)
 
-    add_library(super4pcs_accel SHARED ${accel_INCLUDE} ${chealpix_files})
+    add_library(super4pcs_accel ${accel_INCLUDE} ${chealpix_files})
     target_link_libraries(super4pcs_accel ${Chealpix_LIBS} )
     add_dependencies(super4pcs_accel  chealpix)
 
