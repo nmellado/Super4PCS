@@ -102,8 +102,8 @@ std::array<Scalar, nbSet> overlaps = {
 };
 
 std::array<Scalar, nbSet> n_points = {
-    300,
-    300,
+    400,
+    400,
 };
 
 
