@@ -52,6 +52,7 @@
 #include <iostream>
 #include <fstream>
 #include <array>
+#include <random>
 
 namespace Super4PCS {
 
@@ -146,26 +147,20 @@ inline std::ofstream& operator<<(std::ofstream& ofs, const Quadrilateral& q){
 // delta and overlap_estimation are the application parameters. All other
 // parameters are more likely to keep fixed and they can be set via the setters.
 struct Match4PCSOptions {
+  using Scalar = typename Point3D::Scalar;
   Match4PCSOptions() {}
 
   // The delta for the LCP (see the paper).
-  double delta = 5.0;
-  // Estimated overlap between P and Q. This is the fraction of points in P that
-  // may have corresponding point in Q. It's being used to estimate the number
-  // of RANSAC iterations needed to guarantee small failure probability.
-  double overlap_estimation = 0.2;
+  Scalar delta = 5.0;
 
   // Maximum normal difference.
-  double max_normal_difference = -1;
+  Scalar max_normal_difference = -1;
   // Maximum translation distance. Set negative to ignore
-  double max_translation_distance = -1;
+  Scalar max_translation_distance = -1;
   // Maximum rotation angle. Set negative to ignore
-  double max_angle = -1;
+  Scalar max_angle = -1;
   // Maximum color RGB distance between corresponding vertices. Set negative to ignore
-  double max_color_distance = -1;
-  // Threshold on the value of the target function (LCP, see the paper).
-  // It is used to terminate the process once we reached this value.
-  double terminate_threshold = 1.0;
+  Scalar max_color_distance = -1;
   // The number of points in the sample. We sample this number of points
   // uniformly from P and Q.
   int sample_size = 200;
@@ -173,6 +168,26 @@ struct Match4PCSOptions {
   // an ANY TIME algorithm that can be stopped at any time, producing the best
   // solution so far.
   int max_time_seconds = 60;
+  // use a constant default seed by default
+  unsigned int randomSeed = std::mt19937::default_seed;
+
+  inline bool configureOverlap(Scalar overlap_, Scalar terminate_threshold_ = Scalar(1)) {
+      if(terminate_threshold_ < overlap_) return false;
+      overlap_estimation = overlap_;
+      terminate_threshold = terminate_threshold_;
+      return true;
+  }
+  inline Scalar getTerminateThreshold() const { return terminate_threshold; }
+  inline Scalar getOverlapEstimation()  const { return overlap_estimation; }
+
+private:
+  // Threshold on the value of the target function (LCP, see the paper).
+  // It is used to terminate the process once we reached this value.
+  Scalar terminate_threshold = 1.0;
+  // Estimated overlap between P and Q. This is the fraction of points in P that
+  // may have corresponding point in Q. It's being used to estimate the number
+  // of RANSAC iterations needed to guarantee small failure probability.
+  Scalar overlap_estimation = 0.2;
 };
 
 } // namespace Super4PCS

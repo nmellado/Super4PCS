@@ -138,8 +138,9 @@ Match4PCSBase::Match4PCSBase(const Match4PCSOptions& options)
   :number_of_trials_(0),
     max_base_diameter_(-1),
     P_mean_distance_(1.0),
-    best_LCP_(0.0F),
-    options_(options) {
+    best_LCP_(0.0),
+    options_(options),
+    randomGenerator_(options.randomSeed) {
   base_3D_.resize(4);
 }
 
@@ -185,20 +186,9 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
     sampled_P_3D_.clear();
     sampled_Q_3D_.clear();
 
-    int sample_fraction_P = 1;  // We prefer not to sample P but any number can be
-    // placed here.
-
     // prepare P
     if (P.size() > options_.sample_size){
-        std::vector<Point3D> uniform_P;
-        Super4PCS::Sampling::DistUniformSampling(P, options_.delta, &uniform_P);
-
-        // Sample the sets P and Q uniformly.
-        for (int i = 0; i < uniform_P.size(); ++i) {
-            if (rand() % sample_fraction_P == 0) {
-                sampled_P_3D_.push_back(uniform_P[i]);
-            }
-        }
+        Super4PCS::Sampling::DistUniformSampling(P, options_.delta, &sampled_P_3D_);
     }
     else
     {
@@ -212,14 +202,12 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
     if (Q.size() > options_.sample_size){
         std::vector<Point3D> uniform_Q;
         Super4PCS::Sampling::DistUniformSampling(Q, options_.delta, &uniform_Q);
-        int sample_fraction_Q =
-                std::max(1, static_cast<int>(uniform_Q.size() / options_.sample_size));
 
-        for (int i = 0; i < uniform_Q.size(); ++i) {
-            if (rand() % sample_fraction_Q == 0) {
-                sampled_Q_3D_.push_back(uniform_Q[i]);
-            }
-        }
+
+        std::shuffle(uniform_Q.begin(), uniform_Q.end(), randomGenerator_);
+        int nbSamples = std::min(int(uniform_Q.size()), options_.sample_size);
+        auto endit = uniform_Q.begin(); std::advance(endit, nbSamples );
+        std::copy(uniform_Q.begin(), endit, std::back_inserter(sampled_Q_3D_));
     }
     else
     {
@@ -256,8 +244,8 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
     // objects if they are densely sampled.
     P_diameter_ = 0.0;
     for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
-        int at = rand() % sampled_Q_3D_.size();
-        int bt = rand() % sampled_Q_3D_.size();
+        int at = randomGenerator_() % sampled_Q_3D_.size();
+        int bt = randomGenerator_() % sampled_Q_3D_.size();
 
         Scalar l = (sampled_Q_3D_[bt].pos() - sampled_Q_3D_[at].pos()).norm();
         if (l > P_diameter_) {
@@ -275,7 +263,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
 
     // RANSAC probability and number of needed trials.
     Scalar first_estimation =
-            log(kSmallError) / log(1.0 - pow(options_.overlap_estimation,
+            log(kSmallError) / log(1.0 - pow(options_.getOverlapEstimation(),
                                              static_cast<Scalar>(kMinNumberOfTrials)));
     // We use a simple heuristic to elevate the probability to a reasonable value
     // given that we don't simply sample from P, but instead, we bound the
@@ -283,8 +271,6 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
     number_of_trials_ =
             static_cast<int>(first_estimation * (P_diameter_ / kDiameterFraction) /
                              max_base_diameter_);
-    if (options_.terminate_threshold < 0)
-        options_.terminate_threshold = options_.overlap_estimation;
     if (number_of_trials_ < kMinNumberOfTrials)
         number_of_trials_ = kMinNumberOfTrials;
 
@@ -312,7 +298,7 @@ bool Match4PCSBase::SelectRandomTriangle(int &base1, int &base2, int &base3) {
       base1 = base2 = base3 = -1;
 
       // Pick the first point at random.
-      int first_point = rand() % number_of_points;
+      int first_point = randomGenerator_() % number_of_points;
 
       const Scalar sq_max_base_diameter_ = max_base_diameter_*max_base_diameter_;
 
@@ -320,8 +306,8 @@ bool Match4PCSBase::SelectRandomTriangle(int &base1, int &base2, int &base3) {
       Scalar best_wide = 0.0;
       for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
         // Pick and compute
-        const int second_point = rand() % number_of_points;
-        const int third_point = rand() % number_of_points;
+        const int second_point = randomGenerator_() % number_of_points;
+        const int third_point = randomGenerator_() % number_of_points;
         const VectorType u =
                 sampled_P_3D_[second_point].pos() -
                 sampled_P_3D_[first_point].pos();
@@ -588,7 +574,7 @@ bool Match4PCSBase::TryCongruentSet(
             qcentroid2_  = centroid2;
           }
           // Terminate if we have the desired LCP already.
-          if (best_LCP_ > options_.terminate_threshold){
+          if (best_LCP_ > options_.getTerminateThreshold()){
             return true;
           }
         }

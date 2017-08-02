@@ -229,7 +229,7 @@ void callMatchSubTests()
 
     Match4PCSOptions opt;
     opt.delta = 0.1;
-    opt.overlap_estimation = 0.5;
+    VERIFY(opt.configureOverlap(0.5));
 
     const size_t nbPointP = 200;
     const size_t nbPointQ = 150;

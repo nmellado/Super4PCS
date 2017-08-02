@@ -153,7 +153,12 @@ int main(int argc, char **argv) {
 
   // Set parameters.
   Match4PCSBase::MatrixType mat;
-  options.overlap_estimation = overlap;
+  bool overlapOk = options.configureOverlap(overlap);
+  if(! overlapOk )  {
+      std::cerr << "Invalid overlap configuration. ABORT" << std::endl;
+      /// TODO Add proper error codes
+      return -3;
+  }
   options.sample_size = n_points;
   options.max_normal_difference = norm_diff;
   options.max_color_distance = max_color;
