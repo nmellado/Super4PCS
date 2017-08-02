@@ -239,9 +239,8 @@ void test_model(const vector<Transform> &transforms,
     Match4PCSOptions options;
 
     // Set parameters.
-    //cv::Mat mat = cv::Mat::eye(4, 4, CV_64F);
     Match4PCSBase::MatrixType mat;
-    options.overlap_estimation = overlaps[param_i];
+    VERIFY(options.configureOverlap(overlaps[param_i]));
     options.sample_size = n_points[param_i];
     options.max_time_seconds = max_time_seconds;
     options.delta = deltas[param_i];
@@ -253,7 +252,7 @@ void test_model(const vector<Transform> &transforms,
         cout << "./Super4PCS -i "
              << input1.c_str() << " "
              << input2.c_str()
-             << " -o " << options.overlap_estimation
+             << " -o " << options.getOverlapEstimation()
              << " -d " << options.delta
              << " -n " << options.sample_size
              << " -a " << options.max_normal_difference
@@ -266,7 +265,7 @@ void test_model(const vector<Transform> &transforms,
         cout << "./Super4PCS -i "
              << input1.c_str() << " "
              << input2.c_str()
-             << " -o " << options.overlap_estimation
+             << " -o " << options.getOverlapEstimation()
              << " -d " << options.delta
              << " -n " << options.sample_size
              << " -a " << options.max_normal_difference

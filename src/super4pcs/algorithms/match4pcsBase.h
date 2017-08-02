@@ -148,7 +148,9 @@ protected:
     // KdTree used to compute the LCP
     KdTree<Scalar> kd_tree_;
     // Parameters.
-    Match4PCSOptions options_;
+    const Match4PCSOptions options_;
+
+    std::mt19937 randomGenerator_;
 
 #ifdef TEST_GLOBAL_TIMINGS
 
