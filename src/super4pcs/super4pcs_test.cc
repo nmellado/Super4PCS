@@ -168,6 +168,9 @@ int main(int argc, char **argv) {
   typename Point3D::Scalar score = 0;
 
   constexpr Utils::LogLevel loglvl = Utils::Verbose;
+  using TrVisitorType = typename std::conditional <loglvl==Utils::NoLog,
+                            Match4PCSBase::DummyTransformVisitor,
+                            Match4PCSBase::TransformVisitor>::type;
   Utils::Logger logger(loglvl);
 
   try {
@@ -175,7 +178,7 @@ int main(int argc, char **argv) {
       if (use_super4pcs) {
           MatchSuper4PCS matcher(options, logger);
           logger.Log<Utils::Verbose>( "Use Super4PCS" );
-          score = matcher.ComputeTransformation(set1, &set2, mat);
+          score = matcher.ComputeTransformation<TrVisitorType>(set1, &set2, mat);
 
           if(! outputSampled1.empty() ){
               logger.Log<Utils::Verbose>( "Exporting Sampled cloud 1 to ",
@@ -205,7 +208,7 @@ int main(int argc, char **argv) {
       else {
           Match4PCS matcher(options, logger);
           logger.Log<Utils::Verbose>( "Use old 4PCS" );
-          score = matcher.ComputeTransformation(set1, &set2, mat);
+          score = matcher.ComputeTransformation<TrVisitorType>(set1, &set2, mat);
       }
 
   }
