@@ -70,7 +70,7 @@ public:
     inline LogLevel logLevel() const { return logLevel_; }
 
     template <LogLevel level, typename...Args>
-    inline void Log(Args...args) const{
+    inline void Log(const Args&...args) const{
         switch(logLevel_) {
         case NoLog:
             LOG<NoLog, level>(args...);
@@ -92,7 +92,7 @@ protected:
     }
 
     template<typename First, typename...Rest>
-    static inline void print_err_impl(First param1, Rest...param){
+    static inline void print_err_impl(const First& param1, const Rest&...param){
         std::cerr << param1;
         print_err_impl(param...);
     }
@@ -101,13 +101,13 @@ protected:
     }
 
     template<typename First, typename...Rest>
-    static inline void print_msg_impl(First param1, Rest...param){
+    static inline void print_msg_impl(const First& param1, const Rest&...param){
         std::cout << param1;
         print_msg_impl(param...);
     }
 
     template<LogLevel msgLevel, LogLevel appLevel, typename...Args>
-    static inline void LOG( Args...args) {
+    static inline void LOG( const Args&...args) {
         if(msgLevel >= appLevel){
             if (msgLevel == ErrorReport)
                 print_err_impl(args...);

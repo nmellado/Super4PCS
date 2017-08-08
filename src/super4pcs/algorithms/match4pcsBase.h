@@ -75,11 +75,11 @@ public:
                    static_cast<int>(fraction * 100), '%', best_LCP);
             fflush(stdout);
         }
-        constexpr bool needsGlobalTransformation() { return false; }
+        constexpr bool needsGlobalTransformation() const { return false; }
     };
     struct DummyTransformVisitor {
         inline void operator() (float, float, Eigen::Ref<Match4PCSBase::MatrixType>) {}
-        constexpr bool needsGlobalTransformation() { return false; }
+        constexpr bool needsGlobalTransformation() const { return false; }
 
     };
 
