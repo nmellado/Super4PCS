@@ -80,6 +80,13 @@ typedef Eigen::Transform<Scalar, Dim, Eigen::Affine> Transform;
 
 const int nbSet = 2;
 
+
+constexpr Utils::LogLevel loglvl = Utils::Verbose;
+using TrVisitorType = typename std::conditional <loglvl==Utils::NoLog,
+                          Match4PCSBase::DummyTransformVisitor,
+                          Match4PCSBase::TransformVisitor>::type;
+Utils::Logger logger(loglvl);
+
 /*!
   Datasets and associated parameters
   In the current state we use a conservative configuration, better timing
@@ -248,7 +255,7 @@ void test_model(const vector<Transform> &transforms,
     Scalar score = 0.;
 
     if(use_super4pcs){
-        MatchSuper4PCS matcher(options);
+        MatchSuper4PCS matcher(options, logger);
         cout << "./Super4PCS -i "
              << input1.c_str() << " "
              << input2.c_str()
@@ -261,7 +268,7 @@ void test_model(const vector<Transform> &transforms,
              << endl;
         score = matcher.ComputeTransformation(mergedset, &set2, mat);
     }else{
-        Match4PCS matcher(options);
+        Match4PCS matcher(options, logger);
         cout << "./Super4PCS -i "
              << input1.c_str() << " "
              << input2.c_str()

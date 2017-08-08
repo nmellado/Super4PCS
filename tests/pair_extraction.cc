@@ -90,6 +90,13 @@ struct MyPairCreationFunctor{
 };
 
 
+constexpr Utils::LogLevel loglvl = Utils::Verbose;
+using TrVisitorType = typename std::conditional <loglvl==Utils::NoLog,
+                          Match4PCSBase::DummyTransformVisitor,
+                          Match4PCSBase::TransformVisitor>::type;
+Utils::Logger logger(loglvl);
+
+
 /*!
  * \brief Generate a set of random points and spheres, and test the pair extraction
 
@@ -259,7 +266,7 @@ void callMatchSubTests()
 
 
         // extract point using matcher
-        MatchType match (opt);
+        MatchType match (opt, logger);
         match.init(P, Q);
 
         std::vector<std::pair<int, int>> pairs1, pairs2;
