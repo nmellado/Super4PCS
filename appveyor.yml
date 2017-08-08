@@ -53,7 +53,7 @@ before_build:
   - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DCMAKE_BUILD_TYPE=%configuration% -DSUPER4PCS_COMPILE_TESTS=FALSE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=FALSE -DDL_DATASETS=FALSE  -DINSTALL_DIR=%SUPER4PCS_INSTALL_DIR% ..
 
 build:
-  project: C:\projects\Super4PCS\build\Super4PCS.sln # path to Visual Studio solution or project
+  project: C:\projects\Super4PCS\build\Super4PCSINSTALL.vcxproj  # path to Visual Studio solution or project
   parallel: true                           # enable MSBuild parallel builds
   verbosity: quiet                         # MSBuild verbosity level (quiet|minimal|normal|detailed)
 
