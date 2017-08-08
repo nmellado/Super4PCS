@@ -57,3 +57,7 @@ test: on
 test_script:
   - cmd: ctest --build-config %configuration% --parallel 4 --output-on-failure
 
+test: off
+#test_script:
+#  - cmd: ctest --build-config %configuration% --parallel 4 --output-on-failure
+
