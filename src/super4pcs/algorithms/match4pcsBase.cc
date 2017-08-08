@@ -47,11 +47,8 @@
 #include "super4pcs/accelerators/kdtree.h"
 
 #include <vector>
-#include <chrono>
 
 #include <Eigen/Core>
-#include <Eigen/Geometry>                 // MatrixBase.homogeneous()
-#include <Eigen/SVD>                      // Transform.computeRotationScaling()
 
 const double pi = std::acos(-1);
 
@@ -827,102 +824,6 @@ Match4PCSBase::Verify(const Eigen::Ref<const MatrixType> &mat) {
   verifyTime += Scalar(t_verify.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
 #endif
   return Scalar(good_points) / Scalar(number_of_points);
-}
-
-
-
-// The main 4PCS function. Computes the best rigid transformation and transfoms
-// Q toward P by this transformation.
-Match4PCSBase::Scalar
-Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
-                                     std::vector<Point3D>* Q,
-                                     Eigen::Ref<MatrixType> transformation) {
-
-  if (Q == nullptr) return kLargeNumber;
-  init(P, *Q);
-
-  transformation = MatrixType::Identity();
-  Perform_N_steps(number_of_trials_, transformation, Q);
-
-#ifdef TEST_GLOBAL_TIMINGS
-  std::cout << "----------- Timings (msec) -------------"          << std::endl;
-  std::cout << " Total computation time  : " << totalTime          << std::endl;
-  std::cout << " Total verify time       : " << verifyTime         << std::endl;
-  std::cout << "    Kdtree query         : " << kdTreeTime         << std::endl;
-#endif
-
-  return best_LCP_;
-}
-
-
-// Performs N RANSAC iterations and compute the best transformation. Also,
-// transforms the set Q by this optimal transformation.
-bool Match4PCSBase::Perform_N_steps(int n,
-                                    Eigen::Ref<MatrixType> transformation,
-                                    std::vector<Point3D>* Q) {
-	using std::chrono::system_clock;
-  if (Q == nullptr) return false;
-
-#ifdef TEST_GLOBAL_TIMINGS
-    Timer t (true);
-#endif
-
-  Scalar last_best_LCP = best_LCP_;
-  bool ok = false;
-  std::chrono::time_point<system_clock> t0 = system_clock::now(), end;
-  for (int i = current_trial_; i < current_trial_ + n; ++i) {
-    ok = TryOneBase();
-
-    Scalar fraction_try  = Scalar(i) / Scalar(number_of_trials_);
-    Scalar fraction_time = 
-		std::chrono::duration_cast<std::chrono::seconds>
-		(system_clock::now() - t0).count() /
-                          options_.max_time_seconds;
-    Scalar fraction = std::max(fraction_time, fraction_try);
-    printf("done: %d%c best: %f                  \r",
-           static_cast<int>(fraction * 100), '%', best_LCP_);
-    fflush(stdout);
-    // ok means that we already have the desired LCP.
-    if (ok || i > number_of_trials_ || fraction >= 0.99 || best_LCP_ == 1.0) break;
-  }
-
-  current_trial_ += n;
-  if (best_LCP_ > last_best_LCP) {
-  *Q = Q_copy_;
-
-      // The transformation has been computed between the two point clouds centered
-    // at the origin, we need to recompute the translation to apply it to the original clouds
-    {
-        Eigen::Matrix<Scalar, 3,1> centroid_P,centroid_Q;
-        centroid_P = centroid_P_;
-        centroid_Q = centroid_Q_;
-
-        Eigen::Matrix<Scalar, 3, 3> rot, scale;
-        Eigen::Transform<Scalar, 3, Eigen::Affine> (transform_).computeRotationScaling(&rot, &scale);
-        transform_.col(3) = (qcentroid1_ + centroid_P - ( rot * scale * (qcentroid2_ + centroid_Q))).homogeneous();
-        transformation = transform_;
-    }
-
-    // Transforms Q by the new transformation.
-    for (size_t i = 0; i < Q->size(); ++i) {
-      (*Q)[i].pos() = (transformation * (*Q)[i].pos().homogeneous()).head<3>();
-
-//      cv::Mat first(4, 1, CV_64F), transformed;
-//      first.at<double>(0, 0) = (*Q)[i].x();
-//      first.at<double>(1, 0) = (*Q)[i].y();
-//      first.at<double>(2, 0) = (*Q)[i].z();
-//      first.at<double>(3, 0) = 1;
-//      transformed = *transformation * first;
-//      (*Q)[i].x() = transformed.at<double>(0, 0);
-//      (*Q)[i].y() = transformed.at<double>(1, 0);
-//      (*Q)[i].z() = transformed.at<double>(2, 0);
-    }
-  }
-#ifdef TEST_GLOBAL_TIMINGS
-    totalTime += Scalar(t.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
-#endif
-
-  return ok || current_trial_ >= number_of_trials_;
 }
 
 // Pick one base, finds congruent 4-points in Q, verifies for all
