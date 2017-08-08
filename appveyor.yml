@@ -9,9 +9,13 @@ platform:
   - Win32
   - x64
 
+# Do not build feature branch with open Pull Request
+skip_branch_with_pr: true
+
 # specify custom environment variables
 environment:
   MSVC_DEFAULT_OPTIONS: ON
+  SUPER4PCS_INSTALL_DIR: C:\projects\Super4PCS-%platform%-%configuration%
 
 # build configuration, i.e. Debug, Release, etc.
 configuration:
@@ -46,16 +50,17 @@ before_build:
 
   - cmd: if "%platform%"=="Win32" set CMAKE_GENERATOR_NAME=Visual Studio 14 2015
   - cmd: if "%platform%"=="x64"   set CMAKE_GENERATOR_NAME=Visual Studio 14 2015 Win64
-  - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DCMAKE_BUILD_TYPE=%configuration% -DSUPER4PCS_COMPILE_TESTS=FALSE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=FALSE -DDL_DATASETS=FALSE  ..
+  - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DCMAKE_BUILD_TYPE=%configuration% -DSUPER4PCS_COMPILE_TESTS=FALSE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=FALSE -DDL_DATASETS=FALSE  -DINSTALL_DIR=%SUPER4PCS_INSTALL_DIR% ..
 
 build:
   project: C:\projects\Super4PCS\build\Super4PCS.sln # path to Visual Studio solution or project
   parallel: true                           # enable MSBuild parallel builds
   verbosity: quiet                         # MSBuild verbosity level (quiet|minimal|normal|detailed)
 
-test: on
-test_script:
-  - cmd: ctest --build-config %configuration% --parallel 4 --output-on-failure
+after_build:
+  - cmd: cd %SUPER4PCS_INSTALL_DIR%
+  - cmd: dir bin/
+  - cmd: dir lib/
 
 test: off
 #test_script:
