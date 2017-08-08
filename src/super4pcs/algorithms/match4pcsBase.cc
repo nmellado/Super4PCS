@@ -134,13 +134,16 @@ distSegmentToSegment(const VectorType& p1, const VectorType& p2,
 
 namespace Super4PCS{
 
-Match4PCSBase::Match4PCSBase(const Match4PCSOptions& options)
+Match4PCSBase::Match4PCSBase(const Match4PCSOptions& options,
+                             const Utils::Logger& logger)
   :number_of_trials_(0),
     max_base_diameter_(-1),
     P_mean_distance_(1.0),
     best_LCP_(0.0),
     options_(options),
-    randomGenerator_(options.randomSeed) {
+    randomGenerator_(options.randomSeed),
+    logger_(logger)
+{
   base_3D_.resize(4);
 }
 
@@ -192,7 +195,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
     }
     else
     {
-        std::cout << "(P) More samples requested than available: use whole cloud" << std::endl;
+        Log<LogLevel::ErrorReport>( "(P) More samples requested than available: use whole cloud" );
         sampled_P_3D_ = P;
     }
 
@@ -211,7 +214,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
     }
     else
     {
-        std::cout << "(Q) More samples requested than available: use whole cloud" << std::endl;
+        Log<LogLevel::ErrorReport>( "(Q) More samples requested than available: use whole cloud" );
         sampled_Q_3D_ = Q;
     }
 
@@ -263,7 +266,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
 
     // RANSAC probability and number of needed trials.
     Scalar first_estimation =
-            log(kSmallError) / log(1.0 - pow(options_.getOverlapEstimation(),
+            std::log(kSmallError) / std::log(1.0 - pow(options_.getOverlapEstimation(),
                                              static_cast<Scalar>(kMinNumberOfTrials)));
     // We use a simple heuristic to elevate the probability to a reasonable value
     // given that we don't simply sample from P, but instead, we bound the
@@ -274,7 +277,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
     if (number_of_trials_ < kMinNumberOfTrials)
         number_of_trials_ = kMinNumberOfTrials;
 
-    printf("norm_max_dist: %f\n", options_.delta);
+    Log<LogLevel::Verbose>( "norm_max_dist: ", options_.delta );
     current_trial_ = 0;
     best_LCP_ = 0.0;
 
@@ -289,7 +292,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
     Initialize(P, Q);
 
     best_LCP_ = Verify(transform_);
-    printf("Initial LCP: %f\n", best_LCP_);
+    Log<LogLevel::Verbose>( "Initial LCP: ", best_LCP_ );
 }
 
 
@@ -515,15 +518,8 @@ bool Match4PCSBase::TryCongruentSet(
       congruent_points[3].second = sampled_Q_3D_[d];
 
   #ifdef STATIC_BASE
-      std::cout << "Ids:" << std::endl;
-      std::cout << base_id1 << "\t"
-                << base_id2 << "\t"
-                << base_id3 << "\t"
-                << base_id4 << std::endl;
-      std::cout << a << "\t"
-                << b << "\t"
-                << c << "\t"
-                << d << std::endl;
+      Log<LogLevel::Verbose>( "Ids: ", base_id1, "\t", base_id2, "\t", base_id3, "\t", base_id4);
+      Log<LogLevel::Verbose>( "     ", a, "\t", b, "\t", c, "\t", d);
   #endif
 
       centroid2 = (congruent_points[0].second.pos() +
@@ -628,11 +624,8 @@ bool Match4PCSBase::ComputeRigidTransformation(const std::array< std::pair<Point
       if ( ratioDev > Scalar(0.1) )
           return kLargeNumber;
 
-//      std::cout << ratio1 << " "
-//                << ratio2 << " "
-//                << ratioDev << " "
-//                << ratioMean << std::endl;
 
+      //Log<LogLevel::Verbose>( ratio1, " ", ratio2, " ", ratioDev, " ", ratioMean);
       scaleEst = ratioMean;
 
       // apply scale factor to q
@@ -759,8 +752,7 @@ bool Match4PCSBase::ComputeRigidTransformation(const std::array< std::pair<Point
 
   // compute rotation and translation
   {
-      //std::cout << scaleEst << endl;
-
+      // Log<LogLevel::Verbose>( scaleEst);
       etrans.scale(scaleEst);       // apply scale factor
       etrans.translate(centroid1);  // translation between quads
       etrans.rotate(rotation);           // rotate to align frames
@@ -987,9 +979,7 @@ bool Match4PCSBase::TryOneBase() {
   ExtractPairs(distance2, normal_angle2, distance_factor * options_.delta, 2,
                   3, &pairs2);
 
-//  std::cout << "Pair creation output: \n"
-//            << pairs1.size() << " - "
-//            << pairs2.size() << std::endl;
+//  Log<LogLevel::Verbose>( "Pair creation ouput: ", pairs1.size(), " - ", pairs2.size());
 
   if (pairs1.size() == 0 || pairs2.size() == 0) {
     return false;
@@ -1012,7 +1002,7 @@ bool Match4PCSBase::TryOneBase() {
                                nb);
 
   //if (nb != 0)
-  //    std::cout << "Congruent quads: (" << nb << ")    " << std::endl;
+  //  Log<LogLevel::Verbose>( "Congruent quads: (", nb, ")    " );
 
   return match;
 }

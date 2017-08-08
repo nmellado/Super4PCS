@@ -56,7 +56,8 @@ public:
     using PairsVector = typename Base::PairsVector;
     using VectorType  = typename Base::VectorType;
 
-    explicit Match4PCS(const Match4PCSOptions& options);
+    explicit Match4PCS(const Match4PCSOptions& options,
+                       const Utils::Logger logger);
 
     ~Match4PCS();
 

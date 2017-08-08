@@ -167,82 +167,87 @@ int main(int argc, char **argv) {
   // Match and return the score (estimated overlap or the LCP).
   typename Point3D::Scalar score = 0;
 
+  constexpr Utils::LogLevel loglvl = Utils::Verbose;
+  Utils::Logger logger(loglvl);
+
   try {
 
       if (use_super4pcs) {
-          MatchSuper4PCS matcher(options);
-          cout << "Use Super4PCS" << endl;
+          MatchSuper4PCS matcher(options, logger);
+          logger.Log<Utils::Verbose>( "Use Super4PCS" );
           score = matcher.ComputeTransformation(set1, &set2, mat);
 
           if(! outputSampled1.empty() ){
-              std::cout << "Exporting Sampled cloud 1 to "
-                        << outputSampled1.c_str()
-                        << "..." << std::flush;
+              logger.Log<Utils::Verbose>( "Exporting Sampled cloud 1 to ",
+                                          outputSampled1.c_str(),
+                                          " ..." );
               iomananger.WriteObject((char *)outputSampled1.c_str(),
                                      matcher.getFirstSampled(),
                                      vector<Eigen::Matrix2f>(),
                                      vector<typename Point3D::VectorType>(),
                                      vector<tripple>(),
                                      vector<string>());
-              std::cout << "DONE" << std::endl;
+              logger.Log<Utils::Verbose>( "Export DONE" );
           }
           if(! outputSampled2.empty() ){
-              std::cout << "Exporting Sampled cloud 2 to "
-                        << outputSampled2.c_str()
-                        << "..." << std::flush;
+              logger.Log<Utils::Verbose>( "Exporting Sampled cloud 2 to ",
+                                          outputSampled2.c_str(),
+                                          " ..." );
               iomananger.WriteObject((char *)outputSampled2.c_str(),
                                      matcher.getSecondSampled(),
                                      vector<Eigen::Matrix2f>(),
                                      vector<typename Point3D::VectorType>(),
                                      vector<tripple>(),
                                      vector<string>());
-              std::cout << "DONE" << std::endl;
+              logger.Log<Utils::Verbose>( "Export DONE" );
           }
       }
       else {
-          Match4PCS matcher(options);
-          cout << "Use old 4PCS" << endl;
+          Match4PCS matcher(options, logger);
+          logger.Log<Utils::Verbose>( "Use old 4PCS" );
           score = matcher.ComputeTransformation(set1, &set2, mat);
       }
 
   }
   catch (const std::exception& e) {
-      std::cout << "[Error]: " << e.what() << '\n';
-      std::cout << "Aborting with code -2 ..." << std::endl;
+      logger.Log<Utils::ErrorReport>( "[Error]: " , e.what() );
+      logger.Log<Utils::ErrorReport>( "Aborting with code -2 ..." );
       return -2;
   }
   catch (...) {
-      std::cout << "[Unknown Error]: Aborting with code -3 ..." << std::endl;
+      logger.Log<Utils::ErrorReport>( "[Unknown Error]: Aborting with code -3 ..." );
       return -3;
   }
 
-  cout << "Score: " << score << endl;
-  cout <<"(Homogeneous) Transformation from " << input2.c_str()
-       << " to "<< input1.c_str() << ":\n";
-
-  cout << mat << std::endl;
+  logger.Log<Utils::Verbose>( "Score: ", score );
+  logger.Log<Utils::Verbose>( "(Homogeneous) Transformation from ",
+                              input2.c_str(),
+                              " to ",
+                              input1.c_str(),
+                              ": \n",
+                              mat);
 
 
   if(! outputMat.empty() ){
-      std::cout << "Exporting Matrix to "
-                << outputMat.c_str()
-                << "..." << std::flush;
+      logger.Log<Utils::Verbose>( "Exporting Matrix to ",
+                                  outputMat.c_str(),
+                                  "..." );
       iomananger.WriteMatrix(outputMat, mat.cast<double>(), IOManager::POLYWORKS);
-      std::cout << "DONE" << std::endl;
+      logger.Log<Utils::Verbose>( "Export DONE" );
   }
 
   if (! output.empty() ){
 
-      std::cout << "Exporting Registered geometry to "
-                << output.c_str()
-                << "..." << std::flush;
+      logger.Log<Utils::Verbose>( "Exporting Registered geometry to ",
+                                  output.c_str(),
+                                  "..." );
       iomananger.WriteObject((char *)output.c_str(),
                              set2,
                              tex_coords2,
                              normals2,
                              tris2,
                              mtls2);
-      std::cout << "DONE" << std::endl;
+      logger.Log<Utils::Verbose>( "Export DONE" );
   }
 
   return 0;
