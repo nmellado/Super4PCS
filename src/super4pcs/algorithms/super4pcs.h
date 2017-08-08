@@ -59,7 +59,8 @@ class MatchSuper4PCS : public Match4PCSBase {
   using Scalar      = typename Base::Scalar;
   using PairsVector = typename Base::PairsVector;
 
-  explicit MatchSuper4PCS(const Match4PCSOptions& options);
+  explicit MatchSuper4PCS(const Match4PCSOptions& options,
+                          const Utils::Logger &logger);
 
   ~MatchSuper4PCS();
 

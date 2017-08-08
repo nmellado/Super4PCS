@@ -119,8 +119,6 @@ public:
       primitives.emplace_back(points[i], Scalar(1.));
       ids.push_back(i);
     }
-
-    std::cout << "Work with " << points.size() << " points" << std::endl;
   }
 
   inline void setRadius(Scalar radius) {

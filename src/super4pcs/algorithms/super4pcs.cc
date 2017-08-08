@@ -63,8 +63,9 @@
 namespace Super4PCS {
 
 
-MatchSuper4PCS::MatchSuper4PCS(const Match4PCSOptions& options)
-    : Base(options),
+MatchSuper4PCS::MatchSuper4PCS(const Match4PCSOptions& options,
+                               const Utils::Logger &logger)
+    : Base(options, logger),
       pcfunctor_(options_, sampled_Q_3D_) { }
 
 MatchSuper4PCS::~MatchSuper4PCS() { }
@@ -114,12 +115,6 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
     const Point& p2 = pcfunctor_.points[P_pairs[i].second];
     const Point  n  = (p2 - p1).normalized();
 
-//    cout << "new entry: " << endl
-//         << p1.transpose() << "(" << P_pairs[i].first  << ")" << endl
-//         << p2.transpose() << "(" << P_pairs[i].second << ")" << endl
-//         << (p1+ invariant1       * (p2 - p1)).transpose() << endl
-//         << n.transpose() << endl;
-
     nset.addElement((p1+ Point::Scalar(invariant1) * (p2 - p1)).eval(), n, i);
   }
 
@@ -142,12 +137,6 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
     const VectorType queryQ = pq1 + invariant2 * (pq2 - pq1);
 
     const Point queryn = (p2 - p1).normalized();
-
-//    cout << "query: " << endl
-//         << p1.transpose() << "(" << Q_pairs[i].first  << ")" << endl
-//         << p2.transpose() << "(" << Q_pairs[i].second << ")" << endl
-//         << query.transpose() << endl
-//         << queryn.transpose() << endl;
 
     nset.getNeighbors( query, queryn, alpha, nei);
 

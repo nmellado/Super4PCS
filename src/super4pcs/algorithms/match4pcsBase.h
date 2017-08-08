@@ -49,6 +49,7 @@
 #include "super4pcs/shared4pcs.h"
 #include "super4pcs/sampling.h"
 #include "super4pcs/accelerators/kdtree.h"
+#include "super4pcs/utils/logger.h"
 
 #ifdef TEST_GLOBAL_TIMINGS
 #   include "utils/timer.h"
@@ -64,6 +65,7 @@ public:
     using Scalar = typename Point3D::Scalar;
     using VectorType = typename Point3D::VectorType;
     using MatrixType = Eigen::Matrix<Scalar, 4, 4>;
+    using LogLevel = Utils::LogLevel;
 
     static constexpr int kNumberOfDiameterTrials = 1000;
     static constexpr Scalar kLargeNumber = 1e9;
@@ -152,6 +154,8 @@ protected:
 
     std::mt19937 randomGenerator_;
 
+    const Utils::Logger &logger_;
+
 #ifdef TEST_GLOBAL_TIMINGS
 
     Scalar totalTime;
@@ -164,7 +168,10 @@ protected:
 
 protected:
 
-    Match4PCSBase(const Match4PCSOptions& options);
+    Match4PCSBase(const Match4PCSOptions& options, const Utils::Logger &logger );
+
+    template <Utils::LogLevel level, typename...Args>
+    inline void Log(Args...args) const { logger_.Log<level>(args...); }
 
 
     // Computes the mean distance between points in Q and their nearest neighbor.

@@ -51,8 +51,9 @@
 
 namespace Super4PCS {
 
-Match4PCS::Match4PCS(const Match4PCSOptions& options)
-    : Base(options) { }
+Match4PCS::Match4PCS(const Match4PCSOptions& options,
+                     const Utils::Logger logger)
+    : Base(options, logger) { }
 
 Match4PCS::~Match4PCS() { }
 
