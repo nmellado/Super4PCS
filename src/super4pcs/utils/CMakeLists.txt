@@ -5,7 +5,8 @@ set(utils_ROOT "${SRC_DIR}/super4pcs/utils")
 set(utils_INCLUDE
     ${utils_ROOT}/timer.h
     ${utils_ROOT}/geometry.h
-    ${utils_ROOT}/disablewarnings.h)
+    ${utils_ROOT}/disablewarnings.h
+    ${utils_ROOT}/logger.h)
 
 
 if(CMAKE_VERSION VERSION_GREATER 3.1)
