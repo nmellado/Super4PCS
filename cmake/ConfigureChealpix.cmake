@@ -1,7 +1,4 @@
 
-
-if (SUPER4PCS_USE_CHEALPIX)
-
 # EXTERNALS
 # have ExternalProject available
 include(ExternalProject)
@@ -10,8 +7,8 @@ message("[Super4PCS] Use Chealpix")
 ExternalProject_Add(
         cfitsio
         # where the source will live
-        SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cfitsio"
-        INSTALL_DIR "${CMAKE_BINARY_DIR}/3rdparty/cfitsio"
+        SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/cfitsio"
+        INSTALL_DIR "${INSTALL_DIR}/"
 
         CMAKE_ARGS
             -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
@@ -20,6 +17,6 @@ ExternalProject_Add(
         UPDATE_COMMAND ""
 )
 
-
-add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/chealpix EXCLUDE_FROM_ALL)
-endif (SUPER4PCS_USE_CHEALPIX)
+add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/chealpix)
+add_definitions(-DSUPER4PCS_USE_CHEALPIX)
+include_directories(${Chealpix_INCLUDE_DIR})

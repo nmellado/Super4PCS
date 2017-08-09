@@ -48,8 +48,8 @@
 #ifndef _INDEXED_NORMAL_HEAL_SET_H_
 #define _INDEXED_NORMAL_HEAL_SET_H_
 
-#include "utils/disablewarnings.h"
-#include "utils.h"
+#include "super4pcs/utils/disablewarnings.h"
+#include "super4pcs/accelerators/utils.h"
 #include "chealpix.h"
 #include <Eigen/Core>
 

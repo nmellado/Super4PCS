@@ -1,3 +1,5 @@
+project (Super4PCS-IOLib)
+
 set(io_ROOT "${SRC_DIR}/super4pcs/io")
 
 #############################################
