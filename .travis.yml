@@ -1,6 +1,6 @@
 language: cpp
 
-script: make -j2 VERBOSE=1 && make buildtests && make test
+script: make -j2 VERBOSE=1 && make install && make buildtests && make test
 
 cache:
   directories:
