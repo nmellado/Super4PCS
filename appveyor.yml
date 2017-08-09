@@ -52,11 +52,12 @@ before_build:
   - cmd: cd C:\projects\Super4PCS
   - cmd: md build
   - cmd: cd build
+  - cmd: md installDir
 
   - cmd: if "%platform%"=="Win32" set CMAKE_GENERATOR_NAME=Visual Studio 14 2015
   - cmd: if "%platform%"=="x64"   set CMAKE_GENERATOR_NAME=Visual Studio 14 2015 Win64
   - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DCMAKE_BUILD_TYPE=%configuration% -DSUPER4PCS_COMPILE_TESTS=FALSE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=FALSE -DDL_DATASETS=FALSE  -DINSTALL_DIR=C:\projects\Super4PCS\build\installDir\Super4PCS-%platform%-%configuration% ..
-  - cmd: dir C:\projects\Super4PCS\build
+  - cmd: dir .
 
 build:
   project: C:\projects\Super4PCS\build\INSTALL.vcxproj  # path to Visual Studio solution or project
@@ -66,7 +67,7 @@ build:
 after_build:
   - cmd: dir installDir/
 
-test: off
-#test_script:
-#  - cmd: ctest --build-config %configuration% --parallel 4 --output-on-failure
+# test: off
+# test_script:
+#   - cmd: ctest --build-config %configuration% --parallel 4 --output-on-failure
 
