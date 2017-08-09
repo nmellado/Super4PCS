@@ -1,3 +1,5 @@
+project (Super4PCS-utilsLib)
+
 set(utils_ROOT "${SRC_DIR}/super4pcs/utils")
 
 #############################################

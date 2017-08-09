@@ -1,21 +1,9 @@
 cmake_minimum_required (VERSION 2.6)
 project (Super4PCS)
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-set(SRC_DIR ${PROJECT_SOURCE_DIR}/src/)
-
 ################################################################################
-## Configuration file
+## User options
 ################################################################################
-set (Super4PCS_VERSION_MAJOR 0)
-set (Super4PCS_VERSION_MINOR 1)
-
-# configure a header file to pass some of the CMake settings
-# to the source code
-#configure_file (
-#  "${PROJECT_SOURCE_DIR}/super4pcs_test.cc"
-#  )
-
 # Set option to enable timing recording
 OPTION (SUPER4PCS_COMPILE_TESTS "Enable testing" TRUE)
 OPTION (IO_USE_OPENCV "Use OpenCV for texture loading" TRUE)
@@ -23,10 +11,21 @@ OPTION (ENABLE_TIMING "Enable computation time recording" FALSE)
 OPTION (SUPER4PCS_USE_CHEALPIX "Use Chealpix for orientation filtering (deprecated)" FALSE)
 OPTION (DL_DATASETS "Download demo datasets and associated run scripts" FALSE)
 
-if(NOT INSTALL_DIR)
-  set(INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-endif(NOT INSTALL_DIR)
+################################################################################
+## DO NOT EDIT AFTER THIS LINE
+##
+## Variables configuration
+################################################################################
+set (Super4PCS_VERSION_MAJOR 0)
+set (Super4PCS_VERSION_MINOR 3)
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+set(SRC_DIR ${PROJECT_SOURCE_DIR}/src/)
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+if(NOT INSTALL_DIR)
+  set(INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Super4PCS-${Super4PCS_VERSION_MAJOR}.${Super4PCS_VERSION_MINOR})
+endif(NOT INSTALL_DIR)
 
 ################################################################################
 ## GUARDS
@@ -51,39 +50,7 @@ endif()
 ################################################################################
 ## Compiler configuration
 ################################################################################
-if( NOT cmake_build_type_tolower STREQUAL "release" )
-  add_definitions(-DDEBUG)
-endif()
-
-if (MSVC)
-  if (MSVC_VERSION LESS 1900)
-        message(FATAL_ERROR "Requires Microsoft Visual Studio Compiler version 14.0 or above.")
-  endif()
-
-  # remove exceptions from default args
-  add_definitions(-D_HAS_EXCEPTIONS=0)
-  # disable secure CRT warnings
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
-endif()
-
-# Add the c++11 flag, whatever it is
-# This test is by-passed for MSVC compiler, which support C++11 features natively
-# without requiring a flag (after version 1800)
-include(CheckCXXCompilerFlag)
-if (NOT MSVC)
-  CHECK_CXX_COMPILER_FLAG(-std=c++11 COMPILER_SUPPORTS_CXX11)
-  CHECK_CXX_COMPILER_FLAG(-std=c++0x COMPILER_SUPPORTS_CXX0X)
-  if(COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-  elseif(COMPILER_SUPPORTS_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-  else()
-        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-  endif()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-endif()
-
+include(cmake/ConfigureCompiler.cmake)
 
 ################################################################################
 ## Apply user-defined configuration
@@ -104,19 +71,15 @@ if (DL_DATASETS)
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
     )
-
-add_custom_target(dl-datasets DEPENDS dl-dataset-demo1)
-
+    add_custom_target(dl-datasets DEPENDS dl-dataset-demo1)
 endif (DL_DATASETS)
 
 ################################################################################
 ## Dependencies
 ################################################################################
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty)
 if(SUPER4PCS_USE_CHEALPIX)
-    add_definitions(-DSUPER4PCS_USE_CHEALPIX)
-    include_directories(${Chealpix_INCLUDE_DIR})
+    include(cmake/ConfigureChealpix.cmake)
 endif(SUPER4PCS_USE_CHEALPIX)
 
 ## Eigen: automatic configuration:
@@ -148,7 +111,7 @@ if(SUPER4PCS_COMPILE_TESTS)
 endif(SUPER4PCS_COMPILE_TESTS)
 
 ################################################################################
-## Project files
+## Super4PCS algo
 ################################################################################
 
 include_directories(${SRC_DIR})
@@ -172,12 +135,15 @@ add_subdirectory(${SRC_DIR}/super4pcs/utils)
 add_subdirectory(${SRC_DIR}/super4pcs/accelerators)
 
 add_library(super4pcs_algo ${Super4PCS_SRC} ${Super4PCS_INCLUDE})
+if(SUPER4PCS_USE_CHEALPIX)
+    target_link_libraries(super4pcs_algo ${Chealpix_LIBS} )
+endif(SUPER4PCS_USE_CHEALPIX)
 
 # add the executable
 add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs/super4pcs_test.cc)
 
-TARGET_LINK_LIBRARIES(super4pcs_algo super4pcs_io super4pcs_accel)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} super4pcs_algo super4pcs_utils)
+target_link_libraries(super4pcs_algo super4pcs_io super4pcs_accel)
+target_link_libraries(${PROJECT_NAME} super4pcs_algo super4pcs_utils)
 
 install( TARGETS super4pcs_algo ${PROJECT_NAME}
     RUNTIME DESTINATION ${INSTALL_DIR}/bin
