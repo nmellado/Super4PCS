@@ -724,7 +724,7 @@ Match4PCSBase::Verify(const Eigen::Ref<const MatrixType> &mat) {
   const Scalar epsilon = options_.delta;
   size_t good_points = 0;
   const size_t number_of_points = sampled_Q_3D_.size();
-  const int terminate_value = best_LCP_ * number_of_points;
+  const size_t terminate_value = best_LCP_ * number_of_points;
 
   const Scalar sq_eps = epsilon*epsilon;
 

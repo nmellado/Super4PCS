@@ -196,7 +196,7 @@ IOManager::ReadObj(const char *filename,
   if(tris.size() == 0){
     // In case we have vertex and normal lists but no face, assign normal to v
     if(v.size() == normals.size()){
-      for (int i = 0; i < v.size(); ++i)
+      for (size_t i = 0; i < v.size(); ++i)
         v[i].set_normal(normals[i]);
     }
   }else {

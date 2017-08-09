@@ -21,6 +21,7 @@ skip_commits:
 # specify custom environment variables
 environment:
   MSVC_DEFAULT_OPTIONS: ON
+  SUPER4PCS_INSTALL_DIR: C:\projects\Super4PCS\build\installDir\Super4PCS-%platform%-%configuration%
 
 # build configuration, i.e. Debug, Release, etc.
 configuration:
@@ -65,7 +66,11 @@ build:
   verbosity: quiet                         # MSBuild verbosity level (quiet|minimal|normal|detailed)
 
 after_build:
-  - cmd: dir installDir/
+  - cmd: cd C:\projects\Super4PCS
+  - cmd: cd build
+  - cmd: dir installDir
+  - cmd: dir installDir\Super4PCS-%platform%-%configuration%
+  - cmd: dir %SUPER4PCS_INSTALL_DIR%
 
 # test: off
 # test_script:
