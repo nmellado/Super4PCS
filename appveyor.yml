@@ -23,8 +23,7 @@ environment:
   MSVC_DEFAULT_OPTIONS: ON
   SUPER4PCS_INSTALL_ROOT: C:\projects\Super4PCS\installDir
   SUPER4PCS_RELEASE_NAME: Super4PCS-%platform%-%configuration%
-  SUPER4PCS_RELEASE_DIR: %SUPER4PCS_INSTALL_ROOT%\%SUPER4PCS_RELEASE_NAME%
-  SUPER4PCS_INSTALL_ZIP: %SUPER4PCS_INSTALL_ROOT%\%SUPER4PCS_RELEASE_NAME%.zip
+  SUPER4PCS_RELEASE_DIR: C:\projects\Super4PCS\installDir\Super4PCS-%platform%-%configuration%
 
 # build configuration, i.e. Debug, Release, etc.
 configuration:
