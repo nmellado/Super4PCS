@@ -21,6 +21,8 @@ set (Super4PCS_VERSION_MINOR 3)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(SRC_DIR ${PROJECT_SOURCE_DIR}/src/)
+set(ASSETS_DIR ${PROJECT_SOURCE_DIR}/assets)
+set(SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 if(NOT INSTALL_DIR)
@@ -64,7 +66,7 @@ if (DL_DATASETS)
     include(ExternalProject)
 
     ExternalProject_Add(dl-dataset-demo1
-        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/datasets/demo1
+        SOURCE_DIR ${ASSETS_DIR}/demo1
         URL https://www.irit.fr/~Nicolas.Mellado/dl/datasets/point-clouds/Super4PCS-dataset-demo1.zip
         URL_MD5 68796d9b4efa7edee3ed6f55b92cf7ad
         CONFIGURE_COMMAND ""
@@ -102,13 +104,15 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 message(STATUS "-- Eigen3 root path: ${EIGEN3_INCLUDE_DIR}")
 
 ################################################################################
-## Tests
+## Tests, assets and scripts
 ################################################################################
 
 if(SUPER4PCS_COMPILE_TESTS)
         include(cmake/ConfigureTesting.cmake)
         add_subdirectory(tests EXCLUDE_FROM_ALL)
 endif(SUPER4PCS_COMPILE_TESTS)
+
+include(cmake/AssetsAndScripts.cmake)
 
 ################################################################################
 ## Super4PCS algo
