@@ -163,7 +163,7 @@ struct Match4PCSOptions {
   Scalar max_color_distance = -1;
   // The number of points in the sample. We sample this number of points
   // uniformly from P and Q.
-  int sample_size = 200;
+  size_t sample_size = 200;
   // Maximum time we allow the computation to take. This makes the algorithm
   // an ANY TIME algorithm that can be stopped at any time, producing the best
   // solution so far.

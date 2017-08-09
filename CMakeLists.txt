@@ -59,6 +59,12 @@ if (MSVC)
   if (MSVC_VERSION LESS 1900)
         message(FATAL_ERROR "Requires Microsoft Visual Studio Compiler version 14.0 or above.")
   endif()
+
+  # remove exceptions from default args
+  add_definitions(-D_HAS_EXCEPTIONS=0)
+  # disable secure CRT warnings
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 endif()
 
 # Add the c++11 flag, whatever it is
@@ -75,9 +81,9 @@ if (NOT MSVC)
   else()
         message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
   endif()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 ################################################################################
 ## Apply user-defined configuration

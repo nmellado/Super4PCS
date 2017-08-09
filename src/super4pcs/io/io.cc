@@ -409,7 +409,7 @@ IOManager::WriteObj(string filename, const vector<Point3D> &v,
                     const vector<std::string> &mtls) {
   fstream f(filename.c_str(), ios::out);
   if (!f || f.fail()) return false;
-  int i;
+  size_t i;
 
   //normals.clear();
 
