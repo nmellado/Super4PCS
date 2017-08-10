@@ -1,3 +1,19 @@
+Super4PCS-V1.1.0-alpha
+======================
+This release introduces new code structure allowing use as an actual library.
+
+ - Build system
+   - Add install target in cmake
+   - Save binaries compiled by AppVeyor integration system as Artifacts
+ - Demos, scripts and assets
+   - assets are now added to the install folder, including downloaded datasets
+   - demo scripts have been updated to work directly after installation. Windows batch scripts have been added.
+ - Dependencies
+   - Chealpix dependency is marked as deprecated: it slows down the approach and reduce it's robustness. Consequently, Chealpix is still built in CI but not tested.
+ - Devel
+   - Update include directive relatively to super4pcs root dir.
+   - Add silent mode in matcher to avoid unwanted logging on standard output. This is implemented by adding a visitor in the matcher main loop, and set it as a logger in the Super4pcs main app.
+
 Super4PCS-V1.0.0-alpha
 ======================
 
