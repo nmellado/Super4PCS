@@ -1,4 +1,10 @@
-Super4PCS-V1.1.0-alpha
+Super4PCS-V1.1.1
+======================
+Minor release update including:
+ - fixes in the deployment system and 
+ - fix a compilation error when enabling timings, authored by @xinkang 
+
+
 ======================
 This release introduces new code structure allowing use as an actual library.
 

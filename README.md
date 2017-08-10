@@ -16,6 +16,7 @@ Linux and MacOS: [![Build Status](https://api.travis-ci.org/nmellado/Super4PCS.s
 Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/Super4PCS/Super4PCS?branch=master&svg=true)](https://ci.appveyor.com/project/nmellado/super4pcs)
 
 ## News
+* 10th August 2017: Super4PCS [v1.1.1](https://github.com/nmellado/Super4PCS/releases/tag/v1.1.1) introduces minor fixes from previous release.
 * 10th August 2017: Super4PCS [v1.1.0](https://github.com/nmellado/Super4PCS/releases/tag/v1.1.0) is available, improving performances, fixing use as C++ library, and generalizing CI use.
 * 17th July 2017: CI integration (Windows, MacOS and Linux) enabled. Currently, only compilation is tested, but performances monitoring will be added in upcoming release.
 * 5th July 2017: Super4PCS got the SGP Software Award 2017 !
