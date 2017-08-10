@@ -52,7 +52,7 @@
 #include "super4pcs/utils/logger.h"
 
 #ifdef TEST_GLOBAL_TIMINGS
-#   include "utils/timer.h"
+#   include "super4pcs/utils/timer.h"
 #endif
 
 namespace Super4PCS{
