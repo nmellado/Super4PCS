@@ -127,12 +127,12 @@ matrix:
     # Chealpix
     ############################################################################
     # mac clang
-    - env: BUILD_TYPE=Release BOOST=On CHEALPIX=On
+    - env: BUILD_TYPE=Release BOOST=On CHEALPIX=On TRAVIS_ALLOW_FAILURE=true
       os: osx
       compiler: clang
 
     # clang 3.8
-    - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=On CHEALPIX=On
+    - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=On CHEALPIX=On TRAVIS_ALLOW_FAILURE=true
       os: linux
       addons: &clang38
         apt:
@@ -147,7 +147,7 @@ matrix:
             - llvm-toolchain-precise-3.8
 
     # gcc5
-    - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=On CHEALPIX=On
+    - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=On CHEALPIX=On TRAVIS_ALLOW_FAILURE=true
       os: linux
       addons: &gcc5
         apt:
@@ -157,10 +157,6 @@ matrix:
             - g++-5
           sources:
             - ubuntu-toolchain-r-test
-
-  fast_finish: true
-  allow_failures:
-    - env: CHEALPIX=On
 
 
 install:
