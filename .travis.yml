@@ -18,6 +18,8 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew install gnu-which --with-default-names; fi
   - if [ -n "$GCC_VERSION" ]; then export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}"; fi
   - if [ -n "$CLANG_VERSION" ]; then export CXX="clang++-${CLANG_VERSION}" CC="clang-${CLANG_VERSION}"; fi
+  - export SUPER4PCS_RELEASE_NAME="Super4PCS-${TRAVIS_TAG}-${TRAVIS_OS_NAME}-${CXX}"
+  - export SUPER4PCS_RELEASE_DIR="${CHECKOUT_PATH}/${SUPER4PCS_RELEASE_NAME}"
   - which $CXX
   - which $CC
   - $CXX --version
@@ -169,10 +171,26 @@ install:
   - cd build
   - if [ "$GCC_VERSION" == "5" ]; then CXX_FLAGS="${CXX_FLAGS} -DRANGES_CXX_CONSTEXPR=RANGES_CXX_CONSTEXPR11"; fi
   - if [ -n "$CLANG_VERSION" ]; then CXX_FLAGS="${CXX_FLAGS} -D__extern_always_inline=inline"; fi
-  - cmake .. -DSUPER4PCS_COMPILE_TESTS=TRUE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=$CHEALPIX -DDL_DATASETS=FALSE -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+  - cmake .. -DSUPER4PCS_COMPILE_TESTS=TRUE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=$CHEALPIX -DDL_DATASETS=FALSE -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DINSTALL_DIR=${SUPER4PCS_RELEASE_DIR}/
 
 
 # safelist
 branches:
   except:
   - gh-pages
+
+############################################################################
+# Artifacts creation
+############################################################################
+after_success:
+  - zip -r ${SUPER4PCS_RELEASE_NAME}.zip ${SUPER4PCS_RELEASE_DIR}
+
+deploy:
+  provider: releases
+  draft: true
+  skip_cleanup: true
+  api_key: "$GITHUB_OAUTH_TOKEN"
+  file: ${SUPER4PCS_RELEASE_NAME}.zip
+  tag_name: $TRAVIS_TAG  #https://github.com/travis-ci/travis-ci/issues/6132#issuecomment-303634652
+  on:
+    tags: true
