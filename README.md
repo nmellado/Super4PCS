@@ -13,7 +13,7 @@ Authors: Nicolas Mellado, Dror Aiger
 
 Linux and MacOS: [![Build Status](https://api.travis-ci.org/nmellado/Super4PCS.svg?branch=master)](https://travis-ci.org/nmellado/Super4PCS)
 
-Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/github/Super4PCS/Super4PCS?branch=master&svg=true)](https://ci.appveyor.com/project/nmellado/super4pcs)
+Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/reg4cmhn309w1s8k/branch/master?svg=true)](https://ci.appveyor.com/project/nmellado/super4pcs)
 
 ## News
 * 10th August 2017: Super4PCS [v1.1.1](https://github.com/nmellado/Super4PCS/releases/tag/v1.1.1) introduces minor fixes from previous release.
