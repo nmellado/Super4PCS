@@ -10,4 +10,10 @@ add_custom_target(super4pcs_scripts_IDE SOURCES ${Scripts_SRC})
 
 
 # ASSETS
+if (DL_DATASETS)
+    file (GLOB_RECURSE Assets_SRC  ${ASSETS_DIR}/*)
+    add_custom_target(super4pcs_assets SOURCES ${Assets_SRC}
+                                       DEPENDS dl-datasets)
+endif (DL_DATASETS)
+
 install( DIRECTORY ${ASSETS_DIR}/ DESTINATION ${INSTALL_DIR}/assets )
