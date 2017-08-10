@@ -7,8 +7,9 @@
 ::   -t maximum computation time in seconds
 ::   -n number of samples used for the matching
 
-setx PATH=%~dp0\..\lib
+@ setx PATH "%~dp0\..\lib"
 
-@ ..\bin\Super4pcs -i ..\assets\hippo1.obj ..\assets\hippo2.obj -o 0.7 -d 0.01 -t 1000 -n 200 -r super4pcs_fast.obj -m mat_super4pcs_fast.txt
-@ ..\bin\Super4pcs -i ..\assets\hippo1.obj ..\assets\hippo2.obj -o 0.7 -d 0.01 -t 1000 -n 200 -r      4pcs_fast.obj -m      mat_4pcs_fast.txt -x
+..\bin\Super4pcs -i ..\assets\hippo1.obj ..\assets\hippo2.obj -o 0.7 -d 0.01 -t 1000 -n 200 -r super4pcs_fast.obj -m mat_super4pcs_fast.txt
+..\bin\Super4pcs -i ..\assets\hippo1.obj ..\assets\hippo2.obj -o 0.7 -d 0.01 -t 1000 -n 200 -r      4pcs_fast.obj -m      mat_4pcs_fast.txt -x
+
 @ PAUSE
