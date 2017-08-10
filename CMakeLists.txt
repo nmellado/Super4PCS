@@ -63,6 +63,7 @@ if (ENABLE_TIMING)
 endif (ENABLE_TIMING)
 
 if (DL_DATASETS)
+    add_custom_target(dl-datasets)
     include(ExternalProject)
 
     ExternalProject_Add(dl-dataset-demo1
@@ -71,9 +72,11 @@ if (DL_DATASETS)
         URL_MD5 68796d9b4efa7edee3ed6f55b92cf7ad
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
+        INSTALL_DIR "${INSTALL_DIR}/"
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
         INSTALL_COMMAND ""
     )
-    add_custom_target(dl-datasets DEPENDS dl-dataset-demo1)
+    add_dependencies(dl-datasets dl-dataset-demo1)
 endif (DL_DATASETS)
 
 ################################################################################
