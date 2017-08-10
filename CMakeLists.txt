@@ -69,7 +69,7 @@ if (DL_DATASETS)
     ExternalProject_Add(dl-dataset-demo1
         SOURCE_DIR ${ASSETS_DIR}/demo1
         URL https://www.irit.fr/~Nicolas.Mellado/dl/datasets/point-clouds/Super4PCS-dataset-demo1.zip
-        URL_MD5 68796d9b4efa7edee3ed6f55b92cf7ad
+        URL_MD5 ad1e172902b41a3f17e9b4901adf3ba5
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_DIR "${INSTALL_DIR}/"
