@@ -2,7 +2,7 @@ language: cpp
 
 script:
   - make -j2 VERBOSE=1 && make install
-  - if [ "$CHEALPIX" == "Off" ]  make buildtests && make test; fi
+  - if [ "$CHEALPIX" == "Off" ]; then  make buildtests && make test; fi
 
 cache:
   directories:
