@@ -180,7 +180,7 @@ protected:
     Scalar kdTreeTime;
     Scalar verifyTime;
 
-    using Timer = Super4PCS::Utils::Timer;
+    using Timer = GlobalRegistration::Utils::Timer;
 
 #endif
 

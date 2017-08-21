@@ -147,13 +147,13 @@ readBinary1Body (const std::string & filename,
                  unsigned int numOfVertexProperties,
                  bool         haveColor,
                  bool bigEndian,
-                 std::vector<Super4PCS::Point3D>& vertex,
-                 std::vector<typename Super4PCS::Point3D::VectorType>& normal,
+                 std::vector<GlobalRegistration::Point3D>& vertex,
+                 std::vector<typename GlobalRegistration::Point3D::VectorType>& normal,
                  std::vector<tripple>& face )
 {
     //size_t count;
     using namespace std;
-    using namespace Super4PCS;
+    using namespace GlobalRegistration;
 
     FILE * in = fopen (filename.c_str (), "r");
     if (!in){
@@ -247,12 +247,12 @@ readASCII1Body (const std::string & filename,
                 unsigned int numOfFaces,
                 unsigned int numOfVertexProperties,
                 bool         haveColor,
-                std::vector<Super4PCS::Point3D>& vertex,
-                std::vector<typename Super4PCS::Point3D::VectorType>& normal,
+                std::vector<GlobalRegistration::Point3D>& vertex,
+                std::vector<typename GlobalRegistration::Point3D::VectorType>& normal,
                 std::vector<tripple>& face )
 {
     using namespace std;
-    using namespace Super4PCS;
+    using namespace GlobalRegistration;
 
     FILE * in = fopen (filename.c_str (), "r");
     if (!in){

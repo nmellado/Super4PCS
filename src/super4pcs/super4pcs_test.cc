@@ -12,7 +12,7 @@
 #define sqr(x) ((x) * (x))
 
 using namespace std;
-using namespace Super4PCS;
+using namespace GlobalRegistration;
 
 // First input.
 std::string input1 = "input1.obj";
@@ -117,7 +117,7 @@ void getArgs(int argc, char **argv) {
 
 
 int main(int argc, char **argv) {
-  using namespace Super4PCS;
+  using namespace GlobalRegistration;
 
   vector<Point3D> set1, set2;
   vector<Eigen::Matrix2f> tex_coords1, tex_coords2;

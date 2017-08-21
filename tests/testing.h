@@ -123,14 +123,14 @@ void verify_impl(bool condition, const char *testname, const char *file, int lin
   }
 }
 
-#define VERIFY(a) Super4PCS::Testing::verify_impl(a, \
-                  Super4PCS::Testing::g_test_stack.back().c_str(), __FILE__, \
+#define VERIFY(a) GlobalRegistration::Testing::verify_impl(a, \
+                  GlobalRegistration::Testing::g_test_stack.back().c_str(), __FILE__, \
                   __LINE__, SUPER4PCS_PP_MAKE_STRING(a))
 
 #define CALL_SUBTEST(FUNC) do { \
-    Super4PCS::Testing::g_test_stack.push_back(SUPER4PCS_PP_MAKE_STRING(FUNC));\
+    GlobalRegistration::Testing::g_test_stack.push_back(SUPER4PCS_PP_MAKE_STRING(FUNC));\
     FUNC; \
-    Super4PCS::Testing::g_test_stack.pop_back(); \
+    GlobalRegistration::Testing::g_test_stack.pop_back(); \
   } while (0)
 
 inline void set_repeat_from_string(const char *str)
