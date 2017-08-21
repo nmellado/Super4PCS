@@ -159,4 +159,4 @@ install( TARGETS super4pcs_algo ${PROJECT_NAME}
 
 install(DIRECTORY ${SRC_DIR}/
         DESTINATION ${INSTALL_DIR}/include
-        FILES_MATCHING REGEX ".*\.(h|hpp)$")
+        FILES_MATCHING REGEX ".*(h|hpp)$")
