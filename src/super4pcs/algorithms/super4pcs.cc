@@ -85,7 +85,7 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
     typedef PairCreationFunctor<Scalar>::Point Point;
 
 #ifdef SUPER4PCS_USE_CHEALPIX
-    typedef Super4PCS::IndexedNormalHealSet IndexedNormalSet3D;
+    typedef GlobalRegistration::IndexedNormalHealSet IndexedNormalSet3D;
 #else
     typedef  GlobalRegistration::IndexedNormalSet
                     < Point,   //! \brief Point type used internally
