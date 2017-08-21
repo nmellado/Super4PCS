@@ -130,11 +130,10 @@ set(Super4PCS_SRC
 set(Super4PCS_INCLUDE
     ${SRC_DIR}/super4pcs/sampling.h
     ${SRC_DIR}/super4pcs/shared4pcs.h
-    ${SRC_DIR}/super4pcs/pairExtraction.h
     ${SRC_DIR}/super4pcs/algorithms/match4pcsBase.h
     ${SRC_DIR}/super4pcs/algorithms/4pcs.h
     ${SRC_DIR}/super4pcs/algorithms/super4pcs.h
-    ${SRC_DIR}/super4pcs/pairCreationFunctor.h
+    ${SRC_DIR}/super4pcs/algorithms/pairCreationFunctor.h
 )
 
 add_subdirectory(${SRC_DIR}/super4pcs/io)
