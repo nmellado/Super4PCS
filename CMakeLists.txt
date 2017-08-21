@@ -157,3 +157,6 @@ install( TARGETS super4pcs_algo ${PROJECT_NAME}
     LIBRARY DESTINATION ${INSTALL_DIR}/lib
     ARCHIVE DESTINATION ${INSTALL_DIR}/lib )
 
+install(DIRECTORY ${SRC_DIR}/
+        DESTINATION ${INSTALL_DIR}/include
+        FILES_MATCHING REGEX ".*\.(h|hpp)$")
