@@ -15,7 +15,10 @@ add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCE_DIR}/src/chealpix.c)
 target_link_libraries(${PROJECT_NAME} ${CFITSIO_LIBRARIES})
 add_dependencies(${PROJECT_NAME}  cfitsio)
 
+set(targets_export_name "${PROJECT_NAME}Targets")
 install( TARGETS ${PROJECT_NAME}
-    RUNTIME DESTINATION ${INSTALL_DIR}/bin
-    LIBRARY DESTINATION ${INSTALL_DIR}/lib
-    ARCHIVE DESTINATION ${INSTALL_DIR}/lib )
+    EXPORT "${targets_export_name}"
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    INCLUDES DESTINATION include )

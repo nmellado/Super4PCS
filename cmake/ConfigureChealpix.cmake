@@ -8,10 +8,10 @@ ExternalProject_Add(
         cfitsio
         # where the source will live
         SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/cfitsio"
-        INSTALL_DIR "${INSTALL_DIR}/"
+        INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/"
 
         CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+            -DCMAKE_INSTALL_PREFIX=<${CMAKE_INSTALL_PREFIX}>
 
         # override default behaviours
         UPDATE_COMMAND ""

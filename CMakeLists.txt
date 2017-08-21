@@ -25,9 +25,8 @@ set(ASSETS_DIR ${PROJECT_SOURCE_DIR}/assets)
 set(SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-if(NOT INSTALL_DIR)
-  set(INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Super4PCS-${Super4PCS_VERSION_MAJOR}.${Super4PCS_VERSION_MINOR})
-endif(NOT INSTALL_DIR)
+# Used by Config.cmake.in
+set(Super4PCS_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}")
 
 ################################################################################
 ## GUARDS
@@ -72,8 +71,8 @@ if (DL_DATASETS)
         URL_MD5 ad1e172902b41a3f17e9b4901adf3ba5
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
-        INSTALL_DIR "${INSTALL_DIR}/"
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+        INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/"
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<CMAKE_INSTALL_PREFIX>
         INSTALL_COMMAND ""
     )
     add_dependencies(dl-datasets dl-dataset-demo1)
@@ -151,11 +150,76 @@ add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs/super4pcs_test.cc)
 target_link_libraries(super4pcs_algo super4pcs_io super4pcs_accel)
 target_link_libraries(${PROJECT_NAME} super4pcs_algo super4pcs_utils)
 
-install( TARGETS super4pcs_algo ${PROJECT_NAME}
-    RUNTIME DESTINATION ${INSTALL_DIR}/bin
-    LIBRARY DESTINATION ${INSTALL_DIR}/lib
-    ARCHIVE DESTINATION ${INSTALL_DIR}/lib )
+################################################################################
+# Installation (source: https://github.com/forexample/package-example)
+################################################################################
 
+set(config_install_dir "${CMAKE_INSTALL_PREFIX}/lib/cmake/")
+set(include_install_dir "${CMAKE_INSTALL_PREFIX}/include")
+set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+
+# Configuration
+set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
+set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
+set(targets_export_name "${PROJECT_NAME}Targets")
+set(namespace "${PROJECT_NAME}::")
+
+# Include module with fuction 'write_basic_package_version_file'
+include(CMakePackageConfigHelpers)
+
+# Configure '<PROJECT-NAME>ConfigVersion.cmake'
+# Note: PROJECT_VERSION is used as a VERSION
+write_basic_package_version_file(
+    "${version_config}"
+                VERSION ${Super4PCS_VERSION_MAJOR}.${Super4PCS_VERSION_MINOR}
+                COMPATIBILITY AnyNewerVersion
+)
+
+# Configure '<PROJECT-NAME>Config.cmake'
+# Use variables:
+#   * targets_export_name
+#   * PROJECT_NAME
+configure_package_config_file(
+    "cmake/Config.cmake.in"
+    "${project_config}"
+    INSTALL_DESTINATION "${config_install_dir}"
+)
+
+install(EXPORT Super4PCS-IOLibTargets
+    DESTINATION ${config_install_dir})
+install(EXPORT Super4PCS-AccelLibTargets
+    DESTINATION ${config_install_dir})
+
+if(SUPER4PCS_USE_CHEALPIX)
+    install(EXPORT chealpixTargets DESTINATION ${config_install_dir})
+endif(SUPER4PCS_USE_CHEALPIX)
+
+
+install( TARGETS super4pcs_algo ${PROJECT_NAME}
+    EXPORT "${targets_export_name}"
+    RUNTIME DESTINATION "bin"
+    LIBRARY DESTINATION "lib"
+    ARCHIVE DESTINATION "lib"
+    INCLUDES DESTINATION "include" )
+
+# Headers:
+#   * Source/foo/Bar.hpp -> <prefix>/include/foo/Bar.hpp
 install(DIRECTORY ${SRC_DIR}/
-        DESTINATION ${INSTALL_DIR}/include
+        DESTINATION ${include_install_dir}
         FILES_MATCHING REGEX ".*(h|hpp)$")
+
+# Config
+#   * <prefix>/lib/cmake/Foo/FooConfig.cmake
+#   * <prefix>/lib/cmake/Foo/FooConfigVersion.cmake
+install(
+    FILES "${project_config}" "${version_config}"
+    DESTINATION "${config_install_dir}"
+)
+
+# Config
+#   * <prefix>/lib/cmake/Foo/FooTargets.cmake
+install(
+    EXPORT "${targets_export_name}"
+    NAMESPACE "${namespace}"
+    DESTINATION "${config_install_dir}"
+)

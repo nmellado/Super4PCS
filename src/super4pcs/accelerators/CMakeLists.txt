@@ -1,10 +1,10 @@
 project (Super4PCS-AccelLib)
 
-set(accel_ROOT "${SRC_DIR}/super4pcs/accelerators")
+set(accel_ROOT "super4pcs/accelerators")
 
 #############################################
 
-set(accel_INCLUDE
+set(accel_relative_INCLUDE
     ${accel_ROOT}/kdtree.h
     ${accel_ROOT}/pairExtraction/bruteForceFunctor.h
     ${accel_ROOT}/pairExtraction/intersectionFunctor.h
@@ -15,15 +15,26 @@ set(accel_INCLUDE
     ${accel_ROOT}/bbox.h
     ${accel_ROOT}/utils.h)
 
+
 if(SUPER4PCS_USE_CHEALPIX)
     include_directories(${Chealpix_INCLUDE_DIR})
-    set(chealpix_files ${accel_ROOT}/normalHealSet.h)
-    set(accel_INCLUDE ${accel_INCLUDE} ${chealpix_files})
+    set(APPEND accel_relative_INCLUDE ${accel_ROOT}/normalHealSet.h)
 endif(SUPER4PCS_USE_CHEALPIX)
+
+# compute accel_INCLUDE to get absolute filenames
+set(accel_INCLUDE "")
+set(accel_installed_INCLUDE "")
+foreach(f ${accel_relative_INCLUDE})
+    list(APPEND accel_INCLUDE "${SRC_DIR}/${f}")
+    list(APPEND accel_installed_INCLUDE "include/${f}")
+endforeach(f)
 
 if(CMAKE_VERSION VERSION_GREATER 3.1)
     add_library(super4pcs_accel INTERFACE)
-    target_sources(super4pcs_accel INTERFACE ${accel_INCLUDE})
+    target_sources(super4pcs_accel INTERFACE
+        $<BUILD_INTERFACE:${accel_INCLUDE}>
+        $<INSTALL_INTERFACE:${accel_installed_INCLUDE}>
+        )
 else ()
     add_library(super4pcs_accel STATIC ${accel_INCLUDE})
     set_target_properties(super4pcs_accel PROPERTIES LINKER_LANGUAGE CXX)
@@ -34,7 +45,10 @@ if(SUPER4PCS_USE_CHEALPIX)
     add_dependencies(super4pcs_accel chealpix)
 endif(SUPER4PCS_USE_CHEALPIX)
 
+set(targets_export_name "${PROJECT_NAME}Targets")
 install( TARGETS super4pcs_accel
-    RUNTIME DESTINATION ${INSTALL_DIR}/bin
-    LIBRARY DESTINATION ${INSTALL_DIR}/lib
-    ARCHIVE DESTINATION ${INSTALL_DIR}/lib )
+    EXPORT "${targets_export_name}"
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    INCLUDES DESTINATION include  )
