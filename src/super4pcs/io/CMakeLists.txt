@@ -23,7 +23,10 @@ if(IO_USE_OPENCV)
     endif (OpenCV_FOUND)
 endif(IO_USE_OPENCV)
 
+set(targets_export_name "${PROJECT_NAME}Targets")
 install( TARGETS super4pcs_io
-    RUNTIME DESTINATION ${INSTALL_DIR}/bin
-    LIBRARY DESTINATION ${INSTALL_DIR}/lib
-    ARCHIVE DESTINATION ${INSTALL_DIR}/lib )
+    EXPORT "${targets_export_name}"
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    INCLUDES DESTINATION include  )

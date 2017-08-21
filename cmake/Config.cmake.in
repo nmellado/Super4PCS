@@ -1,0 +1,40 @@
+# - Config file for the FooBar package
+# It defines the following variables
+#  Super4PCS_INCLUDE_DIRS - include directories for Super4PCS
+#  Super4PCS_LIB_DIR    - libraries to link against
+#  Super4PCS_LIBRARIES    - libraries to link against
+#
+#
+# To use
+# ::
+# find_package(Super4PCS REQUIRED)
+# include_directories(${Super4PCS_INCLUDE_DIR})
+# add_executable(foo foo.cc)
+# target_link_libraries(foo ${Super4PCS_LIBRARIES})
+# link_directories(${Super4PCS_LIB_DIR})
+#
+# find_package( Eigen3 REQUIRED )
+# include_directories( ${EIGEN3_INCLUDE_DIR} )
+
+
+@PACKAGE_INIT@
+
+if(@SUPER4PCS_USE_CHEALPIX@)
+  include("${CMAKE_CURRENT_LIST_DIR}/chealpixTargets.cmake")
+endif(@SUPER4PCS_USE_CHEALPIX@)
+
+include("${CMAKE_CURRENT_LIST_DIR}/Super4PCS-AccelLibTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/Super4PCS-IOLibTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/@targets_export_name@.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/Super4PCSConfigVersion.cmake")
+
+check_required_components("@PROJECT_NAME@")
+
+# Compute paths
+set(Super4PCS_INCLUDE_DIR "@Super4PCS_INSTALL_DIR@/include/")
+set(Super4PCS_LIB_DIR "@Super4PCS_INSTALL_DIR@/lib/")
+set(Super4PCS_LIBRARIES super4pcs_accel super4pcs_io super4pcs_algo)
+
+if(@SUPER4PCS_USE_CHEALPIX@)
+  list(APPEND Super4PCS_LIBRARIES chealpix)
+endif(@SUPER4PCS_USE_CHEALPIX@)
