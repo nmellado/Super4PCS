@@ -56,7 +56,7 @@
 #include <vector>
 #include <set>
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 
 /*!
   Work only in 3D, based on healpix.
@@ -322,6 +322,6 @@ IndexedNormalHealSet::getNeighbors(
 
 
 
-} // namespace Super4PCS
+} // namespace GlobalRegistration
 
 #endif // _INDEXED_NORMAL_SET_H_
