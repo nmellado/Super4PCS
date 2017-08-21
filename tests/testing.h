@@ -66,6 +66,88 @@
 
 namespace GlobalRegistration {
 namespace Testing {
+
+//! Matcher class providing public visilibility of internal routines
+template <class BaseMatcher>
+class TestMatcher : public BaseMatcher {
+public:
+    using Scalar           = typename BaseMatcher::Scalar;
+    using MatrixType       = typename BaseMatcher::MatrixType;
+    using PairsVector      = typename BaseMatcher::PairsVector;
+    using TransformVisitor = typename BaseMatcher::TransformVisitor;
+
+    using BaseMatcher::BaseMatcher;
+
+    template <typename Visitor = TransformVisitor>
+    inline Scalar
+    ComputeTransformation(const std::vector<Point3D>& P,
+                          std::vector<Point3D>* Q,
+                          Eigen::Ref<MatrixType> transformation,
+                          Visitor v = Visitor()){
+        return BaseMatcher::ComputeTransformation(P, Q,
+                                                  transformation,
+                                                  v);
+    }
+
+    inline void init(const std::vector<Point3D>& P,
+                     const std::vector<Point3D>& Q)
+    { BaseMatcher::init(P,Q); }
+
+    inline bool SelectQuadrilateral(Scalar &inv1, Scalar &inv2,
+                                    int& base1, int& base2,
+                                    int& base3, int& base4)
+    {
+        return BaseMatcher::SelectQuadrilateral(inv1, inv2,
+                                                base1, base2, base3, base4);
+    }
+
+    inline const std::vector<Point3D>& base3D() const
+    { return BaseMatcher::base3D(); }
+
+    virtual void
+    ExtractPairs( Scalar pair_distance,
+                  Scalar pair_normals_angle,
+                  Scalar pair_distance_epsilon, int base_point1,
+                  int base_point2,
+                  PairsVector* pairs) const
+    {
+        BaseMatcher::ExtractPairs(pair_distance,
+                                  pair_normals_angle,
+                                  pair_distance_epsilon,
+                                  base_point1,
+                                  base_point2,
+                                  pairs);
+    }
+
+    virtual bool
+    FindCongruentQuadrilaterals(Scalar inv1, Scalar inv2,
+                                Scalar distance_threshold1,
+                                Scalar distance_threshold2,
+                                const PairsVector& P_pairs,
+                                const PairsVector& Q_pairs,
+                                std::vector<Quadrilateral>* quadrilaterals) const
+    {
+        return BaseMatcher::FindCongruentQuadrilaterals(inv1, inv2,
+                                                        distance_threshold1,
+                                                        distance_threshold2,
+                                                        P_pairs,
+                                                        Q_pairs,
+                                                        quadrilaterals);
+    }
+
+    inline bool TryCongruentSet(int base_id1,
+                                int base_id2,
+                                int base_id3,
+                                int base_id4,
+                                const std::vector<Quadrilateral> &congruent_quads,
+                                size_t &nbCongruent){
+        return BaseMatcher::TryCongruentSet(base_id1, base_id2, base_id3, base_id4,
+                                            congruent_quads,
+                                            nbCongruent);
+    }
+};
+
+
 static inline void
 generateSphereCloud (std::vector<Point3D>& cloud,
                      size_t len){

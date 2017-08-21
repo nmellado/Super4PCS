@@ -265,9 +265,6 @@ protected:
     Initialize(const std::vector<Point3D>& P,
                const std::vector<Point3D>& Q) = 0;
 
-    // Public virtual methods.
-    // Set as public for testing and debug purpose.
-public:
     void init(const std::vector<Point3D>& P,
               const std::vector<Point3D>& Q);
 

@@ -266,7 +266,7 @@ void callMatchSubTests()
 
 
         // extract point using matcher
-        MatchType match (opt, logger);
+        Testing::TestMatcher<MatchType> match (opt, logger);
         match.init(P, Q);
 
         std::vector<std::pair<int, int>> pairs1, pairs2;
