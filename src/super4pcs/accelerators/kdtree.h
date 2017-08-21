@@ -63,7 +63,7 @@
 #define KD_POINT_PER_CELL 64
 
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 
 /*!
   <h3>Generation</h3>

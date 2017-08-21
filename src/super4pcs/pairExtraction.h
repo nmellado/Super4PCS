@@ -47,7 +47,7 @@
 #ifndef PAIR_EXTRACTION_H
 #define PAIR_EXTRACTION_H
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 
 
 

@@ -129,7 +129,7 @@ distSegmentToSegment(const VectorType& p1, const VectorType& p2,
 }
 
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 
 Match4PCSBase::Match4PCSBase(const Match4PCSOptions& options,
                              const Utils::Logger& logger)
@@ -147,7 +147,7 @@ Match4PCSBase::Match4PCSBase(const Match4PCSOptions& options,
 Match4PCSBase::Scalar
 Match4PCSBase::MeanDistance() {
   const Scalar kDiameterFraction = 0.2;
-  Super4PCS::KdTree<Scalar>::VectorType query_point;
+  GlobalRegistration::KdTree<Scalar>::VectorType query_point;
 
   int number_of_samples = 0;
   Scalar distance = 0.0;
@@ -155,10 +155,10 @@ Match4PCSBase::MeanDistance() {
   for (size_t i = 0; i < sampled_P_3D_.size(); ++i) {
     query_point = sampled_P_3D_[i].pos().cast<Scalar>() ;
 
-    Super4PCS::KdTree<Scalar>::Index resId =
+    GlobalRegistration::KdTree<Scalar>::Index resId =
         kd_tree_.doQueryRestrictedClosestIndex(query_point, P_diameter_ * kDiameterFraction, i);
 
-    if (resId != Super4PCS::KdTree<Scalar>::invalidIndex()) {
+    if (resId != GlobalRegistration::KdTree<Scalar>::invalidIndex()) {
       distance += (sampled_P_3D_[i].pos() - sampled_P_3D_[resId].pos()).norm();
       number_of_samples++;
     }
@@ -188,7 +188,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
 
     // prepare P
     if (P.size() > options_.sample_size){
-        Super4PCS::Sampling::DistUniformSampling(P, options_.delta, &sampled_P_3D_);
+        GlobalRegistration::Sampling::DistUniformSampling(P, options_.delta, &sampled_P_3D_);
     }
     else
     {
@@ -201,7 +201,7 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
     // prepare Q
     if (Q.size() > options_.sample_size){
         std::vector<Point3D> uniform_Q;
-        Super4PCS::Sampling::DistUniformSampling(Q, options_.delta, &uniform_Q);
+        GlobalRegistration::Sampling::DistUniformSampling(Q, options_.delta, &uniform_Q);
 
 
         std::shuffle(uniform_Q.begin(), uniform_Q.end(), randomGenerator_);
@@ -453,7 +453,7 @@ void Match4PCSBase::initKdTree(){
   size_t number_of_points = sampled_P_3D_.size();
 
   // Build the kdtree.
-  kd_tree_ = Super4PCS::KdTree<Scalar>(number_of_points);
+  kd_tree_ = GlobalRegistration::KdTree<Scalar>(number_of_points);
 
   for (size_t i = 0; i < number_of_points; ++i) {
     kd_tree_.add(sampled_P_3D_[i].pos());
@@ -735,7 +735,7 @@ Match4PCSBase::Verify(const Eigen::Ref<const MatrixType> &mat) {
     Timer t (true);
 #endif
 
-    Super4PCS::KdTree<Scalar>::Index resId =
+    GlobalRegistration::KdTree<Scalar>::Index resId =
     kd_tree_.doQueryRestrictedClosestIndex(
                 (mat * sampled_Q_3D_[i].pos().homogeneous()).head<3>(),
                 sq_eps);
@@ -745,7 +745,7 @@ Match4PCSBase::Verify(const Eigen::Ref<const MatrixType> &mat) {
     kdTreeTime += Scalar(t.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
 #endif
 
-    if ( resId != Super4PCS::KdTree<Scalar>::invalidIndex() ) {
+    if ( resId != GlobalRegistration::KdTree<Scalar>::invalidIndex() ) {
 //      Point3D& q = sampled_P_3D_[near_neighbor_index[0]];
 //      bool rgb_good =
 //          (p.rgb()[0] >= 0 && q.rgb()[0] >= 0)

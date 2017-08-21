@@ -9,7 +9,7 @@
 #include "super4pcs/accelerators/pairExtraction/intersectionFunctor.h"
 #include "super4pcs/accelerators/pairExtraction/intersectionPrimitive.h"
 
-namespace Super4PCS {
+namespace GlobalRegistration {
 
 template <typename _Scalar>
 struct PairCreationFunctor{
@@ -89,7 +89,7 @@ public:
     points.clear();
     primitives.clear();
 
-    Super4PCS::AABB3D<Scalar> bbox;
+    GlobalRegistration::AABB3D<Scalar> bbox;
 
     unsigned int nSamples = Q_.size();
 

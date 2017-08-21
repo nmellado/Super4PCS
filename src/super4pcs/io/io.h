@@ -40,15 +40,15 @@ public:
 public:
   // Obj read/write simple functions.
   bool ReadObject(const char *name,
-                  std::vector<Super4PCS::Point3D> &v,
+                  std::vector<GlobalRegistration::Point3D> &v,
                   std::vector<Eigen::Matrix2f> &tex_coords,
-                  std::vector<typename Super4PCS::Point3D::VectorType> &normals,
+                  std::vector<typename GlobalRegistration::Point3D::VectorType> &normals,
                   std::vector<tripple> &tris,
                   std::vector<std::string> &mtls);
   bool WriteObject(const char *name,
-                   const std::vector<Super4PCS::Point3D> &v,
+                   const std::vector<GlobalRegistration::Point3D> &v,
                    const std::vector<Eigen::Matrix2f> &tex_coords,
-                   const std::vector<typename Super4PCS::Point3D::VectorType> &normals,
+                   const std::vector<typename GlobalRegistration::Point3D::VectorType> &normals,
                    const std::vector<tripple> &tris,
                    const std::vector<std::string> &mtls);
 
@@ -58,8 +58,8 @@ public:
 private:
   bool
   ReadPly(const char *name,
-          std::vector<Super4PCS::Point3D> &v,
-          std::vector<typename Super4PCS::Point3D::VectorType> &normals);
+          std::vector<GlobalRegistration::Point3D> &v,
+          std::vector<typename GlobalRegistration::Point3D::VectorType> &normals);
 
   /*!
    * \brief ReadPtx
@@ -74,26 +74,26 @@ private:
    */
   bool
   ReadPtx(const char *name,
-          std::vector<Super4PCS::Point3D> &v);
+          std::vector<GlobalRegistration::Point3D> &v);
 
   bool
   ReadObj(const char *name,
-          std::vector<Super4PCS::Point3D> &v,
+          std::vector<GlobalRegistration::Point3D> &v,
           std::vector<Eigen::Matrix2f> &tex_coords,
-          std::vector<typename Super4PCS::Point3D::VectorType> &normals,
+          std::vector<typename GlobalRegistration::Point3D::VectorType> &normals,
           std::vector<tripple> &tris,
           std::vector<std::string> &mtls);
 
   bool
   WritePly(std::string name,
-           const std::vector<Super4PCS::Point3D> &v,
-           const std::vector<typename Super4PCS::Point3D::VectorType> &normals);
+           const std::vector<GlobalRegistration::Point3D> &v,
+           const std::vector<typename GlobalRegistration::Point3D::VectorType> &normals);
 
   bool
   WriteObj(std::string name,
-           const std::vector<Super4PCS::Point3D> &v,
+           const std::vector<GlobalRegistration::Point3D> &v,
            const std::vector<Eigen::Matrix2f> &tex_coords,
-           const std::vector<typename Super4PCS::Point3D::VectorType> &normals,
+           const std::vector<typename GlobalRegistration::Point3D::VectorType> &normals,
            const std::vector<tripple> &tris, const std::vector<std::string> &mtls);
 
 

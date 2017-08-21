@@ -48,7 +48,7 @@
 #define LOGGER_H
 
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 namespace Utils{
 
 enum LogLevel {

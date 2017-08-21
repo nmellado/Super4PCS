@@ -49,7 +49,7 @@
 #include <fstream>
 #include <time.h>  //clock
 
-namespace Super4PCS {
+namespace GlobalRegistration {
 
 Match4PCS::Match4PCS(const Match4PCSOptions& options,
                      const Utils::Logger logger)
@@ -66,7 +66,7 @@ bool Match4PCS::FindCongruentQuadrilaterals(
         Scalar distance_threshold2,
         const std::vector<std::pair<int, int>>& P_pairs,
         const std::vector<std::pair<int, int>>& Q_pairs,
-        std::vector<Super4PCS::Quadrilateral>* quadrilaterals) const {
+        std::vector<GlobalRegistration::Quadrilateral>* quadrilaterals) const {
   if (quadrilaterals == nullptr) return false;
 
   size_t number_of_points = 2 * P_pairs.size();
@@ -76,7 +76,7 @@ bool Match4PCS::FindCongruentQuadrilaterals(
   // the new points corresponding to the invariants in Q_pairs.
   quadrilaterals->clear();
 
-  Super4PCS::KdTree<Scalar> kdtree (number_of_points);
+  GlobalRegistration::KdTree<Scalar> kdtree (number_of_points);
 
   // Build the kdtree tree using the invariants on P_pairs.
   for (size_t i = 0; i < P_pairs.size(); ++i) {

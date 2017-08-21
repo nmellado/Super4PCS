@@ -50,7 +50,7 @@
 #include "super4pcs/algorithms/match4pcsBase.h"
 #include "super4pcs/pairCreationFunctor.h"
 
-namespace Super4PCS {
+namespace GlobalRegistration {
 
 // Class for the computation of the 4PCS algorithm.
 class MatchSuper4PCS : public Match4PCSBase {

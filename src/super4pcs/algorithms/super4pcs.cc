@@ -60,7 +60,7 @@
 
 //#define MULTISCALE
 
-namespace Super4PCS {
+namespace GlobalRegistration {
 
 
 MatchSuper4PCS::MatchSuper4PCS(const Match4PCSOptions& options,
@@ -87,7 +87,7 @@ MatchSuper4PCS::FindCongruentQuadrilaterals(
 #ifdef SUPER4PCS_USE_CHEALPIX
     typedef Super4PCS::IndexedNormalHealSet IndexedNormalSet3D;
 #else
-    typedef  Super4PCS::IndexedNormalSet
+    typedef  GlobalRegistration::IndexedNormalSet
                     < Point,   //! \brief Point type used internally
                       3,       //! \brief Nb dimension
                       7,       //! \brief Nb cells/dim normal
@@ -183,7 +183,7 @@ MatchSuper4PCS::ExtractPairs(Scalar pair_distance,
                              int base_point2,
                              PairsVector* pairs) const {
 
-  using namespace Super4PCS::Accelerators::PairExtraction;
+  using namespace GlobalRegistration::Accelerators::PairExtraction;
 
   pcfunctor_.pairs = pairs;
 

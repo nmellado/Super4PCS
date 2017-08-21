@@ -52,7 +52,7 @@
 #include <set>
 #include <Eigen/Geometry>
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 
 template <class Point, int dim, int _ngSize, typename Scalar>
 constexpr Scalar

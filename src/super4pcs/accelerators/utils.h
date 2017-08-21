@@ -54,7 +54,7 @@
 #endif
 
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 namespace Utils{
 
 //! \brief Compile time pow

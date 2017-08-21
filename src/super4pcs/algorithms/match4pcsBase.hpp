@@ -53,7 +53,7 @@
 #include <Eigen/Geometry>                 // MatrixBase.homogeneous()
 #include <Eigen/SVD>                      // Transform.computeRotationScaling()
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 
 // The main 4PCS function. Computes the best rigid transformation and transfoms
 // Q toward P by this transformation.

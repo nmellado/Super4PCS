@@ -72,7 +72,7 @@
 #define sqr(x) ((x) * (x))
 
 using namespace std;
-using namespace Super4PCS;
+using namespace GlobalRegistration;
 
 using Scalar = Point3D::Scalar;
 enum {Dim = 3};
@@ -196,7 +196,7 @@ void test_model(const vector<Transform> &transforms,
                 vector<Point3D> &mergedset,
                 int i,
                 int param_i){
-    using namespace Super4PCS;
+    using namespace GlobalRegistration;
 
     const string input1 = files.at(i-1);
     const string input2 = files.at(i);
