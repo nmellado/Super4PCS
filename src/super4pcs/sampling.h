@@ -51,7 +51,7 @@
 #include <array>
 
 
-namespace Super4PCS {
+namespace GlobalRegistration {
 namespace Sampling {
 
 

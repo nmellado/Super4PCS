@@ -51,7 +51,7 @@
 #include <list>
 #include "super4pcs/accelerators/utils.h"
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 namespace Accelerators{
 namespace PairExtraction{
 

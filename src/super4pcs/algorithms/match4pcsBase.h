@@ -55,7 +55,7 @@
 #   include "super4pcs/utils/timer.h"
 #endif
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 
 
 class Match4PCSBase {

@@ -46,7 +46,7 @@
 
 #include "super4pcs/algorithms/match4pcsBase.h"
 
-namespace Super4PCS {
+namespace GlobalRegistration {
 
 // Class for the computation of the 4PCS algorithm.
 class Match4PCS : public Match4PCSBase {

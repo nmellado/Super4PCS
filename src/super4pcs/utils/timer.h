@@ -50,7 +50,7 @@
 #include <chrono>  //timers
 #include "super4pcs/utils/disablewarnings.h"
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 namespace Utils{
 
 class Timer {

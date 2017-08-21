@@ -52,7 +52,7 @@
 #include <list>
 #include <iostream>
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 namespace Accelerators{
 namespace PairExtraction{
 

@@ -51,7 +51,7 @@
 
 #include <limits>
 
-namespace Super4PCS{
+namespace GlobalRegistration{
 
 template <typename _Scalar, int _Dim>
 class AABB

@@ -54,7 +54,7 @@
 #include <array>
 #include <random>
 
-namespace Super4PCS {
+namespace GlobalRegistration {
 
 // The basic 3D point structure. A point potentially contains also directional
 // information and color.

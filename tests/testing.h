@@ -64,7 +64,7 @@
 #define SUPER4PCS_PP_MAKE_STRING2(S) #S
 #define SUPER4PCS_PP_MAKE_STRING(S) SUPER4PCS_PP_MAKE_STRING2(S)
 
-namespace Super4PCS {
+namespace GlobalRegistration {
 namespace Testing {
 static inline void
 generateSphereCloud (std::vector<Point3D>& cloud,
