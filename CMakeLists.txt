@@ -17,7 +17,7 @@ OPTION (DL_DATASETS "Download demo datasets and associated run scripts" FALSE)
 ## Variables configuration
 ################################################################################
 set (Super4PCS_VERSION_MAJOR 1)
-set (Super4PCS_VERSION_MINOR 1)
+set (Super4PCS_VERSION_MINOR 1.2)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(SRC_DIR ${PROJECT_SOURCE_DIR}/src/)
