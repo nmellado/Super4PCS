@@ -48,7 +48,7 @@
 #define _SUPER4PCS_H_
 
 #include "super4pcs/algorithms/match4pcsBase.h"
-#include "super4pcs/pairCreationFunctor.h"
+#include "super4pcs/algorithms/pairCreationFunctor.h"
 
 namespace GlobalRegistration {
 
