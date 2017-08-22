@@ -89,11 +89,21 @@ struct MyPairCreationFunctor{
   }
 };
 
+struct TrVisitorType {
+    inline void operator() (
+            float fraction,
+            float best_LCP,
+            Eigen::Ref<Match4PCSBase::MatrixType> /*transformation*/) {
+        std::cout << "New LCP: "
+                  << static_cast<int>(fraction * 100)
+                  << '%'
+                  << best_LCP
+                  <<std::endl;
+    }
+    constexpr bool needsGlobalTransformation() const { return false; }
+};
 
 constexpr Utils::LogLevel loglvl = Utils::Verbose;
-using TrVisitorType = typename std::conditional <loglvl==Utils::NoLog,
-                          Match4PCSBase::DummyTransformVisitor,
-                          Match4PCSBase::TransformVisitor>::type;
 Utils::Logger logger(loglvl);
 
 

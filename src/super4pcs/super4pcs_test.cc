@@ -115,6 +115,17 @@ void getArgs(int argc, char **argv) {
 
 }
 
+struct TransformVisitor {
+    inline void operator() (
+            float fraction,
+            float best_LCP,
+            Eigen::Ref<Match4PCSBase::MatrixType> /*transformation*/) {
+        printf("done: %d%c best: %f                  \r",
+               static_cast<int>(fraction * 100), '%', best_LCP);
+        fflush(stdout);
+    }
+    constexpr bool needsGlobalTransformation() const { return false; }
+};
 
 int main(int argc, char **argv) {
   using namespace GlobalRegistration;
@@ -170,7 +181,7 @@ int main(int argc, char **argv) {
   constexpr Utils::LogLevel loglvl = Utils::Verbose;
   using TrVisitorType = typename std::conditional <loglvl==Utils::NoLog,
                             Match4PCSBase::DummyTransformVisitor,
-                            Match4PCSBase::TransformVisitor>::type;
+                            TransformVisitor>::type;
   Utils::Logger logger(loglvl);
 
   try {

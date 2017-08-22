@@ -71,14 +71,14 @@ namespace Testing {
 template <class BaseMatcher>
 class TestMatcher : public BaseMatcher {
 public:
-    using Scalar           = typename BaseMatcher::Scalar;
-    using MatrixType       = typename BaseMatcher::MatrixType;
-    using PairsVector      = typename BaseMatcher::PairsVector;
-    using TransformVisitor = typename BaseMatcher::TransformVisitor;
+    using Scalar                = typename BaseMatcher::Scalar;
+    using MatrixType            = typename BaseMatcher::MatrixType;
+    using PairsVector           = typename BaseMatcher::PairsVector;
+    using DummyTransformVisitor = typename BaseMatcher::DummyTransformVisitor;
 
     using BaseMatcher::BaseMatcher;
 
-    template <typename Visitor = TransformVisitor>
+    template <typename Visitor = DummyTransformVisitor>
     inline Scalar
     ComputeTransformation(const std::vector<Point3D>& P,
                           std::vector<Point3D>* Q,
