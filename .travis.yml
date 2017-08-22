@@ -39,10 +39,12 @@ matrix:
         apt:
           packages:
             - clang-3.6
-            - g++-5
+            - cmake
+            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.6
+            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
     # clang 3.8 Release
     - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
@@ -52,10 +54,12 @@ matrix:
           packages:
             - util-linux
             - clang-3.8
-            - g++-5
+            - cmake
+            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.8
+            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
 #    # gcc-4.9 Release
 #    - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=Off
@@ -69,8 +73,11 @@ matrix:
         apt:
           packages:
             - g++-5
+            - cmake
+            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
+            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
 
     ############################################################################
@@ -90,10 +97,12 @@ matrix:
             - libboost-filesystem-dev
             - libboost-system-dev
             - clang-3.6
-            - g++-5
+            - cmake
+            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.6
+            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
     # clang 3.8 Release
     - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=On CHEALPIX=Off
@@ -105,10 +114,12 @@ matrix:
             - libboost-system-dev
             - util-linux
             - clang-3.8
-            - g++-5
+            - cmake
+            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.8
+            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
 #    # gcc-4.9 Release
 #    - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=On
@@ -124,8 +135,11 @@ matrix:
             - libboost-filesystem-dev
             - libboost-system-dev
             - g++-5
+            - cmake
+            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
+            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
     ############################################################################
     # Chealpix
@@ -145,10 +159,12 @@ matrix:
             - libboost-system-dev
             - util-linux
             - clang-3.8
-            - g++-5
+            - cmake
+            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.8
+            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
     # gcc5
     - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=On CHEALPIX=On
@@ -159,8 +175,11 @@ matrix:
             - libboost-filesystem-dev
             - libboost-system-dev
             - g++-5
+            - cmake
+            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
+            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
 
 install:
