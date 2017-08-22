@@ -32,6 +32,32 @@ set (testing_SRCS
 )
 
 #############################################
+## externalAppTestD
+
+include(ExternalProject)
+ExternalProject_Add(
+        externalAppTestTarget
+        # where the source will live
+        SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/externalAppTest"
+
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}
+            -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
+            -DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}/lib/cmake
+            -DCMAKE_INSTALL_RPATH=${CMAKE_INSTALL_PREFIX}/lib
+            -DEIGEN3_INCLUDE_DIR=${EIGEN3_INCLUDE_DIR}
+
+        # override default behaviours
+        UPDATE_COMMAND ""
+        EXCLUDE_FROM_ALL
+)
+
+add_dependencies(externalAppTestTarget ForceSuper4PCSInstallation)
+add_dependencies(buildtests externalAppTestTarget)
+add_test(NAME externalAppTest
+         COMMAND Super4PCS-externalAppTest)
+
+#############################################
 ## pair extraction
 set(pair_extraction_SRCS
     pair_extraction.cc
@@ -86,4 +112,3 @@ if (Boost_FOUND)
         target_link_libraries(matching ${Chealpix_LIBS} )
     endif(SUPER4PCS_USE_CHEALPIX)
 endif (Boost_FOUND)
-
