@@ -1,3 +1,5 @@
+project (Super4PCS-Tests)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories(${SRC_DIR})

@@ -29,16 +29,11 @@ foreach(f ${accel_relative_INCLUDE})
     list(APPEND accel_installed_INCLUDE "include/${f}")
 endforeach(f)
 
-if(CMAKE_VERSION VERSION_GREATER 3.1)
-    add_library(super4pcs_accel INTERFACE)
-    target_sources(super4pcs_accel INTERFACE
-        $<BUILD_INTERFACE:${accel_INCLUDE}>
-        $<INSTALL_INTERFACE:${accel_installed_INCLUDE}>
-        )
-else ()
-    add_library(super4pcs_accel STATIC ${accel_INCLUDE})
-    set_target_properties(super4pcs_accel PROPERTIES LINKER_LANGUAGE CXX)
-endif(CMAKE_VERSION VERSION_GREATER 3.1)
+add_library(super4pcs_accel INTERFACE)
+target_sources(super4pcs_accel INTERFACE
+    $<BUILD_INTERFACE:${accel_INCLUDE}>
+    $<INSTALL_INTERFACE:${accel_installed_INCLUDE}>
+    )
 
 
 if(SUPER4PCS_USE_CHEALPIX)

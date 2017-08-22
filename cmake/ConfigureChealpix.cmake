@@ -2,7 +2,7 @@
 # EXTERNALS
 # have ExternalProject available
 include(ExternalProject)
-message("[Super4PCS] Use Chealpix")
+message(STATUS "[Deps] Use Chealpix")
 
 ExternalProject_Add(
         cfitsio
@@ -11,7 +11,7 @@ ExternalProject_Add(
         INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/"
 
         CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX=<${CMAKE_INSTALL_PREFIX}>
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 
         # override default behaviours
         UPDATE_COMMAND ""
