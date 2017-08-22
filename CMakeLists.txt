@@ -136,6 +136,12 @@ endif(SUPER4PCS_COMPILE_DEMOS)
 # Installation (source: https://github.com/forexample/package-example)
 ################################################################################
 
+# add a target allowing to force the installation of the library
+add_custom_target(ForceSuper4PCSInstallation
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target install
+    COMMENT "Forcing Super4PCS installation")
+
+
 set(config_install_dir "${CMAKE_INSTALL_PREFIX}/lib/cmake/")
 set(include_install_dir "${CMAKE_INSTALL_PREFIX}/include")
 set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
