@@ -23,13 +23,13 @@ before_install:
   - which $CXX
   - which $CC
   - $CXX --version
-  - apt-cache search libboost-system
   
   ############################################################################
   # Install a recent CMake
   ############################################################################
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      apt-cache search libboost-system
       # remove existing cmake install
       sudo apt-get remove -qq cmake cmake-data
 
@@ -47,16 +47,6 @@ matrix:
       os: osx
       compiler: clang
 
-    # clang 3.6 Release
-    - env: CLANG_VERSION=3.6 BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
-      os: linux
-      addons: &clang36
-        apt:
-          packages:
-            - clang-3.6
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.6
 
     # clang 3.8 Release
     - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
@@ -70,10 +60,6 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.8
 
-#    # gcc-4.9 Release
-#    - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=Off
-#      os: linux
-#      addons: *gcc49
 
     # gcc-5 Release
     - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
@@ -120,11 +106,6 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.8
-
-#    # gcc-4.9 Release
-#    - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=On
-#      os: linux
-#      addons: *gcc49
 
     # gcc-5 Release
     - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=On CHEALPIX=Off
