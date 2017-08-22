@@ -65,6 +65,8 @@ Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
                                      Visitor v) {
 
   if (Q == nullptr) return kLargeNumber;
+  if (P.empty() || Q->empty()) return kLargeNumber;
+
   init(P, *Q);
 
   transformation = MatrixType::Identity();
