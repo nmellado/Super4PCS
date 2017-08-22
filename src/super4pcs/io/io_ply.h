@@ -146,13 +146,10 @@ almostsafefread ( void * ptr, size_t size, size_t count, FILE * stream ){
     return (result == count);
 }
 
-template<int targetCount = 1>
+template<int targetCount, typename... Args>
 inline bool
-almostsafefscanf ( FILE * stream, const char * format, ... ){
-    va_list args;
-    va_start(args, format);
-    int count = fscanf (stream,format, args);
-    va_end(args);
+almostsafefscanf ( FILE * stream, const char * format, Args&&... args ){
+    int count = fscanf (stream,format, std::forward<Args>(args)...);
     return (count == targetCount);
 }
 
