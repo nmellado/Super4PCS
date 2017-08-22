@@ -71,10 +71,11 @@ Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
   Perform_N_steps(number_of_trials_, transformation, Q, v);
 
 #ifdef TEST_GLOBAL_TIMINGS
-  std::cout << "----------- Timings (msec) -------------"          << std::endl;
-  std::cout << " Total computation time  : " << totalTime          << std::endl;
-  std::cout << " Total verify time       : " << verifyTime         << std::endl;
-  std::cout << "    Kdtree query         : " << kdTreeTime         << std::endl;
+  Log<LogLevel::Verbose>( "----------- Timings (msec) -------------" );
+  Log<LogLevel::Verbose>( " Total computation time  : ", totalTime   );
+  Log<LogLevel::Verbose>( " Total verify time       : ", verifyTime  );
+  Log<LogLevel::Verbose>( "    Kdtree query         : ", kdTreeTime  );
+  Log<LogLevel::Verbose>( "----------------------------------------" );
 #endif
 
   return best_LCP_;
