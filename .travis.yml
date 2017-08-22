@@ -39,12 +39,9 @@ matrix:
         apt:
           packages:
             - clang-3.6
-            - cmake
-            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.6
-            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
     # clang 3.8 Release
     - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
@@ -54,12 +51,9 @@ matrix:
           packages:
             - util-linux
             - clang-3.8
-            - cmake
-            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.8
-            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
 #    # gcc-4.9 Release
 #    - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=Off
@@ -73,11 +67,8 @@ matrix:
         apt:
           packages:
             - g++-5
-            - cmake
-            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
-            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
 
     ############################################################################
@@ -97,12 +88,9 @@ matrix:
             - libboost-filesystem-dev
             - libboost-system-dev
             - clang-3.6
-            - cmake
-            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.6
-            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
     # clang 3.8 Release
     - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=On CHEALPIX=Off
@@ -114,12 +102,9 @@ matrix:
             - libboost-system-dev
             - util-linux
             - clang-3.8
-            - cmake
-            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.8
-            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
 #    # gcc-4.9 Release
 #    - env: GCC_VERSION=4.9 BUILD_TYPE=Release BOOST=On
@@ -135,11 +120,8 @@ matrix:
             - libboost-filesystem-dev
             - libboost-system-dev
             - g++-5
-            - cmake
-            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
-            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
     ############################################################################
     # Chealpix
@@ -159,12 +141,9 @@ matrix:
             - libboost-system-dev
             - util-linux
             - clang-3.8
-            - cmake
-            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.8
-            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
     # gcc5
     - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=On CHEALPIX=On
@@ -175,14 +154,23 @@ matrix:
             - libboost-filesystem-dev
             - libboost-system-dev
             - g++-5
-            - cmake
-            - cmake-data
           sources:
             - ubuntu-toolchain-r-test
-            - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
 
 
 install:
+  ############################################################################
+  # Install a recent CMake
+  ############################################################################
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      CMAKE_URL="http://www.cmake.org/files/v3.3/cmake-3.3.1-Linux-x86_64.tar.gz"
+      mkdir cmake && travis_retry wget --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+    fi
+  - cmake --version
+
+
   - cd $CHECKOUT_PATH
 
 
