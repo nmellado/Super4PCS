@@ -164,6 +164,9 @@ install:
   ############################################################################
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      # remove existing cmake install
+      sudo apt-get remove -qq cmake cmake-data
+
       CMAKE_URL="https://www.cmake.org/files/v3.3/cmake-3.3.1-Linux-x86_64.tar.gz"
       mkdir cmake3.3 && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake3.3
       export PATH=${DEPS_DIR}/cmake3.3/bin:${PATH}
