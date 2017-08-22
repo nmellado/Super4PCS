@@ -66,17 +66,6 @@ public:
     using VectorType = typename Point3D::VectorType;
     using MatrixType = Eigen::Matrix<Scalar, 4, 4>;
     using LogLevel = Utils::LogLevel;
-    struct TransformVisitor {
-        inline void operator() (
-                float fraction,
-                float best_LCP,
-                Eigen::Ref<Match4PCSBase::MatrixType> /*transformation*/) {
-            printf("done: %d%c best: %f                  \r",
-                   static_cast<int>(fraction * 100), '%', best_LCP);
-            fflush(stdout);
-        }
-        constexpr bool needsGlobalTransformation() const { return false; }
-    };
     struct DummyTransformVisitor {
         inline void operator() (float, float, Eigen::Ref<Match4PCSBase::MatrixType>) {}
         constexpr bool needsGlobalTransformation() const { return false; }
@@ -108,7 +97,7 @@ public:
     // @return the computed LCP measure.
     // The method updates the coordinates of the second set, Q, applying
     // the found transformation.
-    template <typename Visitor = TransformVisitor>
+    template <typename Visitor = DummyTransformVisitor>
     Scalar
     ComputeTransformation(const std::vector<Point3D>& P,
                           std::vector<Point3D>* Q,
