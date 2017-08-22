@@ -130,6 +130,7 @@ set(Super4PCS_INCLUDE
     ${SRC_DIR}/super4pcs/sampling.h
     ${SRC_DIR}/super4pcs/shared4pcs.h
     ${SRC_DIR}/super4pcs/algorithms/match4pcsBase.h
+    ${SRC_DIR}/super4pcs/algorithms/match4pcsBase.hpp
     ${SRC_DIR}/super4pcs/algorithms/4pcs.h
     ${SRC_DIR}/super4pcs/algorithms/super4pcs.h
     ${SRC_DIR}/super4pcs/algorithms/pairCreationFunctor.h
