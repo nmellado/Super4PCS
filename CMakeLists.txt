@@ -6,6 +6,7 @@ project (Super4PCS)
 ################################################################################
 # Set option to enable timing recording
 OPTION (SUPER4PCS_COMPILE_TESTS "Enable testing" TRUE)
+OPTION (SUPER4PCS_COMPILE_DEMOS "Compile demo applications (including the Super4PCS standalone)" TRUE)
 OPTION (IO_USE_OPENCV "Use OpenCV for texture loading" TRUE)
 OPTION (ENABLE_TIMING "Enable computation time recording" FALSE)
 OPTION (SUPER4PCS_USE_CHEALPIX "Use Chealpix for orientation filtering (deprecated)" FALSE)
@@ -103,10 +104,21 @@ if( NOT EIGEN3_INCLUDE_DIR )
     endif()
 endif( NOT EIGEN3_INCLUDE_DIR )
 include_directories(${EIGEN3_INCLUDE_DIR})
-message(STATUS "-- Eigen3 root path: ${EIGEN3_INCLUDE_DIR}")
+message(STATUS "Eigen3 root path: ${EIGEN3_INCLUDE_DIR}")
 
 ################################################################################
-## Tests, assets and scripts
+## Super4PCS algo
+################################################################################
+
+include_directories(${SRC_DIR})
+
+add_subdirectory(${SRC_DIR}/super4pcs/io)
+add_subdirectory(${SRC_DIR}/super4pcs/utils)
+add_subdirectory(${SRC_DIR}/super4pcs/accelerators)
+add_subdirectory(${SRC_DIR}/super4pcs/algorithms)
+
+################################################################################
+## Demos, tests, assets and scripts
 ################################################################################
 
 if(SUPER4PCS_COMPILE_TESTS)
@@ -116,40 +128,9 @@ endif(SUPER4PCS_COMPILE_TESTS)
 
 include(cmake/AssetsAndScripts.cmake)
 
-################################################################################
-## Super4PCS algo
-################################################################################
-
-include_directories(${SRC_DIR})
-set(Super4PCS_SRC
-    ${SRC_DIR}/super4pcs/algorithms/match4pcsBase.cc
-    ${SRC_DIR}/super4pcs/algorithms/4pcs.cc
-    ${SRC_DIR}/super4pcs/algorithms/super4pcs.cc
-)
-set(Super4PCS_INCLUDE
-    ${SRC_DIR}/super4pcs/sampling.h
-    ${SRC_DIR}/super4pcs/shared4pcs.h
-    ${SRC_DIR}/super4pcs/algorithms/match4pcsBase.h
-    ${SRC_DIR}/super4pcs/algorithms/match4pcsBase.hpp
-    ${SRC_DIR}/super4pcs/algorithms/4pcs.h
-    ${SRC_DIR}/super4pcs/algorithms/super4pcs.h
-    ${SRC_DIR}/super4pcs/algorithms/pairCreationFunctor.h
-)
-
-add_subdirectory(${SRC_DIR}/super4pcs/io)
-add_subdirectory(${SRC_DIR}/super4pcs/utils)
-add_subdirectory(${SRC_DIR}/super4pcs/accelerators)
-
-add_library(super4pcs_algo ${Super4PCS_SRC} ${Super4PCS_INCLUDE})
-if(SUPER4PCS_USE_CHEALPIX)
-    target_link_libraries(super4pcs_algo ${Chealpix_LIBS} )
-endif(SUPER4PCS_USE_CHEALPIX)
-
-# add the executable
-add_executable(${PROJECT_NAME} ${SRC_DIR}/super4pcs/super4pcs_test.cc)
-
-target_link_libraries(super4pcs_algo super4pcs_io super4pcs_accel)
-target_link_libraries(${PROJECT_NAME} super4pcs_algo super4pcs_utils)
+if(SUPER4PCS_COMPILE_DEMOS)
+        add_subdirectory(demos)
+endif(SUPER4PCS_COMPILE_DEMOS)
 
 ################################################################################
 # Installation (source: https://github.com/forexample/package-example)
@@ -186,22 +167,13 @@ configure_package_config_file(
     INSTALL_DESTINATION "${config_install_dir}"
 )
 
-install(EXPORT Super4PCS-IOLibTargets
-    DESTINATION ${config_install_dir})
-install(EXPORT Super4PCS-AccelLibTargets
-    DESTINATION ${config_install_dir})
+install(EXPORT Super4PCS-IOLibTargets    DESTINATION ${config_install_dir})
+install(EXPORT Super4PCS-AlgoLibTargets  DESTINATION ${config_install_dir})
+install(EXPORT Super4PCS-AccelLibTargets DESTINATION ${config_install_dir})
 
 if(SUPER4PCS_USE_CHEALPIX)
     install(EXPORT chealpixTargets DESTINATION ${config_install_dir})
 endif(SUPER4PCS_USE_CHEALPIX)
-
-
-install( TARGETS super4pcs_algo ${PROJECT_NAME}
-    EXPORT "${targets_export_name}"
-    RUNTIME DESTINATION "bin"
-    LIBRARY DESTINATION "lib"
-    ARCHIVE DESTINATION "lib"
-    INCLUDES DESTINATION "include" )
 
 # Headers:
 #   * Source/foo/Bar.hpp -> <prefix>/include/foo/Bar.hpp
@@ -214,13 +186,5 @@ install(DIRECTORY ${SRC_DIR}/
 #   * <prefix>/lib/cmake/Foo/FooConfigVersion.cmake
 install(
     FILES "${project_config}" "${version_config}"
-    DESTINATION "${config_install_dir}"
-)
-
-# Config
-#   * <prefix>/lib/cmake/Foo/FooTargets.cmake
-install(
-    EXPORT "${targets_export_name}"
-    NAMESPACE "${namespace}"
     DESTINATION "${config_install_dir}"
 )
