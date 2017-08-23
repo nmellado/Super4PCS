@@ -61,7 +61,7 @@ before_build:
   - cmd: dir .
 
 build:
-  project: %SUPER4PCS_BUILD_DIR%\INSTALL.vcxproj  # path to Visual Studio solution or project
+  project: C:\projects\Super4PCS\build\INSTALL.vcxproj  # path to Visual Studio solution or project
   parallel: true                           # enable MSBuild parallel builds
   verbosity: quiet                         # MSBuild verbosity level (quiet|minimal|normal|detailed)
 
@@ -70,8 +70,8 @@ after_build:
   - cmd: dir %SUPER4PCS_RELEASE_DIR%
 
 artifacts:
-  - path: %SUPER4PCS_RELEASE_NAME% # use relative path
-    name: %SUPER4PCS_RELEASE_NAME%
+  - path: Super4PCS-%platform%-%configuration% # use relative path
+    name: Super4PCS-%platform%-%configuration%
     type: zip
 
 test: on
