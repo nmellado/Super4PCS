@@ -141,8 +141,6 @@ endif(SUPER4PCS_COMPILE_DEMOS)
 set(ForceInstallCommutators "")
 if (MSVC)
 	set(ForceInstallCommutators "/p:Configuration=${CMAKE_BUILD_TYPE}")
-else(MSVC)
-	set(ForceInstallCommutators "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 endif(MSVC)
 add_custom_target(ForceSuper4PCSInstallation
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target install -- ${ForceInstallCommutators}
