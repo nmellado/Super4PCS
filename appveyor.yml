@@ -75,7 +75,7 @@ artifacts:
     type: zip
 
 test: on
- test_script:
+test_script:
   - cmd: msbuild %SUPER4PCS_BUILD_DIR%\buildtests.vcxproj /m /p:Configuration=%configuration%
   - cmd: msbuild %SUPER4PCS_BUILD_DIR%\RUN_TESTS.vcxproj  /m /p:Configuration=%configuration%
 #   - cmd: ctest --build-config %configuration% --parallel 4 --output-on-failure
