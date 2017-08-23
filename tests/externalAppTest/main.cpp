@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 
   // Set parameters.
   Match4PCSBase::MatrixType mat;
-  double overlap;
+  double overlap (1);
   options.configureOverlap(overlap);
   
   typename Point3D::Scalar score = 0;
