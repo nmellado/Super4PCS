@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.3)
-project (Super4PCS)
+project (Super4PCS LANGUAGES CXX VERSION 1.1.2)
 
 ################################################################################
 ## User options
@@ -17,9 +17,6 @@ OPTION (DL_DATASETS "Download demo datasets and associated run scripts" FALSE)
 ##
 ## Variables configuration
 ################################################################################
-set (Super4PCS_VERSION_MAJOR 1)
-set (Super4PCS_VERSION_MINOR 1.2)
-
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(SRC_DIR ${PROJECT_SOURCE_DIR}/src/)
 set(ASSETS_DIR ${PROJECT_SOURCE_DIR}/assets)
@@ -140,7 +137,7 @@ endif(SUPER4PCS_COMPILE_DEMOS)
 
 set(ForceInstallCommutators "")
 if (MSVC)
-	set(ForceInstallCommutators "/p:Configuration=${CMAKE_BUILD_TYPE}")
+        set(ForceInstallCommutators "/p:Configuration=${CMAKE_BUILD_TYPE}")
 endif(MSVC)
 add_custom_target(ForceSuper4PCSInstallation
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target install -- ${ForceInstallCommutators}
@@ -164,7 +161,7 @@ include(CMakePackageConfigHelpers)
 # Note: PROJECT_VERSION is used as a VERSION
 write_basic_package_version_file(
     "${version_config}"
-                VERSION ${Super4PCS_VERSION_MAJOR}.${Super4PCS_VERSION_MINOR}
+                VERSION ${Super4PCS_VERSION}
                 COMPATIBILITY AnyNewerVersion
 )
 
