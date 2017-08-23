@@ -21,9 +21,9 @@ skip_commits:
 environment:
   MSVC_DEFAULT_OPTIONS: ON
   SUPER4PCS_REPOSITORY_ROOT: C:\projects\Super4PCS
-  SUPER4PCS_BUILD_DIR: %SUPER4PCS_REPOSITORY_ROOT%\build
+  SUPER4PCS_BUILD_DIR: C:\projects\Super4PCS\build
+  SUPER4PCS_RELEASE_DIR: C:\projects\Super4PCS\Super4PCS-%platform%-%configuration%
   SUPER4PCS_RELEASE_NAME: Super4PCS-%platform%-%configuration%
-  SUPER4PCS_RELEASE_DIR: %SUPER4PCS_REPOSITORY_ROOT%\%SUPER4PCS_RELEASE_NAME%
 
 # build configuration, i.e. Debug, Release, etc.
 configuration:
