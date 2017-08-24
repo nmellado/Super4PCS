@@ -18,6 +18,7 @@ Windows: [![Build Status](https://ci.appveyor.com/api/projects/status/reg4cmhn30
 Getting started instructions: [here](https://github.com/nmellado/Super4PCS/wiki/Getting-started).
 
 ## News
+* 24th August 2017: Super4PCS [v1.1.2](https://github.com/nmellado/Super4PCS/releases/tag/v1.1.2) introduces Super4PCS CMake package, better testing (including on Windows plateform), cleaner code structure (moved demos away from library code).
 * 10th August 2017: Super4PCS [v1.1.1](https://github.com/nmellado/Super4PCS/releases/tag/v1.1.1) introduces minor fixes from previous release.
 * 10th August 2017: Super4PCS [v1.1.0](https://github.com/nmellado/Super4PCS/releases/tag/v1.1.0) is available, improving performances, fixing use as C++ library, and generalizing CI use.
 * 17th July 2017: CI integration (Windows, MacOS and Linux) enabled. Currently, only compilation is tested, but performances monitoring will be added in upcoming release.
