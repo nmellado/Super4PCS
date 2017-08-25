@@ -14,4 +14,6 @@ if (MSVC)
   add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 endif()
 
+# To ease use in shared libraries, even compiling statics Sup4pcs libs
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set (CMAKE_CXX_STANDARD 11)
