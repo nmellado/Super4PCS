@@ -5,6 +5,10 @@ find_package(Meshlab QUIET)
 if(MESHLAB_FOUND)
     message(STATUS "Preparing Meshlab plugin")
 
+    # To ease use in shared libraries, even compiling statics Sup4pcs libs
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    message(STATUS "Enable position independent code")
+
     set(PLUGIN_NAME "filter_globalregistration")
     set(PLUGIN_SRC_DIR     "${CMAKE_CURRENT_SOURCE_DIR}/${PLUGIN_NAME}")
     set(PLUGIN_PRO_INC     "${CMAKE_CURRENT_SOURCE_DIR}/${PLUGIN_NAME}.pro.in")
