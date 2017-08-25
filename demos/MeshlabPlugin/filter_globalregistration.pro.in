@@ -1,0 +1,13 @@
+include (../../shared.pri)
+
+SUPER_4PCS_PATH = @Super4PCS_INSTALL_DIR@
+
+HEADERS       += globalregistration.h
+SOURCES       += globalregistration.cpp
+TARGET         = filter_globalregistration
+
+CONFIG += create_prl
+CONFIG += link_prl
+
+LIBS        += $$SUPER_4PCS_PATH/lib/libsuper4pcs_algo.a
+INCLUDEPATH += $$SUPER_4PCS_PATH/include/
