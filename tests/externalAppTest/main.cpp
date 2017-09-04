@@ -31,15 +31,16 @@ int main(int argc, char **argv) {
   Match4PCSBase::MatrixType mat;
   double overlap (1);
   options.configureOverlap(overlap);
-  
+
   typename Point3D::Scalar score = 0;
 
   constexpr Utils::LogLevel loglvl = Utils::Verbose;
   using TrVisitorType = Match4PCSBase::DummyTransformVisitor;
+  using SamplerType   = Match4PCSBase::DefaultSampler;
   Utils::Logger logger(loglvl);
-  
+
   MatchSuper4PCS matcher(options, logger);
-  score = matcher.ComputeTransformation<TrVisitorType>(set1, &set2, mat);
+  score = matcher.ComputeTransformation<SamplerType,TrVisitorType>(set1, &set2, mat);
 
   logger.Log<Utils::Verbose>( "Score: ", score );
 

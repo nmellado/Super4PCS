@@ -123,7 +123,7 @@ struct TransformVisitor {
     inline void operator() (
             float /*fraction*/,
             float best_LCP,
-            Eigen::Ref<MatrixType> /*mat*/) {
+            Eigen::Ref<MatrixType> /*mat*/) const {
         plugin->Log("Found new configuration. LCP = %f", best_LCP);
     }
     constexpr bool needsGlobalTransformation() { return false; }
@@ -131,13 +131,18 @@ struct TransformVisitor {
 
 // The Real Core Function doing the actual mesh processing.
 // Move Vertex of a random quantity
-bool GlobalRegistrationPlugin::applyFilter(QAction */*filter*/, MeshDocument &md, RichParameterSet & par, vcg::CallBackPos *cb)
+bool GlobalRegistrationPlugin::applyFilter(QAction */*filter*/,
+                                           MeshDocument &/*md*/,
+                                           RichParameterSet & par,
+                                           vcg::CallBackPos */*cb*/)
 {
 
     MeshModel *mmref = par.getMesh("refMesh");
     MeshModel *mmtrg = par.getMesh("targetMesh");
     CMeshO *refMesh=&mmref->cm;
     CMeshO *trgMesh=&mmtrg->cm;
+
+    using Sampler = GlobalRegistration::Sampling::UniformDistSampler;
 
 //    Log("Initializing Super4PCS. Delta=%f, overlap=%f", delta, overlap);
 
@@ -154,6 +159,7 @@ bool GlobalRegistrationPlugin::applyFilter(QAction */*filter*/, MeshDocument &md
 
     GlobalRegistration::Utils::Logger logger (GlobalRegistration::Utils::LogLevel::NoLog);
     GlobalRegistration::Match4PCSBase* matcher = nullptr;
+    Sampler sampler;
 
     if (useSuper4PCS)
         matcher = new GlobalRegistration::MatchSuper4PCS (opt, logger);
@@ -185,7 +191,7 @@ bool GlobalRegistrationPlugin::applyFilter(QAction */*filter*/, MeshDocument &md
     v.mesh = trgMesh;
     v.plugin = this;
 
-    float score = matcher->ComputeTransformation(set1, &set2, mat, v);
+    float score = matcher->ComputeTransformation(set1, &set2, mat, sampler, v);
     Log("Final LCP = %f", score);
     v.mesh->Tr.FromEigenMatrix(mat);
 
