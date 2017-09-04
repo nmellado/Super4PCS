@@ -15,3 +15,12 @@ if (MSVC)
 endif()
 
 set (CMAKE_CXX_STANDARD 11)
+
+
+find_package(Meshlab QUIET)
+
+if(MESHLAB_FOUND)
+    # To ease use in shared libraries, even compiling statics Sup4pcs libs
+    set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    message(STATUS "Enable position independent code")
+endif(MESHLAB_FOUND)

@@ -8,7 +8,7 @@ To get this plugin working in Meshlab, you need to add it to the main Meshlab pr
 On linux/macOS, this can be done from the command line:
 ```bash
 cd @MESHLAB_SRC_DIR@
-echo "@PLUGIN_INSTALL_DIR@" >> @MESHLAB_PROJECT_FILE@
+echo "@PLUGIN_RELATIVE_INSTALL_DIR@ \\" >> @MESHLAB_PROJECT_FILE@
 qmake @MESHLAB_PROJECT_FILE@
 make
 ```
