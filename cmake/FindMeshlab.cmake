@@ -27,9 +27,10 @@ if( NOT MESHLAB_SRC_DIR )
 endif( NOT MESHLAB_SRC_DIR )
 
 if ( MESHLAB_SRC_DIR )
-  set ( MESHLAB_PLUGINS_SOURCE_DIR     "${MESHLAB_SRC_DIR}/meshlabplugins" )
-  set ( MESHLAB_PROJECT_FILE           "${MESHLAB_SRC_DIR}/meshlab_full.pro" )
-  set ( MESHLAB_EXTERNAL_DIR           "${MESHLAB_SRC_DIR}/external" )
+  set ( MESHLAB_RELATIVE_PLUGINS_SOURCE_DIR "meshlabplugins" )
+  set ( MESHLAB_PLUGINS_SOURCE_DIR          "${MESHLAB_SRC_DIR}/${MESHLAB_RELATIVE_PLUGINS_SOURCE_DIR}" )
+  set ( MESHLAB_PROJECT_FILE                "${MESHLAB_SRC_DIR}/meshlab_full.pro" )
+  set ( MESHLAB_EXTERNAL_DIR                "${MESHLAB_SRC_DIR}/external" )
 
 
   # Meshlab put include files and libraries in the following plateform dependent

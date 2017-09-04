@@ -23,6 +23,7 @@
 
 #include "globalregistration.h"
 #include "super4pcs/algorithms/super4pcs.h"
+#include "super4pcs/algorithms/4pcs.h"
 #include <QtScript>
 
 // Constructor usually performs only two simple tasks of filling the two lists
@@ -87,22 +88,16 @@ void GlobalRegistrationPlugin::initParameterSet(QAction *action,MeshDocument &md
 
          parlst.addParam(new RichMesh ("refMesh",md.mm(),&md, "Reference Mesh",	"Reference point-cloud or mesh"));
          parlst.addParam(new RichMesh ("targetMesh",md.mm(),&md, "Target Mesh",	"Point-cloud or mesh to be aligned to the reference"));
-         parlst.addParam(new RichFloat("delta",   0.1, "Registration tolerance", "Tolerance value for the congruent set exploration and LCP computation"));
-         parlst.addParam(new RichAbsPerc("overlap", 50, 0, 100, "Overlap Ratio", "Overlap ratio between the two clouds"));
-         parlst.addParam(new RichInt("nbSamples", 200, "Number of samples", "Number of samples used in each mesh"));
-/* 		  parlst.addParam(new RichBool ("UpdateNormals",
-                                            true,
-                                            "Recompute normals",
-                                            "Toggle the recomputation of the normals after the random displacement.\n\n"
-                                            "If disabled the face normals will remains unchanged resulting in a visually pleasant effect."));
-            parlst.addParam(new RichAbsPerc("Displacement",
-                                                m.cm.bbox.Diag()/100.0f,0.0f,m.cm.bbox.Diag(),
-                                                "Max displacement",
-                                                "The vertex are displaced of a vector whose norm is bounded by this value"));
-                                            break;
-*/
+         parlst.addParam(new RichAbsPerc("overlap", 50, 0, 100, "Overlap Ratio", "Overlap ratio between the two clouds (command line option: -o)"));
+         parlst.addParam(new RichFloat("delta",   0.1, "Registration tolerance", "Tolerance value for the congruent set exploration and LCP computation (command line option: -d)"));
+         parlst.addParam(new RichInt("nbSamples", 200, "Number of samples", "Number of samples used in each mesh (command line option: -n)"));
+         parlst.addParam(new RichFloat("norm_diff", -1, "Filter: difference of normal (degrees)", "Allowed difference of normals allowed between corresponding pairs of points(command line option: -a)"));
+         parlst.addParam(new RichFloat("color_diff", -1, "Filter: difference color", "Allowed difference of colors allowed between corresponding pairs of points(command line option: -c)"));
+         parlst.addParam(new RichInt("max_time_seconds", 10000, "Max. Computation time, in seconds", "Stop the computation before the end of the exploration (command line option: -t)"));
+         parlst.addParam(new RichBool("useSuper4PCS", true, "Use Super4PCS", "When disable, use 4PCS algorithm (command line option: -x"));
+
          break;
-        default : assert(0);
+     default : assert(0);
     }
 }
 
@@ -147,12 +142,23 @@ bool GlobalRegistrationPlugin::applyFilter(QAction */*filter*/, MeshDocument &md
 //    Log("Initializing Super4PCS. Delta=%f, overlap=%f", delta, overlap);
 
     GlobalRegistration::Match4PCSOptions opt;
-    opt.delta = par.getFloat("delta");
     opt.configureOverlap(par.getAbsPerc("overlap")/100.f);
-    opt.sample_size = par.getInt("nbSamples");
+    opt.delta                 = par.getFloat("delta");
+    opt.sample_size           = par.getInt("nbSamples");
+    opt.max_normal_difference = par.getFloat("norm_diff");
+    opt.max_color_distance    = par.getFloat("color_diff");
+    opt.max_time_seconds      = par.getInt("max_time_seconds");
+
+    bool useSuper4PCS         = par.getBool("useSuper4PCS");
+
 
     GlobalRegistration::Utils::Logger logger (GlobalRegistration::Utils::LogLevel::NoLog);
-    GlobalRegistration::MatchSuper4PCS matcher (opt, logger);
+    GlobalRegistration::Match4PCSBase* matcher = nullptr;
+
+    if (useSuper4PCS)
+        matcher = new GlobalRegistration::MatchSuper4PCS (opt, logger);
+    else
+        matcher = new GlobalRegistration::Match4PCS (opt, logger);
 
     GlobalRegistration::Match4PCSBase::MatrixType mat;
     std::vector<GlobalRegistration::Point3D> set1, set2;
@@ -179,9 +185,11 @@ bool GlobalRegistrationPlugin::applyFilter(QAction */*filter*/, MeshDocument &md
     v.mesh = trgMesh;
     v.plugin = this;
 
-    float score = matcher.ComputeTransformation(set1, &set2, mat, v);
+    float score = matcher->ComputeTransformation(set1, &set2, mat, v);
     Log("Final LCP = %f", score);
     v.mesh->Tr.FromEigenMatrix(mat);
+
+    delete matcher;
 
     return true;
 }
