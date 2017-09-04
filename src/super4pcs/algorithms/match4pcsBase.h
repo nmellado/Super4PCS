@@ -67,14 +67,16 @@ public:
     using MatrixType = Eigen::Matrix<Scalar, 4, 4>;
     using LogLevel = Utils::LogLevel;
     struct DummyTransformVisitor {
-        inline void operator() (float, float, Eigen::Ref<Match4PCSBase::MatrixType>) {}
+        inline void operator() (float, float, Eigen::Ref<Match4PCSBase::MatrixType>) const {}
         constexpr bool needsGlobalTransformation() const { return false; }
-
     };
+    using DefaultSampler = Sampling::UniformDistSampler;
 
     static constexpr int kNumberOfDiameterTrials = 1000;
     static constexpr Scalar kLargeNumber = 1e9;
     static constexpr Scalar distance_factor = 2.0;
+
+    virtual ~Match4PCSBase();
 
     // Read access to the sampled clouds used for the registration
     inline const std::vector<Point3D>& getFirstSampled() const {
@@ -97,12 +99,14 @@ public:
     // @return the computed LCP measure.
     // The method updates the coordinates of the second set, Q, applying
     // the found transformation.
-    template <typename Visitor = DummyTransformVisitor>
+    template <typename Sampler = DefaultSampler,
+              typename Visitor = DummyTransformVisitor>
     Scalar
     ComputeTransformation(const std::vector<Point3D>& P,
                           std::vector<Point3D>* Q,
                           Eigen::Ref<MatrixType> transformation,
-                          Visitor v = Visitor());
+                          const Sampler& sampler = Sampler(),
+                          const Visitor& v = Visitor());
 
 
 protected:
@@ -236,7 +240,7 @@ protected:
     bool Perform_N_steps(int n,
                          Eigen::Ref<MatrixType> transformation,
                          std::vector<Point3D>* Q,
-                         Visitor& v);
+                         const Visitor& v);
 
     // Tries one base and finds the best transformation for this base.
     // Returns true if the achieved LCP is greater than terminate_threshold_,
@@ -254,8 +258,10 @@ protected:
     Initialize(const std::vector<Point3D>& P,
                const std::vector<Point3D>& Q) = 0;
 
+    template <typename Sampler>
     void init(const std::vector<Point3D>& P,
-              const std::vector<Point3D>& Q);
+              const std::vector<Point3D>& Q,
+              const Sampler& sampler);
 
     // Selects a quadrilateral from P and returns the corresponding invariants
     // and point indices. Returns true if a quadrilateral has been found, false

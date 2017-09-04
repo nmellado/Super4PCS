@@ -57,17 +57,18 @@ namespace GlobalRegistration{
 
 // The main 4PCS function. Computes the best rigid transformation and transfoms
 // Q toward P by this transformation.
-template <typename Visitor>
+template <typename Sampler, typename Visitor>
 Match4PCSBase::Scalar
 Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
                                      std::vector<Point3D>* Q,
                                      Eigen::Ref<MatrixType> transformation,
-                                     Visitor v) {
+                                     const Sampler& sampler,
+                                     const Visitor& v) {
 
   if (Q == nullptr) return kLargeNumber;
   if (P.empty() || Q->empty()) return kLargeNumber;
 
-  init(P, *Q);
+  init(P, *Q, sampler);
 
   transformation = MatrixType::Identity();
   Perform_N_steps(number_of_trials_, transformation, Q, v);
@@ -84,6 +85,123 @@ Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
 }
 
 
+
+template <typename Sampler>
+void Match4PCSBase::init(const std::vector<Point3D>& P,
+                         const std::vector<Point3D>& Q,
+                         const Sampler& sampler){
+
+#ifdef TEST_GLOBAL_TIMINGS
+    kdTreeTime = 0;
+    totalTime  = 0;
+    verifyTime = 0;
+#endif
+
+    const Scalar kSmallError = 0.00001;
+    const int kMinNumberOfTrials = 4;
+    const Scalar kDiameterFraction = 0.3;
+
+    centroid_P_ = VectorType::Zero();
+    centroid_Q_ = VectorType::Zero();
+
+    sampled_P_3D_.clear();
+    sampled_Q_3D_.clear();
+
+    // prepare P
+    if (P.size() > options_.sample_size){
+        sampler(P, options_, sampled_P_3D_);
+    }
+    else
+    {
+        Log<LogLevel::ErrorReport>( "(P) More samples requested than available: use whole cloud" );
+        sampled_P_3D_ = P;
+    }
+
+
+
+    // prepare Q
+    if (Q.size() > options_.sample_size){
+        std::vector<Point3D> uniform_Q;
+        sampler(Q, options_, uniform_Q);
+
+
+        std::shuffle(uniform_Q.begin(), uniform_Q.end(), randomGenerator_);
+        size_t nbSamples = std::min(uniform_Q.size(), options_.sample_size);
+        auto endit = uniform_Q.begin(); std::advance(endit, nbSamples );
+        std::copy(uniform_Q.begin(), endit, std::back_inserter(sampled_Q_3D_));
+    }
+    else
+    {
+        Log<LogLevel::ErrorReport>( "(Q) More samples requested than available: use whole cloud" );
+        sampled_Q_3D_ = Q;
+    }
+
+
+    // center points around centroids
+    auto centerPoints = [](std::vector<Point3D>&container,
+            VectorType& centroid){
+        for(const auto& p : container) centroid += p.pos();
+        centroid /= Scalar(container.size());
+        for(auto& p : container) p.pos() -= centroid;
+    };
+    centerPoints(sampled_P_3D_, centroid_P_);
+    centerPoints(sampled_Q_3D_, centroid_Q_);
+
+    initKdTree();
+    // Compute the diameter of P approximately (randomly). This is far from being
+    // Guaranteed close to the diameter but gives good results for most common
+    // objects if they are densely sampled.
+    P_diameter_ = 0.0;
+    for (int i = 0; i < kNumberOfDiameterTrials; ++i) {
+        int at = randomGenerator_() % sampled_Q_3D_.size();
+        int bt = randomGenerator_() % sampled_Q_3D_.size();
+
+        Scalar l = (sampled_Q_3D_[bt].pos() - sampled_Q_3D_[at].pos()).norm();
+        if (l > P_diameter_) {
+            P_diameter_ = l;
+        }
+    }
+
+    // Mean distance and a bit more... We increase the estimation to allow for
+    // noise, wrong estimation and non-uniform sampling.
+    P_mean_distance_ = MeanDistance();
+
+    // Normalize the delta (See the paper) and the maximum base distance.
+    // delta = P_mean_distance_ * delta;
+    max_base_diameter_ = P_diameter_;  // * estimated_overlap_;
+
+    // RANSAC probability and number of needed trials.
+    Scalar first_estimation =
+            std::log(kSmallError) / std::log(1.0 - pow(options_.getOverlapEstimation(),
+                                             static_cast<Scalar>(kMinNumberOfTrials)));
+    // We use a simple heuristic to elevate the probability to a reasonable value
+    // given that we don't simply sample from P, but instead, we bound the
+    // distance between the points in the base as a fraction of the diameter.
+    number_of_trials_ =
+            static_cast<int>(first_estimation * (P_diameter_ / kDiameterFraction) /
+                             max_base_diameter_);
+    if (number_of_trials_ < kMinNumberOfTrials)
+        number_of_trials_ = kMinNumberOfTrials;
+
+    Log<LogLevel::Verbose>( "norm_max_dist: ", options_.delta );
+    current_trial_ = 0;
+    best_LCP_ = 0.0;
+
+    Q_copy_ = Q;
+    for (int i = 0; i < 4; ++i) {
+        base_[i] = 0;
+        current_congruent_[i] = 0;
+    }
+    transform_ = Eigen::Matrix<Scalar, 4, 4>::Identity();
+
+    // call Virtual handler
+    Initialize(P, Q);
+
+    best_LCP_ = Verify(transform_);
+    Log<LogLevel::Verbose>( "Initial LCP: ", best_LCP_ );
+}
+
+
 // Performs N RANSAC iterations and compute the best transformation. Also,
 // transforms the set Q by this optimal transformation.
 template <typename Visitor>
@@ -91,7 +209,7 @@ bool
 Match4PCSBase::Perform_N_steps(int n,
                                Eigen::Ref<MatrixType> transformation,
                                std::vector<Point3D>* Q,
-                               Visitor &v) {
+                               const Visitor &v) {
   using std::chrono::system_clock;
   if (Q == nullptr) return false;
 

@@ -14,7 +14,7 @@
 //
 // -------------------------------------------------------------------------- //
 //
-// Authors: Dror Aiger, Yoni Weill
+// Authors: Dror Aiger, Yoni Weill, Nicolas Mellado
 //
 // An implementation of the 4-points Congruent Sets (4PCS) algorithm presented
 // in:

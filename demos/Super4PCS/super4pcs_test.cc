@@ -116,10 +116,10 @@ void getArgs(int argc, char **argv) {
 }
 
 struct TransformVisitor {
-    inline void operator() (
+    inline void operator()(
             float fraction,
             float best_LCP,
-            Eigen::Ref<Match4PCSBase::MatrixType> /*transformation*/) {
+            Eigen::Ref<Match4PCSBase::MatrixType> /*transformation*/) const {
         printf("done: %d%c best: %f                  \r",
                static_cast<int>(fraction * 100), '%', best_LCP);
         fflush(stdout);
@@ -179,9 +179,13 @@ int main(int argc, char **argv) {
   typename Point3D::Scalar score = 0;
 
   constexpr Utils::LogLevel loglvl = Utils::Verbose;
+  using SamplerType   = GlobalRegistration::Sampling::UniformDistSampler;
   using TrVisitorType = typename std::conditional <loglvl==Utils::NoLog,
                             Match4PCSBase::DummyTransformVisitor,
                             TransformVisitor>::type;
+  SamplerType sampler;
+  TrVisitorType visitor;
+
   Utils::Logger logger(loglvl);
 
   try {
@@ -189,7 +193,7 @@ int main(int argc, char **argv) {
       if (use_super4pcs) {
           MatchSuper4PCS matcher(options, logger);
           logger.Log<Utils::Verbose>( "Use Super4PCS" );
-          score = matcher.ComputeTransformation<TrVisitorType>(set1, &set2, mat);
+          score = matcher.ComputeTransformation(set1, &set2, mat, sampler, visitor);
 
           if(! outputSampled1.empty() ){
               logger.Log<Utils::Verbose>( "Exporting Sampled cloud 1 to ",
@@ -219,7 +223,7 @@ int main(int argc, char **argv) {
       else {
           Match4PCS matcher(options, logger);
           logger.Log<Utils::Verbose>( "Use old 4PCS" );
-          score = matcher.ComputeTransformation<TrVisitorType>(set1, &set2, mat);
+          score = matcher.ComputeTransformation(set1, &set2, mat, sampler, visitor);
       }
 
   }

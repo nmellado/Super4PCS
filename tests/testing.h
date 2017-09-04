@@ -74,24 +74,30 @@ public:
     using Scalar                = typename BaseMatcher::Scalar;
     using MatrixType            = typename BaseMatcher::MatrixType;
     using PairsVector           = typename BaseMatcher::PairsVector;
+    using DefaultSampler        = typename BaseMatcher::DefaultSampler;
     using DummyTransformVisitor = typename BaseMatcher::DummyTransformVisitor;
 
     using BaseMatcher::BaseMatcher;
 
-    template <typename Visitor = DummyTransformVisitor>
+    template < typename Sampler = DefaultSampler,
+               typename Visitor = DummyTransformVisitor>
     inline Scalar
     ComputeTransformation(const std::vector<Point3D>& P,
                           std::vector<Point3D>* Q,
                           Eigen::Ref<MatrixType> transformation,
-                          Visitor v = Visitor()){
+                          const Sampler& s = Sampler(),
+                          const Visitor& v = Visitor()){
         return BaseMatcher::ComputeTransformation(P, Q,
                                                   transformation,
+                                                  s,
                                                   v);
     }
 
+    template < typename Sampler = DefaultSampler>
     inline void init(const std::vector<Point3D>& P,
-                     const std::vector<Point3D>& Q)
-    { BaseMatcher::init(P,Q); }
+                     const std::vector<Point3D>& Q,
+                     const Sampler& sampler = Sampler())
+    { BaseMatcher::init(P,Q, sampler); }
 
     inline bool SelectQuadrilateral(Scalar &inv1, Scalar &inv2,
                                     int& base1, int& base2,
