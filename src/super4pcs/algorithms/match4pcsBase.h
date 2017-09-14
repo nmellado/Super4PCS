@@ -95,7 +95,7 @@ public:
     // @param [in] Q The second input set.
     // as a fraction of the size of P ([0..1]).
     // @param [out] transformation Rigid transformation matrix (4x4) that brings
-    // Q to the (approximate) optimal LCP.
+    // Q to the (approximate) optimal LCP. Initial value is considered as a guess
     // @return the computed LCP measure.
     // The method updates the coordinates of the second set, Q, applying
     // the found transformation.
