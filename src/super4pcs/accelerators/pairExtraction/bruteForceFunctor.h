@@ -45,8 +45,8 @@
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
 
-#ifndef _BRUTE_FORCE_FUNCTOR_H_
-#define _BRUTE_FORCE_FUNCTOR_H_
+#ifndef _SUPER4PCS_ACCELERATORS_BRUTE_FORCE_FUNCTOR_H_
+#define _SUPER4PCS_ACCELERATORS_BRUTE_FORCE_FUNCTOR_H_
 
 #include "super4pcs/accelerators/pairExtraction/intersectionNode.h"
 #include <list>

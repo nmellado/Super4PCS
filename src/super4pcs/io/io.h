@@ -1,5 +1,5 @@
-#ifndef IO_H
-#define IO_H
+#ifndef _SUPER4PCS_IO_IO_H
+#define _SUPER4PCS_IO_IO_H
 
 #include "super4pcs/shared4pcs.h"
 #include "super4pcs/utils/disablewarnings.h"

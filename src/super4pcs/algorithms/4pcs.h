@@ -41,8 +41,8 @@
 // Use google search on "4-points congruent sets" to see many related papers
 // and applications.
 
-#ifndef _4PCS_H_
-#define _4PCS_H_
+#ifndef _SUPER4PCS_ALGO_4PCS_H_
+#define _SUPER4PCS_ALGO_4PCS_H_
 
 #include "super4pcs/algorithms/match4pcsBase.h"
 

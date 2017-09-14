@@ -45,8 +45,8 @@
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
 
-#ifndef _INDEXED_NORMAL_HEAL_SET_H_
-#define _INDEXED_NORMAL_HEAL_SET_H_
+#ifndef _SUPER4PCS_ACCELERATORS_INDEXED_NORMAL_HEAL_SET_H_
+#define _SUPER4PCS_ACCELERATORS_INDEXED_NORMAL_HEAL_SET_H_
 
 #include "super4pcs/utils/disablewarnings.h"
 #include "super4pcs/accelerators/utils.h"

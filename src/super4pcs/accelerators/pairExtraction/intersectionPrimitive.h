@@ -16,37 +16,37 @@
 //
 // Authors: Nicolas Mellado
 //
-// An implementation of the Super 4-points Congruent Sets (Super 4PCS) 
+// An implementation of the Super 4-points Congruent Sets (Super 4PCS)
 // algorithm presented in:
 //
 // Super 4PCS: Fast Global Pointcloud Registration via Smart Indexing
 // Nicolas Mellado, Dror Aiger, Niloy J. Mitra
 // Symposium on Geometry Processing 2014.
 //
-// Data acquisition in large-scale scenes regularly involves accumulating 
-// information across multiple scans. A common approach is to locally align scan 
-// pairs using Iterative Closest Point (ICP) algorithm (or its variants), but 
-// requires static scenes and small motion between scan pairs. This prevents 
+// Data acquisition in large-scale scenes regularly involves accumulating
+// information across multiple scans. A common approach is to locally align scan
+// pairs using Iterative Closest Point (ICP) algorithm (or its variants), but
+// requires static scenes and small motion between scan pairs. This prevents
 // accumulating data across multiple scan sessions and/or different acquisition
 // modalities (e.g., stereo, depth scans). Alternatively, one can use a global
-// registration algorithm allowing scans to be in arbitrary initial poses. The 
+// registration algorithm allowing scans to be in arbitrary initial poses. The
 // state-of-the-art global registration algorithm, 4PCS, however has a quadratic
-// time complexity in the number of data points. This vastly limits its 
+// time complexity in the number of data points. This vastly limits its
 // applicability to acquisition of large environments. We present Super 4PCS for
-// global pointcloud registration that is optimal, i.e., runs in linear time (in 
-// the number of data points) and is also output sensitive in the complexity of 
-// the alignment problem based on the (unknown) overlap across scan pairs. 
-// Technically, we map the algorithm as an ‘instance problem’ and solve it 
-// efficiently using a smart indexing data organization. The algorithm is 
+// global pointcloud registration that is optimal, i.e., runs in linear time (in
+// the number of data points) and is also output sensitive in the complexity of
+// the alignment problem based on the (unknown) overlap across scan pairs.
+// Technically, we map the algorithm as an ‘instance problem’ and solve it
+// efficiently using a smart indexing data organization. The algorithm is
 // simple, memory-efficient, and fast. We demonstrate that Super 4PCS results in
-// significant speedup over alternative approaches and allows unstructured 
-// efficient acquisition of scenes at scales previously not possible. Complete 
-// source code and datasets are available for research use at 
+// significant speedup over alternative approaches and allows unstructured
+// efficient acquisition of scenes at scales previously not possible. Complete
+// source code and datasets are available for research use at
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
 
-#ifndef _INTERSECTION_PRIMITIVES_H_
-#define _INTERSECTION_PRIMITIVES_H_
+#ifndef _SUPER4PCS_ACCELERATORS_INTERSECTION_PRIMITIVES_H_
+#define _SUPER4PCS_ACCELERATORS_INTERSECTION_PRIMITIVES_H_
 
 #ifndef SQR
 #define SQR(a)		((a)*(a))
@@ -75,7 +75,7 @@ private:
 
     Scalar m_e;
   };
-  
+
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   enum { Dim = _dim};
@@ -85,15 +85,15 @@ public:
 
   inline HyperSphere(const HyperSphere<Point, _dim, Scalar>& other)
     : _center(other._center), _radius(other._radius) { }
-    
+
   //! \brief Construct a copy of the instance with a quantified radius and pos
-  inline HyperSphere<Point, _dim, Scalar> quantified ( Scalar eps ) const 
+  inline HyperSphere<Point, _dim, Scalar> quantified ( Scalar eps ) const
   {
     CustomFloorExpr expr (eps);
-    return HyperSphere<Point, _dim, Scalar>(_center.unaryExpr(expr), 
+    return HyperSphere<Point, _dim, Scalar>(_center.unaryExpr(expr),
                                             expr(_radius));
   }
-  
+
   //! \brief Comparison operator comparing first the radius then the position
   inline bool operator<(const HyperSphere<Point, _dim, Scalar>& other) const{
     if (_radius != other._radius)
@@ -108,35 +108,35 @@ public:
 
   //! Implicit conversion operator to Eigen vectors
   inline operator Point() const { return _center; }
-  
+
   /*!
    * \implements Arvo, James,
    *             A Simple Method for Box-Sphere Intersection Testing,
    *             Graphics Gems, p. 335-339, code: p. 730-732, BoxSphere.c.
    */
   inline bool intersect( const Point& nodeCenter, Scalar halfEdgeLength) const
-  {  
+  {
     const Point min = nodeCenter.array() - halfEdgeLength;
     const Point max = nodeCenter.array() + halfEdgeLength;
     const Point sqmin = (_center.array() - min.array()).square();
-    const Point sqmax = (_center.array() - max.array()).square();    
+    const Point sqmax = (_center.array() - max.array()).square();
 
     // The computation of dmin below is equivalent to:
-    //for( int i = 0; i < Dim; i++ ) {      
+    //for( int i = 0; i < Dim; i++ ) {
       //if( _center[i] < min[i] ) dmin += sqmin[i]; else
       //if( _center[i] > max[i] ) dmin += sqmax[i];
     //}
-    
+
     Scalar dmin = (_center.array() < min.array())
            .select(
-              sqmin, 
+              sqmin,
               (_center.array() > max.array()).select(sqmax,Point::Zero())
            ).sum();
-    
-    return ( dmin < _radius*_radius && 
+
+    return ( dmin < _radius*_radius &&
              _radius*_radius < sqmin.cwiseMax(sqmax).sum() );
   }
-  
+
   /*!
    * \brief intersectFast Fast but inacurate intersection test
    * \param nodeCenter
@@ -147,21 +147,21 @@ public:
    * halfEdgeLength.
    */
   inline bool intersectFast( const Point& nodeCenter, Scalar halfEdgeLength) const
-  {  
+  {
     return SQR((nodeCenter-_center).norm()-halfEdgeLength) <= _radius;
   }
-    
+
   inline bool intersectPoint( const Point& pos, Scalar epsilon ) const
-  {      
+  {
     return SQR((pos - _center).norm()-_radius) < SQR(epsilon);
   }
-    
+
   static inline bool intersectPoint( const Point& pos, Scalar epsilon,
-                                     const Point& center, const Scalar &radius ) 
-  {      
+                                     const Point& center, const Scalar &radius )
+  {
     return SQR((pos - center).norm()-radius) < SQR(epsilon);
   }
-  
+
   inline const Point& center() const {return _center;}
   inline const Scalar & radius() const {return _radius;}
   inline Scalar& radius() { return _radius; }

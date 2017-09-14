@@ -44,8 +44,8 @@
 // source code and datasets are available for research use at
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
-#ifndef _SUPER4PCS_H_
-#define _SUPER4PCS_H_
+#ifndef _SUPER4PCS_ALGO_SUPER4PCS_H_
+#define _SUPER4PCS_ALGO_SUPER4PCS_H_
 
 #include "super4pcs/algorithms/match4pcsBase.h"
 #include "super4pcs/algorithms/pairCreationFunctor.h"

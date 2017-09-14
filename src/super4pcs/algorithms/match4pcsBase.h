@@ -41,8 +41,8 @@
 // Use google search on "4-points congruent sets" to see many related papers
 // and applications.
 
-#ifndef _MATCH_4PCS_BASE_
-#define _MATCH_4PCS_BASE_
+#ifndef _SUPER4PCS_ALGO_MATCH_4PCS_BASE_
+#define _SUPER4PCS_ALGO_MATCH_4PCS_BASE_
 
 #include <vector>
 
