@@ -54,10 +54,16 @@
 ::   -d delta, used to compute the LCP between the two models
 ::   -t maximum computation time in seconds
 ::   -n number of samples used for the matching
+::
+:: When available, also runs the registration using the PCL wrapper
 
 @ setx PATH "%~dp0\..\lib"
 
 ..\bin\Super4pcs -i ..\assets\hippo1.obj ..\assets\hippo2.obj -o 0.7 -d 0.01 -t 1000 -n 200 -r super4pcs_fast.obj -m mat_super4pcs_fast.txt
 ..\bin\Super4pcs -i ..\assets\hippo1.obj ..\assets\hippo2.obj -o 0.7 -d 0.01 -t 1000 -n 200 -r      4pcs_fast.obj -m      mat_4pcs_fast.txt -x
+
+if exist ..\bin\Super4PCS-PCLWrapper (
+    ..\bin\Super4PCS-PCLWrapper ..\assets\hippo1.obj ..\assets\hippo2.obj -o 0.7 -d 0.01 -t 1000 -n 200
+)
 
 @ PAUSE
