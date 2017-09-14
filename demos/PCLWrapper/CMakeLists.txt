@@ -1,6 +1,6 @@
 project(Super4PCS-PCLWrapper)
 
-find_package( PCL 1.8 REQUIRED )
+find_package( PCL 1.8 REQUIRED QUIET )
 
 set(Demo_PCL_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp

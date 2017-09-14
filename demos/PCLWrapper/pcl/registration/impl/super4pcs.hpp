@@ -41,30 +41,68 @@
 #ifndef PCL_REGISTRATION_SUPER4PCS_HPP_
 #define PCL_REGISTRATION_SUPER4PCS_HPP_
 
+#include <pcl/io/ply_io.h>
 #include <pcl/registration/super4pcs.h>
+#include <super4pcs/algorithms/super4pcs.h>
+
+
+struct TransformVisitor {
+    inline void operator()(
+            float fraction,
+            float best_LCP,
+            Eigen::Ref<GlobalRegistration::Match4PCSBase::MatrixType> /*transformation*/) const {
+        printf("done: %d%c best: %f                  \r",
+               static_cast<int>(fraction * 100), '%', best_LCP);
+        fflush(stdout);
+    }
+    constexpr bool needsGlobalTransformation() const { return false; }
+};
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename PointSource, typename PointTarget> void
 pcl::Super4PCS<PointSource, PointTarget>::computeTransformation (PointCloudSource &output, const Eigen::Matrix4f& guess)
 {
+  using namespace GlobalRegistration;
 
   // Initialize results
   final_transformation_ = guess;
 
-  //float lowest_error = std::numeric_limits<float>::max ();
+  constexpr Utils::LogLevel loglvl = Utils::Verbose;
+  using SamplerType   = GlobalRegistration::Sampling::UniformDistSampler;
+  using TrVisitorType = typename std::conditional <loglvl==Utils::NoLog,
+                            Match4PCSBase::DummyTransformVisitor,
+                            TransformVisitor>::type;
 
-  // If guess is not the Identity matrix we check it
-  if (!guess.isApprox (Eigen::Matrix4f::Identity (), 0.01f))
-  {
-     // \TODO
-  }
+  Utils::Logger logger(loglvl);
+  MatchSuper4PCS matcher(options_, logger);
+
+  SamplerType sampler;
+  TrVisitorType visitor;
+
+  std::vector<GlobalRegistration::Point3D> set1, set2;
+
+  // init Super4PCS point cloud internal structure
+  auto fillPointSet = [] (const PointCloudSource& m, std::vector<GlobalRegistration::Point3D>& out) {
+      out.clear();
+      out.reserve(m.size());
+
+      // TODO: copy other point-wise information, if any
+      for(size_t i = 0; i< m.size(); i++){
+          const auto& point = m[i];
+          out.emplace_back(point.x, point.y, point.z);
+      }
+  };
+  fillPointSet(*target_, set1);
+  fillPointSet(*input_, set2);;
+
+  float score = matcher.ComputeTransformation(set1, &set2, final_transformation_, sampler, visitor);
 
   transformPointCloud (*input_, output, final_transformation_);
 
-  // Debug output
-  //PCL_DEBUG("[pcl::%s::computeTransformation] Rejected %i out of %i generated pose hypotheses.\n",
-  //          getClassName ().c_str (), num_rejections, max_iterations_);
+  pcl::console::print_highlight ("Final score: %f\n", score);
+
+  converged_ = true;
 }
 
 

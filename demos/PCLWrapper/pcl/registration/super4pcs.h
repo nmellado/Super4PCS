@@ -43,6 +43,7 @@
 
 #include <pcl/registration/registration.h>
 #include <pcl/registration/transformation_estimation_svd.h>
+#include <super4pcs/shared4pcs.h>
 
 namespace pcl
 {
@@ -82,6 +83,9 @@ namespace pcl
 
       typedef PointIndices::Ptr PointIndicesPtr;
       typedef PointIndices::ConstPtr PointIndicesConstPtr;
+
+
+      GlobalRegistration::Match4PCSOptions options_;
 
       /** \brief Constructor */
       Super4PCS ()
