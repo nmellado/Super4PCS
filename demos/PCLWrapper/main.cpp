@@ -5,15 +5,21 @@
 #include <pcl/console/print.h>
 #include <pcl/features/fpfh_omp.h>
 #include <pcl/filters/voxel_grid.h>
-#include <pcl/io/pcd_io.h>
+#include <pcl/io/obj_io.h>
+#include <pcl/io/ply_io.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
 #include <pcl/registration/super4pcs.h>
+
+#include <super4pcs/shared4pcs.h>
+#include "../demo-utils.h"
 
 // Types
 typedef pcl::PointNormal PointNT;
 typedef pcl::PointCloud<PointNT> PointCloudT;
 typedef pcl::visualization::PointCloudColorHandlerCustom<PointNT> ColorHandlerT;
+
+using namespace GlobalRegistration;
 
 // Align a rigid object to a scene with clutter and occlusions
 int
@@ -25,34 +31,39 @@ main (int argc, char **argv)
   PointCloudT::Ptr scene (new PointCloudT);
 
   // Get input object and scene
-  if (argc != 3)
+  if (argc < 3)
   {
-    pcl::console::print_error ("Syntax is: %s object.pcd scene.pcd\n", argv[0]);
+    pcl::console::print_error ("Syntax is: %s scene.obj object.obj\n", argv[0]);
     return (1);
   }
 
   // Load object and scene
   pcl::console::print_highlight ("Loading point clouds...\n");
-  if (pcl::io::loadPCDFile<PointNT> (argv[1], *object) < 0 ||
-      pcl::io::loadPCDFile<PointNT> (argv[2], *scene) < 0)
+  if (pcl::io::loadOBJFile<PointNT> (argv[2], *object) < 0 ||
+      pcl::io::loadOBJFile<PointNT> (argv[1], *scene) < 0)
   {
     pcl::console::print_error ("Error loading object/scene file!\n");
     return (1);
   }
 
+  // Load Super4pcs parameters
+  Demo::getArgs(argc, argv);
+
+  pcl::Super4PCS<PointNT,PointNT> align;
+  Demo::setOptionsFromArgs(align.options_);
+
   // Downsample
-  pcl::console::print_highlight ("Downsampling...\n");
-  pcl::VoxelGrid<PointNT> grid;
-  const float leaf = 0.005f;
-  grid.setLeafSize (leaf, leaf, leaf);
-  grid.setInputCloud (object);
-  grid.filter (*object);
-  grid.setInputCloud (scene);
-  grid.filter (*scene);
+//  pcl::console::print_highlight ("Downsampling...\n");
+//  pcl::VoxelGrid<PointNT> grid;
+//  const float leaf = 0.005f;r
+//  grid.setLeafSize (leaf, leaf, leaf);
+//  grid.setInputCloud (object);
+//  grid.filter (*object);
+//  grid.setInputCloud (scene);
+//  grid.filter (*scene);
 
   // Perform alignment
   pcl::console::print_highlight ("Starting alignment...\n");
-  pcl::Super4PCS<PointNT,PointNT> align;
   align.setInputSource (object);
   align.setInputTarget (scene);
 
@@ -74,7 +85,7 @@ main (int argc, char **argv)
     pcl::console::print_info ("\n");
 
     // Show alignment
-    pcl::visualization::PCLVisualizer visu("Alignment");
+    pcl::visualization::PCLVisualizer visu("Alignment - Super4PCS");
     visu.addPointCloud (scene, ColorHandlerT (scene, 0.0, 255.0, 0.0), "scene");
     visu.addPointCloud (object_aligned, ColorHandlerT (object_aligned, 0.0, 0.0, 255.0), "object_aligned");
     visu.spin ();
