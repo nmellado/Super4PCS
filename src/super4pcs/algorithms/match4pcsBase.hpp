@@ -70,7 +70,6 @@ Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
 
   init(P, *Q, sampler);
 
-  transformation = MatrixType::Identity();
   Perform_N_steps(number_of_trials_, transformation, Q, v);
 
 #ifdef TEST_GLOBAL_TIMINGS

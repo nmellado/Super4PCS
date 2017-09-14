@@ -256,7 +256,7 @@ void test_model(const vector<Transform> &transforms,
     Match4PCSOptions options;
 
     // Set parameters.
-    Match4PCSBase::MatrixType mat;
+    Match4PCSBase::MatrixType mat (Match4PCSBase::MatrixType::Identity());
     VERIFY(options.configureOverlap(overlaps[param_i]));
     options.sample_size = n_points[param_i];
     options.max_time_seconds = max_time_seconds;
