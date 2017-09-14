@@ -1,5 +1,5 @@
-#ifndef IO_PLY_H
-#define IO_PLY_H
+#ifndef _SUPER4PCS_IO_PLY_H
+#define _SUPER4PCS_IO_PLY_H
 
 #include <cstdarg>
 

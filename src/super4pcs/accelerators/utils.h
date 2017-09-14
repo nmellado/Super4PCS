@@ -45,8 +45,8 @@
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
 
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#ifndef _SUPER4PCS_ACCELERATORS_UTILS_H_
+#define _SUPER4PCS_ACCELERATORS_UTILS_H_
 
 
 #ifndef M_PI

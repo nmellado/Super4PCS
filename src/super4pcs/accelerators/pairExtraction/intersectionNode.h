@@ -45,8 +45,8 @@
 // http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS/.
 
 
-#ifndef _INTERSECTION_NODE_H_
-#define _INTERSECTION_NODE_H_
+#ifndef _SUPER4PCS_ACCELERATORS_INTERSECTION_NODE_H_
+#define _SUPER4PCS_ACCELERATORS_INTERSECTION_NODE_H_
 
 #include <list>
 #include "super4pcs/accelerators/utils.h"
