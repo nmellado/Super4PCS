@@ -31,10 +31,11 @@ main (int argc, char **argv)
   PointCloudT::Ptr scene (new PointCloudT);
 
   // Get input object and scene
-  if (argc < 3)
+  if (argc < 4)
   {
-    pcl::console::print_error ("Syntax is: %s scene.obj object.obj\n", argv[0]);
-    return (1);
+    pcl::console::print_error ("Syntax is: %s scene.obj object.obj [PARAMS]\n", argv[0]);
+    Demo::printParameterList();
+    return (-1);
   }
 
   // Load object and scene
@@ -43,7 +44,7 @@ main (int argc, char **argv)
       pcl::io::loadOBJFile<PointNT> (argv[1], *scene) < 0)
   {
     pcl::console::print_error ("Error loading object/scene file!\n");
-    return (1);
+    return (-1);
   }
 
   // Load Super4pcs parameters
@@ -93,7 +94,7 @@ main (int argc, char **argv)
   else
   {
     pcl::console::print_error ("Alignment failed!\n");
-    return (1);
+    return (-1);
   }
 
   return (0);

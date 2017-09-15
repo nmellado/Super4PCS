@@ -18,6 +18,14 @@ using namespace GlobalRegistration;
 using namespace GlobalRegistration::Demo;
 
 
+static inline void printS4PCSParameterList(){
+    fprintf(stderr, "\t[ -r result_file_name (%s) ]\n", output.c_str());
+    fprintf(stderr, "\t[ -m output matrix file (%s) ]\n", outputMat.c_str());
+    fprintf(stderr, "\t[ -x (use 4pcs: false by default) ]\n");
+    fprintf(stderr, "\t[ --sampled1 (output sampled cloud 1 -- debug+super4pcs only) ]\n");
+    fprintf(stderr, "\t[ --sampled2 (output sampled cloud 2 -- debug+super4pcs only) ]\n");
+}
+
 struct TransformVisitor {
     inline void operator()(
             float fraction,
@@ -51,15 +59,26 @@ int main(int argc, char **argv) {
   TrVisitorType visitor;
   Utils::Logger logger(loglvl);
 
-  Demo::getArgs(argc, argv);
+  /// TODO Add proper error codes
+  if(argc < 4){
+      Demo::printUsage(argc, argv);
+      exit(-2);
+  }
+  if(int c = Demo::getArgs(argc, argv) != 0)
+  {
+    Demo::printUsage(argc, argv);
+    printS4PCSParameterList();
+    exit(std::max(c,0));
+  }
 
   // prepare matcher ressources
   Match4PCSOptions options;
   Match4PCSBase::MatrixType mat (Match4PCSBase::MatrixType::Identity());
 
   if(! Demo::setOptionsFromArgs(options, logger))
-      /// TODO Add proper error codes
-      exit(-3);
+  {
+    exit(-3);
+  }
 
   // load data
   IOManager iomananger;
