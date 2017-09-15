@@ -101,7 +101,22 @@ static int max_time_seconds = 10;
 
 static bool use_super4pcs = true;
 
-static inline void getArgs(int argc,
+static inline void printParameterList(){
+    fprintf(stderr, "Parameter list:\n");
+    fprintf(stderr, "\t[ -o overlap (%2.2f) ]\n", overlap);
+    fprintf(stderr, "\t[ -d delta (%2.2f) ]\n", delta);
+    fprintf(stderr, "\t[ -n n_points (%d) ]\n", n_points);
+    fprintf(stderr, "\t[ -a norm_diff (%f) ]\n", norm_diff);
+    fprintf(stderr, "\t[ -c max_color_diff (%f) ]\n", max_color);
+    fprintf(stderr, "\t[ -t max_time_seconds (%d) ]\n", max_time_seconds);
+}
+
+static inline void printUsage(int /*argc*/, char **argv){
+    fprintf(stderr, "\nUsage: %s -i input1 input2\n", argv[0]);
+    printParameterList();
+}
+
+static inline int getArgs(int argc,
                            char **argv,
                            const Utils::Logger& logger = Utils::Logger()) {
   int i = 1;
@@ -132,22 +147,10 @@ static inline void getArgs(int argc,
     } else if (!strcmp(argv[i], "--sampled2")) {
       outputSampled2 = argv[++i];
     } else if (!strcmp(argv[i], "-h")) {
-      fprintf(stderr, "\nUsage: %s -i input1 input2\n\n", argv[0]);
-      fprintf(stderr, "\t[ -o overlap (%2.2f) ]\n", overlap);
-      fprintf(stderr, "\t[ -d delta (%2.2f) ]\n", delta);
-      fprintf(stderr, "\t[ -n n_points (%d) ]\n", n_points);
-      fprintf(stderr, "\t[ -a norm_diff (%f) ]\n", norm_diff);
-      fprintf(stderr, "\t[ -c max_color_diff (%f) ]\n", max_color);
-      fprintf(stderr, "\t[ -t max_time_seconds (%d) ]\n", max_time_seconds);
-      fprintf(stderr, "\t[ -r result_file_name (%s) ]\n", output.c_str());
-      fprintf(stderr, "\t[ -m output matrix file (%s) ]\n", outputMat.c_str());
-      fprintf(stderr, "\t[ -x (use 4pcs: false by default) ]\n");
-      fprintf(stderr, "\t[ --sampled1 (output sampled cloud 1 -- debug+super4pcs only) ]\n");
-      fprintf(stderr, "\t[ --sampled2 (output sampled cloud 2 -- debug+super4pcs only) ]\n");
-      exit(0);
+      return 1;
     } else if (argv[i][0] == '-') {
       std::cerr << "Unknown flag\n";
-      exit(-1);
+      return -1;
     };
     i++;
   }
@@ -155,6 +158,7 @@ static inline void getArgs(int argc,
   // if no output file (geometry/matrix) is set, force 3d mesh
   if (output.empty() && outputMat.empty()) output = defaultObjOutput;
 
+  return 0;
 }
 
 static inline bool setOptionsFromArgs( Match4PCSOptions &options,
