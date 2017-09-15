@@ -70,7 +70,8 @@ Match4PCSBase::ComputeTransformation(const std::vector<Point3D>& P,
 
   init(P, *Q, sampler);
 
-  Perform_N_steps(number_of_trials_, transformation, Q, v);
+  if (best_LCP_ != Scalar(1.))
+    Perform_N_steps(number_of_trials_, transformation, Q, v);
 
 #ifdef TEST_GLOBAL_TIMINGS
   Log<LogLevel::Verbose>( "----------- Timings (msec) -------------" );
