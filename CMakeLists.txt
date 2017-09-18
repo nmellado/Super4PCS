@@ -130,6 +130,51 @@ if(SUPER4PCS_COMPILE_DEMOS)
 endif(SUPER4PCS_COMPILE_DEMOS)
 
 ################################################################################
+# API documentation (generated with Doxygen)                                   #
+################################################################################
+
+find_package(Git)
+
+if(GIT_FOUND)
+    execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_CHANGESET)
+    # remove new line sometime appearing in git changeset
+    string(REGEX REPLACE "\n$" "" GIT_CHANGESET "${GIT_CHANGESET}")
+    string(SUBSTRING ${GIT_CHANGESET} 0 7 GIT_CHANGESET_SHORT)
+else()
+    set(GIT_CHANGESET "")
+    set(GIT_CHANGESET_SHORT "")
+endif()
+
+find_package(Doxygen 1.8.0)
+if(DOXYGEN_FOUND)
+
+    set (SUPER4PCS_PROJECT_NUMBER "V${Super4PCS_VERSION} (${GIT_CHANGESET_SHORT})")
+    set (SUPER4PCS_DOC_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc)
+
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${SUPER4PCS_DOC_DIRECTORY}/Doxyfile @ONLY)
+
+    add_custom_target(doc
+        ${CMAKE_COMMAND} -E make_directory ${SUPER4PCS_DOC_DIRECTORY}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/doc/images/
+        ${SUPER4PCS_DOC_DIRECTORY}/html/images
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG
+        ${SUPER4PCS_DOC_DIRECTORY}/
+        COMMAND ${DOXYGEN_EXECUTABLE} ${SUPER4PCS_DOC_DIRECTORY}/Doxyfile
+        DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen" VERBATIM
+        )
+
+    install( DIRECTORY ${SUPER4PCS_DOC_DIRECTORY}/ DESTINATION ${CMAKE_INSTALL_PREFIX}/doc )
+endif(DOXYGEN_FOUND)
+
+################################################################################
 # Installation (source: https://github.com/forexample/package-example)
 ################################################################################
 
