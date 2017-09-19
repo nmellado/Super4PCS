@@ -15,6 +15,12 @@ In a nutshell, it provides:
    * a [meshlab plugin](@ref Super4PCS-Meshlab)
 * a [test suite](@ref GlobalRegistration::Testing)
 
+### Usage and documentation
+If you plan to use the library in you own software, you want to look at:
+* [Match4PCSBase](@ref GlobalRegistration::Match4PCSBase), the base class for registration algorithms, providing the [ComputeTransformation](@ref GlobalRegistration::Match4PCSBase::ComputeTransformation) method. Two different algorithms are today available: [4PCS](@ref GlobalRegistration::Match4PCS) and its more efficient variant [Super4PCS](@ref GlobalRegistration::MatchSuper4PCS) 
+
+Super4PCS is also shipped with demo apps, checkout the `demos` folder.
+
 ## Compilation status
 [stsimg-linux]: https://api.travis-ci.org/nmellado/Super4PCS.svg?branch=master
 [stsimg-windw]: https://ci.appveyor.com/api/projects/status/reg4cmhn309w1s8k/branch/master?svg=true
@@ -32,6 +38,10 @@ In a nutshell, it provides:
 * Nicolas Mellado: conception, implementation and examples
 * Dror Aiger: 4pcs implementation
 * Niloy Mitra: 4pcs implementation
+
+### Contributors
+* [Simone Gasparini](https://github.com/simogasp) Pull-Request reviews
+* [xinkang](https://github.com/xinkang) Fix include path of timer.h
 
 
 ### Citation

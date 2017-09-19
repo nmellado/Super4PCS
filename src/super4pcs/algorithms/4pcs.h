@@ -48,7 +48,7 @@
 
 namespace GlobalRegistration {
 
-// Class for the computation of the 4PCS algorithm.
+/// Class for the computation of the 4PCS algorithm.
 class Match4PCS : public Match4PCSBase {
 public:
     using Base        = Match4PCSBase;
@@ -61,20 +61,20 @@ public:
 
     ~Match4PCS();
 
-public:
-    // Constructs pairs of points in Q, corresponding to a single pair in the
-    // in basein P.
-    // @param [in] pair_distance The distance between the pairs in P that we have
-    // to match in the pairs we select from Q.
-    // @param [in] pair_normal_distance The angle between the normals of the pair
-    // in P.
-    // @param [in] pair_distance_epsilon Tolerance on the pair distance. We allow
-    // candidate pair in Q to have distance of
-    // pair_distance+-pair_distance_epsilon.
-    // @param [in] base_point1 The index of the first point in P.
-    // @param [in] base_point2 The index of the second point in P.
-    // @param [out] pairs A set of pairs in Q that match the pair in P with
-    // respect to distance and normals, up to the given tolerance.
+protected:
+    /// Constructs pairs of points in Q, corresponding to a single pair in the
+    /// in basein P.
+    /// @param [in] pair_distance The distance between the pairs in P that we have
+    /// to match in the pairs we select from Q.
+    /// @param [in] pair_normal_distance The angle between the normals of the pair
+    /// in P.
+    /// @param [in] pair_distance_epsilon Tolerance on the pair distance. We allow
+    /// candidate pair in Q to have distance of
+    /// pair_distance+-pair_distance_epsilon.
+    /// @param [in] base_point1 The index of the first point in P.
+    /// @param [in] base_point2 The index of the second point in P.
+    /// @param [out] pairs A set of pairs in Q that match the pair in P with
+    /// respect to distance and normals, up to the given tolerance.
     void
     ExtractPairs(
             Scalar pair_distance,
@@ -83,19 +83,19 @@ public:
             int base_point2,
             PairsVector* pairs) const override;
 
-    // Finds congruent candidates in the set Q, given the invariants and threshold
-    // distances. Returns true if a non empty set can be found, false otherwise.
-    // @param invariant1 [in] The first invariant corresponding to the set P_pairs
-    // of pairs, previously extracted from Q.
-    // @param invariant2 [in] The second invariant corresponding to the set
-    // Q_pairs of pairs, previously extracted from Q.
-    // @param [in] distance_threshold1 The distance for verification.
-    // @param [in] distance_threshold2 The distance for matching middle points due
-    // to the invariants (See the paper for e1, e2).
-    // @param [in] P_pairs The first set of pairs.
-    // @param [in] Q_pairs The second set of pairs.
-    // @param [out] quadrilaterals The set of congruent quadrilateral. In fact,
-    // it's a super set from which we extract the real congruent set.
+    /// Finds congruent candidates in the set Q, given the invariants and threshold
+    /// distances. Returns true if a non empty set can be found, false otherwise.
+    /// @param invariant1 [in] The first invariant corresponding to the set P_pairs
+    /// of pairs, previously extracted from Q.
+    /// @param invariant2 [in] The second invariant corresponding to the set
+    /// Q_pairs of pairs, previously extracted from Q.
+    /// @param [in] distance_threshold1 The distance for verification.
+    /// @param [in] distance_threshold2 The distance for matching middle points due
+    /// to the invariants (See the paper for e1, e2).
+    /// @param [in] P_pairs The first set of pairs.
+    /// @param [in] Q_pairs The second set of pairs.
+    /// @param [out] quadrilaterals The set of congruent quadrilateral. In fact,
+    /// it's a super set from which we extract the real congruent set.
     bool FindCongruentQuadrilaterals(
             Scalar invariant1,
             Scalar invariant2,
@@ -105,15 +105,14 @@ public:
             const PairsVector& Q_pairs,
             std::vector<Quadrilateral>* quadrilaterals) const override;
 
-protected:
-    // Initializes the data structures and needed values before the match
-    // computation.
-    // @param [in] point_P First input set.
-    // @param [in] point_Q Second input set.
-    // expected to be in the inliers.
+    /// Initializes the data structures and needed values before the match
+    /// computation.
+    /// @param [in] point_P First input set.
+    /// @param [in] point_Q Second input set.
+    /// expected to be in the inliers.
     void Initialize(const std::vector<Point3D>& P,
                     const std::vector<Point3D>& Q) override;
 };
-} // namespace match_4pcs
+} /// namespace match_4pcs
 
-#endif  // _4PCS_H_
+#endif  /// _4PCS_H_
