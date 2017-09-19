@@ -88,24 +88,24 @@ private:
   Scalar _epsilon;
   int _egSize;    //! <\brief Size of the euclidean grid for each dimension
 
-  // Get the index corresponding to position p \warning Bounds are not tested
+  /// Get the index corresponding to position p \warning Bounds are not tested
   inline int indexPos   ( const Point& p) const;
-  // Get the index corresponding to normal n   \warning Bounds are not tested
+  /// Get the index corresponding to normal n   \warning Bounds are not tested
   inline int indexNormal( const Point& n) const;
 
-  // Get the coordinates corresponding to position p \warning Bounds are not tested
+  /// Get the coordinates corresponding to position p \warning Bounds are not tested
   inline Point coordinatesPos   ( const Point& p) const
   { return p/_epsilon;  }
-  // Get the index corresponding to normal n   \warning Bounds are not tested
+  /// Get the index corresponding to normal n   \warning Bounds are not tested
   inline Point coordinatesNormal( const Point& n) const
   {
     static const Point half = Point::Ones()/Scalar(2.);
     return (n/Scalar(2.) + half)/_nepsilon;
   }
 
-  // Get the coordinates corresponding to position p \warning Bounds are not tested
+  /// Get the coordinates corresponding to position p \warning Bounds are not tested
   inline int indexCoordinatesPos   ( const Point& pCoord) const;
-  // Get the index corresponding to normal n   \warning Bounds are not tested
+  /// Get the index corresponding to normal n   \warning Bounds are not tested
   inline int indexCoordinatesNormal( const Point& nCoord) const;
 
   //inline Point indexToPos (int id) const;
@@ -113,7 +113,7 @@ private:
 public:
   inline IndexedNormalSet(const Scalar epsilon)
   : _epsilon(epsilon) {
-    // We need to check if epsilon is a power of two and correct it if needed
+    /// We need to check if epsilon is a power of two and correct it if needed
     const int gridDepth = -std::log2(epsilon);
     _egSize = std::pow(2,gridDepth);
     _epsilon = 1.f/_egSize;
