@@ -245,7 +245,8 @@ protected:
     /// Tries one base and finds the best transformation for this base.
     /// Returns true if the achieved LCP is greater than terminate_threshold_,
     /// else otherwise.
-    bool TryOneBase();
+    template <typename Visitor>
+    bool TryOneBase(const Visitor &v);
 
     /// Initializes the data structures and needed values before the match
     /// computation.
@@ -315,11 +316,13 @@ protected:
     /// Loop over the set of congruent 4-points and test compatiliby with the
     /// input base.
     /// \param [out] Nb Number of quads corresponding to valid configurations
+    template <typename Visitor>
     bool TryCongruentSet(int base_id1,
                          int base_id2,
                          int base_id3,
                          int base_id4,
                          const std::vector<Quadrilateral> &congruent_quads,
+                         const Visitor &v,
                          size_t &nbCongruent);
 private:
     void initKdTree();
