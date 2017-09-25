@@ -16,6 +16,17 @@ endif()
 
 set (CMAKE_CXX_STANDARD 11)
 
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if( cmake_build_type_tolower STREQUAL "release" )
+    find_package(OpenMP)
+
+    if(OPENMP_FOUND)
+      message(STATUS "Enable OpenMP")
+      add_definitions("-DSUPER4PCS_USE_OPENMP")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    endif(OPENMP_FOUND)
+  endif()
+endif()
 
 find_package(Meshlab QUIET)
 

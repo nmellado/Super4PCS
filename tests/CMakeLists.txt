@@ -46,6 +46,7 @@ ExternalProject_Add(
             -DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}/lib/cmake
             -DCMAKE_INSTALL_RPATH=${CMAKE_INSTALL_PREFIX}/lib
             -DEIGEN3_INCLUDE_DIR=${EIGEN3_INCLUDE_DIR}
+            -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
 
         # override default behaviours
         UPDATE_COMMAND ""
