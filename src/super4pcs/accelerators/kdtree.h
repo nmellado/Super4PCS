@@ -128,7 +128,6 @@ namespace GlobalRegistration{
 
     \code
     t.setMaxNofNeighbors(1);
-    t.doQueryK( vec3(0,0,0) );
     vec3 result           = t.getNeighbor( 0 ).p;
     unsigned int resultId = t.getNeighborId( 0 );
 
@@ -170,6 +169,25 @@ public:
     typedef std::vector<VectorType>  PointList;
     typedef std::vector<Index>       IndexList;
 
+    //! element of the stack
+    struct QueryNode
+    {
+        inline QueryNode() {}
+        inline QueryNode(unsigned int id) : nodeId(id) {}
+        //! id of the next node
+        unsigned int nodeId;
+        //! squared distance to the next node
+        Scalar sq;
+    };
+
+    template <int _stackSize = 64>
+    struct RangeQuery
+    {
+        VectorType queryPoint;
+        Scalar     sqdist;
+        QueryNode  nodeStack[_stackSize];
+    };
+
     inline const NodeList&   _getNodes   (void) { return mNodes;   }
     inline const PointList&  _getPoints  (void) { return mPoints;  }
     inline const PointList&  _getIndices (void) { return mIndices;  }
@@ -192,7 +210,7 @@ public:
          // this is ok since the memory has been reserved at construction time
         mPoints.push_back(p);
         mIndices.push_back(mIndices.size());
-        mAABB.extendTo(p);
+        mAABB.extend(p);
     }
 
     inline void add(Scalar *position){
@@ -207,19 +225,14 @@ public:
 
     ~KdTree();
 
-    inline void doQueryK(const VectorType& p);
-
     /*!
      * \brief Performs distance query and return vector coordinates
      */
-    template<typename Container = std::vector<VectorType> >
+    template<int stackSize, typename Container = std::vector<VectorType> >
     inline void
-    doQueryDist(const VectorType& queryPoint,
-                Scalar sqdist,
-                Container& result){
-        _doQueryDistIndicesWithFunctor(queryPoint,
-                                      sqdist,
-                                      [&result,this](unsigned int i){
+    doQueryDist(RangeQuery<stackSize>& query,
+                Container& result) const {
+        _doQueryDistIndicesWithFunctor(query, [&result,this](unsigned int i){
             result.push_back(mPoints[i]);
         });
     }
@@ -227,14 +240,11 @@ public:
     /*!
      * \brief Performs distance query and return indices
      */
-    template<typename IndexContainer = std::vector<Index> >
+    template<int stackSize, typename IndexContainer = std::vector<Index> >
     inline void
-    doQueryDistIndices(const VectorType& queryPoint,
-                       Scalar sqdist,
-                       IndexContainer& result){
-        _doQueryDistIndicesWithFunctor(queryPoint,
-                                      sqdist,
-                                      [&result,this](unsigned int i){
+    doQueryDistIndices(RangeQuery<stackSize>& query,
+                       IndexContainer& result) const {
+        _doQueryDistIndicesWithFunctor(query, [&result,this](unsigned int i){
             result.push_back(mIndices[i]);
         });
     }
@@ -242,14 +252,11 @@ public:
     /*!
      * \brief Performs distance query and return indices
      */
-    template<typename Functor>
+    template<int stackSize, typename Functor>
     inline void
-    doQueryDistProcessIndices(const VectorType& queryPoint,
-                       Scalar sqdist,
-                       Functor f){
-        _doQueryDistIndicesWithFunctor(queryPoint,
-                                      sqdist,
-                                      [f,this](unsigned int i){
+    doQueryDistProcessIndices(RangeQuery<stackSize> &query,
+                              Functor f) const {
+        _doQueryDistIndicesWithFunctor(query, [f,this](unsigned int i){
             f(mIndices[i]);
         });
     }
@@ -258,25 +265,14 @@ public:
      * \brief Finds the closest element index within the range [0:sqrt(sqdist)]
      * \param currentId Index of the querypoint if it belongs to the tree
      */
+    template<int stackSize>
     inline Index
-    doQueryRestrictedClosestIndex(const VectorType& queryPoint,
-                                  Scalar sqdist,
-                                  int currentId = -1);
+    doQueryRestrictedClosestIndex(RangeQuery<stackSize> &query,
+                                  int currentId = -1) const;
 
      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 protected:
-
-    //! element of the stack
-    struct QueryNode
-    {
-        inline QueryNode() {}
-        inline QueryNode(unsigned int id) : nodeId(id) {}
-        //! id of the next node
-        unsigned int nodeId;
-        //! squared distance to the next node
-        Scalar sq;
-    };
 
     /*!
       Used to build the tree: split the subset [start..end[ according to dim
@@ -297,18 +293,16 @@ protected:
     /*!
      * \brief Performs distance query and pass the internal id to a functor
      */
-    template<typename Functor >
+    template<int stackSize, typename Functor >
     inline void
-    _doQueryDistIndicesWithFunctor(const VectorType& queryPoint,
-                                   Scalar sqdist,
-                                   Functor f);
+    _doQueryDistIndicesWithFunctor(RangeQuery<stackSize>& query,
+                                   Functor f) const;
 protected:
 
     PointList  mPoints;
     IndexList  mIndices;
     AxisAlignedBoxType mAABB;
     NodeList   mNodes;
-    QueryNode mNodeStack[64];
 
     unsigned int _nofPointsPerCell;
     unsigned int _maxDepth;
@@ -327,10 +321,10 @@ KdTree<Scalar, Index>::KdTree(const PointList& points,
                        unsigned int maxDepth)
     : mPoints(points),
       mIndices(points.size()),
-      mAABB(points.cbegin(), points.cend()),
       _nofPointsPerCell(nofPointsPerCell),
       _maxDepth(maxDepth)
 {
+    mAABB.extend(points.cbegin(), points.cend());
     std::iota (mIndices.begin(), mIndices.end(), 0); // Fill with 0, 1, ..., 99.
     finalize();
 }
@@ -392,26 +386,26 @@ KdTree<Scalar, Index>::~KdTree()
   stored in the tree, and must thus be avoided during the query
 */
 template<typename Scalar, typename Index>
+template<int stackSize>
 Index
 KdTree<Scalar, Index>::doQueryRestrictedClosestIndex(
-        const VectorType& queryPoint,
-        Scalar sqdist,
-        int currentId)
+        RangeQuery<stackSize>& query,
+        int currentId) const
 {
 
     Index  cl_id   = invalidIndex();
-    Scalar cl_dist = sqdist;
+    Scalar cl_dist = query.sqdist;
 
-    mNodeStack[0].nodeId = 0;
-    mNodeStack[0].sq = 0.f;
+    query.nodeStack[0].nodeId = 0;
+    query.nodeStack[0].sq = 0.f;
     unsigned int count = 1;
 
     //int nbLoop = 0;
     while (count)
     {
         //nbLoop++;
-        QueryNode& qnode = mNodeStack[count-1];
-        KdNode   & node  = mNodes[qnode.nodeId];
+        QueryNode&    qnode = query.nodeStack[count-1];
+        const KdNode& node  = mNodes[qnode.nodeId];
 
         if (qnode.sq < cl_dist)
         {
@@ -420,7 +414,7 @@ KdTree<Scalar, Index>::doQueryRestrictedClosestIndex(
                 --count; // pop
                 const int end = node.start+node.size;
                 for (int i=node.start ; i<end ; ++i){
-                    const Scalar sqdist = (queryPoint - mPoints[i]).squaredNorm();
+                    const Scalar sqdist = (query.queryPoint - mPoints[i]).squaredNorm();
                     if (sqdist <= cl_dist && mIndices[i] != currentId){
                         cl_dist = sqdist;
                         cl_id   = mIndices[i];
@@ -430,21 +424,21 @@ KdTree<Scalar, Index>::doQueryRestrictedClosestIndex(
             else
             {
                 // replace the stack top by the farthest and push the closest
-                const Scalar new_off = queryPoint[node.dim] - node.splitValue;
+                const Scalar new_off = query.queryPoint[node.dim] - node.splitValue;
 
                 //std::cout << "new_off = " << new_off << std::endl;
 
                 if (new_off < 0.)
                 {
-                    mNodeStack[count].nodeId  = node.firstChildId; // stack top the farthest
+                    query.nodeStack[count].nodeId  = node.firstChildId; // stack top the farthest
                     qnode.nodeId = node.firstChildId+1;            // push the closest
                 }
                 else
                 {
-                    mNodeStack[count].nodeId  = node.firstChildId+1;
+                    query.nodeStack[count].nodeId  = node.firstChildId+1;
                     qnode.nodeId = node.firstChildId;
                 }
-                mNodeStack[count].sq = qnode.sq;
+                query.nodeStack[count].sq = qnode.sq;
                 qnode.sq = new_off*new_off;
                 ++count;
             }
@@ -461,52 +455,52 @@ KdTree<Scalar, Index>::doQueryRestrictedClosestIndex(
 /*!
   \see doQueryRestrictedClosest For more information about the algorithm.
 
-  This function is an alternative to doQueryK(const VectorType& queryPoint)
+  This function is an alternative to doQueryDist(const VectorType& queryPoint)
   that allow to perform the query by requesting a maximum distance instead of
   neighborhood size.
  */
 template<typename Scalar, typename Index>
-template<typename Functor >
+template<int stackSize, typename Functor >
 void
-KdTree<Scalar, Index>::_doQueryDistIndicesWithFunctor(const VectorType& queryPoint,
-        Scalar sqdist,
-        Functor f)
+KdTree<Scalar, Index>::_doQueryDistIndicesWithFunctor(
+        RangeQuery<stackSize>& query,
+        Functor f) const
 {
-    mNodeStack[0].nodeId = 0;
-    mNodeStack[0].sq = 0.f;
+    query.nodeStack[0].nodeId = 0;
+    query.nodeStack[0].sq = 0.f;
     unsigned int count = 1;
 
     while (count)
     {
-        QueryNode& qnode = mNodeStack[count-1];
-        KdNode   & node  = mNodes[qnode.nodeId];
+        QueryNode&    qnode = query.nodeStack[count-1];
+        const KdNode & node = mNodes[qnode.nodeId];
 
-        if (qnode.sq < sqdist)
+        if (qnode.sq < query.sqdist)
         {
             if (node.leaf)
             {
                 --count; // pop
                 unsigned int end = node.start+node.size;
                 for (unsigned int i=node.start ; i<end ; ++i)
-                    if ( (queryPoint - mPoints[i]).squaredNorm() < sqdist){
+                    if ( (query.queryPoint - mPoints[i]).squaredNorm() < query.sqdist){
                         f(i);
                     }
             }
             else
             {
                 // replace the stack top by the farthest and push the closest
-                Scalar new_off = queryPoint[node.dim] - node.splitValue;
+                Scalar new_off = query.queryPoint[node.dim] - node.splitValue;
                 if (new_off < 0.)
                 {
-                    mNodeStack[count].nodeId  = node.firstChildId;
+                    query.nodeStack[count].nodeId  = node.firstChildId;
                     qnode.nodeId = node.firstChildId+1;
                 }
                 else
                 {
-                    mNodeStack[count].nodeId  = node.firstChildId+1;
+                    query.nodeStack[count].nodeId  = node.firstChildId+1;
                     qnode.nodeId = node.firstChildId;
                 }
-                mNodeStack[count].sq = qnode.sq;
+                query.nodeStack[count].sq = qnode.sq;
                 qnode.sq = new_off*new_off;
                 ++count;
             }
@@ -565,9 +559,9 @@ void KdTree<Scalar, Index>::createTree(unsigned int nodeId, unsigned int start, 
     AxisAlignedBoxType aabb;
     //aabb.Set(mPoints[start]);
     for (unsigned int i=start ; i<end ; ++i)
-        aabb.extendTo(mPoints[i]);
+        aabb.extend(mPoints[i]);
 
-    VectorType diag =  Scalar(0.5) * (aabb.max()- aabb.min());
+    VectorType diag =  aabb.diagonal();
     typename VectorType::Index dim;
 
 #ifdef DEBUG
