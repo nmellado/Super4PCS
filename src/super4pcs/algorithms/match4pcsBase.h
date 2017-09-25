@@ -46,6 +46,10 @@
 
 #include <vector>
 
+#ifdef SUPER4PCS_USE_OPENMP
+#include <omp.h>
+#endif
+
 #include "super4pcs/shared4pcs.h"
 #include "super4pcs/sampling.h"
 #include "super4pcs/accelerators/kdtree.h"
@@ -167,6 +171,11 @@ protected:
 
     const Utils::Logger &logger_;
 
+#ifdef SUPER4PCS_USE_OPENMP
+    /// number of threads used to verify the congruent set
+    const int omp_nthread_congruent_;
+#endif
+
 #ifdef TEST_GLOBAL_TIMINGS
 
     Scalar totalTime;
@@ -179,7 +188,12 @@ protected:
 
 protected:
 
-    Match4PCSBase(const Match4PCSOptions& options, const Utils::Logger &logger );
+    Match4PCSBase(const Match4PCSOptions& options
+                  , const Utils::Logger &logger
+#ifdef SUPER4PCS_USE_OPENMP
+                  , const int omp_nthread_congruent = omp_get_max_threads()
+#endif
+        );
 
     template <Utils::LogLevel level, typename...Args>
     inline void Log(Args...args) const { logger_.Log<level>(args...); }
@@ -218,19 +232,20 @@ protected:
     /// simpler.
     /// The method is the closed-form solution by Horn:
     /// people.csail.mit.edu/bkph/papers/Absolute_Orientation.pdf
-    bool ComputeRigidTransformation(const std::array< std::pair<Point3D, Point3D>,4 >& pairs,
+    bool ComputeRigidTransformation(const std::array<Point3D, 4>& ref,
+                                    const std::array<Point3D, 4>& candidate,
                                     const Eigen::Matrix<Scalar, 3, 1>& centroid1,
                                     Eigen::Matrix<Scalar, 3, 1> centroid2,
                                     Scalar max_angle,
                                     Eigen::Ref<MatrixType> transform,
                                     Scalar& rms_,
-                                    bool computeScale );
+                                    bool computeScale ) const;
 
     /// For each randomly picked base, verifies the computed transformation by
     /// computing the number of points that this transformation brings near points
     /// in Q. Returns the current LCP. R is the rotation matrix, (tx,ty,tz) is
     /// the translation vector and (cx,cy,cz) is the center of transformation.template <class MatrixDerived>
-    Scalar Verify(const Eigen::Ref<const MatrixType> & mat);
+    Scalar Verify(const Eigen::Ref<const MatrixType> & mat) const;
 
     /// Performs n RANSAC iterations, each one of them containing base selection,
     /// finding congruent sets and verification. Returns true if the process can be
