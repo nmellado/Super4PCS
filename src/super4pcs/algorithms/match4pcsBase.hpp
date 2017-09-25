@@ -387,8 +387,10 @@ bool Match4PCSBase::TryCongruentSet(
 
     std::atomic<size_t> nbCongruentAto(0);
 
+#ifdef SUPER4PCS_USE_OPENMP
 #pragma omp parallel for num_threads(omp_nthread_congruent_)
-    for (size_t i = 0; i < congruent_quads.size(); ++i) {
+#endif
+    for (int i = 0; i < int(congruent_quads.size()); ++i) {
       std::array<Point3D, 4> congruent_candidate;
 
       Eigen::Matrix<Scalar, 4, 4> transform;
