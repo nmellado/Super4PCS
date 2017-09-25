@@ -149,16 +149,19 @@ Match4PCSBase::~Match4PCSBase(){}
 Match4PCSBase::Scalar
 Match4PCSBase::MeanDistance() {
   const Scalar kDiameterFraction = 0.2;
-  GlobalRegistration::KdTree<Scalar>::VectorType query_point;
+  using RangeQuery = GlobalRegistration::KdTree<Scalar>::RangeQuery<>;
 
   int number_of_samples = 0;
   Scalar distance = 0.0;
 
   for (size_t i = 0; i < sampled_P_3D_.size(); ++i) {
-    query_point = sampled_P_3D_[i].pos().cast<Scalar>() ;
+
+    RangeQuery query;
+    query.sqdist = P_diameter_ * kDiameterFraction;
+    query.queryPoint = sampled_P_3D_[i].pos().cast<Scalar>();
 
     GlobalRegistration::KdTree<Scalar>::Index resId =
-        kd_tree_.doQueryRestrictedClosestIndex(query_point, P_diameter_ * kDiameterFraction, i);
+        kd_tree_.doQueryRestrictedClosestIndex(query , i);
 
     if (resId != GlobalRegistration::KdTree<Scalar>::invalidIndex()) {
       distance += (sampled_P_3D_[i].pos() - sampled_P_3D_[resId].pos()).norm();
@@ -498,6 +501,7 @@ bool Match4PCSBase::ComputeRigidTransformation(const std::array< std::pair<Point
 // early termination. It was found to be fast in practice.
 Match4PCSBase::Scalar
 Match4PCSBase::Verify(const Eigen::Ref<const MatrixType> &mat) {
+  using RangeQuery = GlobalRegistration::KdTree<Scalar>::RangeQuery<>;
 
 #ifdef TEST_GLOBAL_TIMINGS
     Timer t_verify (true);
@@ -518,11 +522,12 @@ Match4PCSBase::Verify(const Eigen::Ref<const MatrixType> &mat) {
     Timer t (true);
 #endif
 
-    GlobalRegistration::KdTree<Scalar>::Index resId =
-    kd_tree_.doQueryRestrictedClosestIndex(
-                (mat * sampled_Q_3D_[i].pos().homogeneous()).head<3>(),
-                sq_eps);
+    RangeQuery query;
+    query.queryPoint = (mat * sampled_Q_3D_[i].pos().homogeneous()).head<3>();
+    query.sqdist     = sq_eps;
 
+    GlobalRegistration::KdTree<Scalar>::Index resId =
+    kd_tree_.doQueryRestrictedClosestIndex( query );
 
 #ifdef TEST_GLOBAL_TIMINGS
     kdTreeTime += Scalar(t.elapsed().count()) / Scalar(CLOCKS_PER_SEC);

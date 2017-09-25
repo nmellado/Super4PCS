@@ -67,6 +67,8 @@ bool Match4PCS::FindCongruentQuadrilaterals(
         const std::vector<std::pair<int, int>>& P_pairs,
         const std::vector<std::pair<int, int>>& Q_pairs,
         std::vector<GlobalRegistration::Quadrilateral>* quadrilaterals) const {
+  using RangeQuery = GlobalRegistration::KdTree<Scalar>::RangeQuery<>;
+
   if (quadrilaterals == nullptr) return false;
 
   size_t number_of_points = 2 * P_pairs.size();
@@ -92,8 +94,11 @@ bool Match4PCS::FindCongruentQuadrilaterals(
     const VectorType& p1 = sampled_Q_3D_[Q_pairs[i].first].pos();
     const VectorType& p2 = sampled_Q_3D_[Q_pairs[i].second].pos();
 
-    kdtree.doQueryDistProcessIndices(p1 + invariant2 * (p2 - p1),
-                              distance_threshold2,
+    RangeQuery query;
+    query.queryPoint = p1 + invariant2 * (p2 - p1);
+    query.sqdist     = distance_threshold2;
+
+    kdtree.doQueryDistProcessIndices(query,
         [quadrilaterals, i, &P_pairs, &Q_pairs](int id){
         quadrilaterals->emplace_back(P_pairs[id/2].first, P_pairs[id/2].second,
                                      Q_pairs[i].first, Q_pairs[i].second);
