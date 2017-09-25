@@ -65,7 +65,12 @@ namespace GlobalRegistration {
 
 MatchSuper4PCS::MatchSuper4PCS(const Match4PCSOptions& options,
                                const Utils::Logger &logger)
-    : Base(options, logger),
+    : Base(options
+           , logger
+#ifdef SUPER4PCS_USE_OPENMP
+           , 1
+#endif
+           ),
       pcfunctor_(options_, sampled_Q_3D_) { }
 
 MatchSuper4PCS::~MatchSuper4PCS() { }

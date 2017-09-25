@@ -47,6 +47,7 @@
 #include "super4pcs/accelerators/kdtree.h"
 
 #include <vector>
+#include <atomic>
 
 #include <Eigen/Core>
 
@@ -131,15 +132,22 @@ distSegmentToSegment(const VectorType& p1, const VectorType& p2,
 
 namespace GlobalRegistration{
 
-Match4PCSBase::Match4PCSBase(const Match4PCSOptions& options,
-                             const Utils::Logger& logger)
-  :number_of_trials_(0),
-    max_base_diameter_(-1),
-    P_mean_distance_(1.0),
-    best_LCP_(0.0),
-    options_(options),
-    randomGenerator_(options.randomSeed),
-    logger_(logger)
+Match4PCSBase::Match4PCSBase(  const Match4PCSOptions& options
+                             , const Utils::Logger& logger
+#ifdef SUPER4PCS_USE_OPENMP
+                             , const int omp_nthread_congruent
+#endif
+                               )
+  :number_of_trials_(0)
+  , max_base_diameter_(-1)
+  , P_mean_distance_(1.0)
+  , best_LCP_(0.0)
+  , options_(options)
+  , randomGenerator_(options.randomSeed)
+  , logger_(logger)
+#ifdef SUPER4PCS_USE_OPENMP
+  , omp_nthread_congruent_(omp_nthread_congruent)
+#endif
 {
   base_3D_.resize(4);
 }
@@ -353,38 +361,36 @@ void Match4PCSBase::initKdTree(){
   kd_tree_.finalize();
 }
 
-bool Match4PCSBase::ComputeRigidTransformation(const std::array< std::pair<Point3D, Point3D>,4>& pairs,
+bool Match4PCSBase::ComputeRigidTransformation(
+        const std::array<Point3D, 4>& ref,
+        const std::array<Point3D, 4>& candidate,
         const Eigen::Matrix<Scalar, 3, 1>& centroid1,
         Eigen::Matrix<Scalar, 3, 1> centroid2,
         Scalar max_angle,
         Eigen::Ref<MatrixType> transform,
         Scalar& rms_,
-        bool computeScale ) {
+        bool computeScale ) const {
 
   rms_ = kLargeNumber;
-
-  if (pairs.size() == 0 || pairs.size() % 2 != 0)
-      return false;
-
 
   Scalar kSmallNumber = 1e-6;
 
   // We only use the first 3 pairs. This simplifies the process considerably
   // because it is the planar case.
 
-  const VectorType& p0 = pairs[0].first.pos();
-  const VectorType& p1 = pairs[1].first.pos();
-  const VectorType& p2 = pairs[2].first.pos();
-        VectorType  q0 = pairs[0].second.pos();
-        VectorType  q1 = pairs[1].second.pos();
-        VectorType  q2 = pairs[2].second.pos();
+  const VectorType& p0 = ref[0].pos();
+  const VectorType& p1 = ref[1].pos();
+  const VectorType& p2 = ref[2].pos();
+        VectorType  q0 = candidate[0].pos();
+        VectorType  q1 = candidate[1].pos();
+        VectorType  q2 = candidate[2].pos();
 
   Scalar scaleEst (1.);
 
   // Compute scale factor if needed
   if (computeScale){
-      const VectorType& p3 = pairs[3].first.pos();
-      const VectorType& q3 = pairs[3].second.pos();
+      const VectorType& p3 = ref[3].pos();
+      const VectorType& q3 = candidate[3].pos();
 
       const Scalar ratio1 = (p1 - p0).norm() / (q1 - q0).norm();
       const Scalar ratio2 = (p3 - p2).norm() / (q3 - q2).norm();
@@ -469,13 +475,13 @@ bool Match4PCSBase::ComputeRigidTransformation(const std::array< std::pair<Point
 
       //cv::Mat first(3, 1, CV_64F), transformed;
       for (int i = 0; i < 3; ++i) {
-          first = scaleEst*pairs[i].second.pos() - centroid2;
+          first = scaleEst*candidate[i].pos() - centroid2;
           transformed = rotation * first;
-          rms_ += (transformed - pairs[i].first.pos() + centroid1).norm();
+          rms_ += (transformed - ref[i].pos() + centroid1).norm();
       }
   }
 
-  rms_ /= Scalar(pairs.size());
+  rms_ /= Scalar(ref.size());
 
   Eigen::Transform<Scalar, 3, Eigen::Affine> etrans (Eigen::Transform<Scalar, 3, Eigen::Affine>::Identity());
 
@@ -500,7 +506,7 @@ bool Match4PCSBase::ComputeRigidTransformation(const std::array< std::pair<Point
 // we describe randomized verification. We apply deterministic one here with
 // early termination. It was found to be fast in practice.
 Match4PCSBase::Scalar
-Match4PCSBase::Verify(const Eigen::Ref<const MatrixType> &mat) {
+Match4PCSBase::Verify(const Eigen::Ref<const MatrixType> &mat) const {
   using RangeQuery = GlobalRegistration::KdTree<Scalar>::RangeQuery<>;
 
 #ifdef TEST_GLOBAL_TIMINGS
@@ -509,7 +515,7 @@ Match4PCSBase::Verify(const Eigen::Ref<const MatrixType> &mat) {
 
   // We allow factor 2 scaling in the normalization.
   const Scalar epsilon = options_.delta;
-  size_t good_points = 0;
+  std::atomic_uint good_points(0);
   const size_t number_of_points = sampled_Q_3D_.size();
   const size_t terminate_value = best_LCP_ * number_of_points;
 
