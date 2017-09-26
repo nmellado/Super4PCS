@@ -65,6 +65,8 @@ public:
 
     using Base::extend;
 
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     AABB(Scalar min =  std::numeric_limits<Scalar>::max() / 2,
          Scalar max = -std::numeric_limits<Scalar>::max() / 2)
       : Base(VectorType::Constant(min), VectorType::Constant(max)) {}

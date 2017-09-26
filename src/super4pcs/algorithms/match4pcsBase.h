@@ -80,6 +80,8 @@ public:
     static constexpr Scalar kLargeNumber = 1e9;
     static constexpr Scalar distance_factor = 2.0;
 
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     virtual ~Match4PCSBase();
 
     /// Read access to the sampled clouds used for the registration
