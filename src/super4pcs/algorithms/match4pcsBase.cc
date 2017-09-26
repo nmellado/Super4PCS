@@ -50,6 +50,7 @@
 #include <atomic>
 
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 
 const double pi = std::acos(-1);
 
@@ -484,17 +485,12 @@ bool Match4PCSBase::ComputeRigidTransformation(
   rms_ /= Scalar(ref.size());
 
   Eigen::Transform<Scalar, 3, Eigen::Affine> etrans (Eigen::Transform<Scalar, 3, Eigen::Affine>::Identity());
-
-  // compute rotation and translation
-  {
-      // Log<LogLevel::Verbose>( scaleEst);
-      etrans.scale(scaleEst);       // apply scale factor
-      etrans.translate(centroid1);  // translation between quads
-      etrans.rotate(rotation);           // rotate to align frames
-      etrans.translate(-centroid2); // move to congruent quad frame
-
-      transform = etrans.matrix();
-  }
+  transform = etrans
+      .scale(scaleEst)
+      .translate(centroid1)
+      .rotate(rotation)
+      .translate(-centroid2)
+      .matrix();
 
   return true;
 }
