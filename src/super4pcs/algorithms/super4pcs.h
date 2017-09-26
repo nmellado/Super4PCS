@@ -62,6 +62,8 @@ class MatchSuper4PCS : public Match4PCSBase {
   explicit MatchSuper4PCS(const Match4PCSOptions& options,
                           const Utils::Logger &logger);
 
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   ~MatchSuper4PCS();
 
 private:

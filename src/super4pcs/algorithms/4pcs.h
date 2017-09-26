@@ -59,6 +59,8 @@ public:
     explicit Match4PCS(const Match4PCSOptions& options,
                        const Utils::Logger logger);
 
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     ~Match4PCS();
 
 protected:
