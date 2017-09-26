@@ -128,11 +128,6 @@ protected:
     /// Mean distance between points and their nearest neighbor in the set P.
     /// Used to normalize the "delta" which is given in terms of this distance.
     Scalar P_mean_distance_;
-    /// The centroid about which we rotate a congruent set in Q to match the base
-    /// in P. It is used temporarily and makes the transformations more robust to
-    /// noise. At the end, the direct transformation applied as a 4x4 matrix on
-    /// every points in Q is computed and returned.
-    VectorType centroid_;
     /// The transformation matrix by wich we transform Q to P
     Eigen::Matrix<Scalar, 4, 4> transform_;
     /// Quad centroids in first and second clouds
