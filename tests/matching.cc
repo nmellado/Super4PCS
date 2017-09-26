@@ -109,18 +109,18 @@ std::array<std::string, nbSet> confFiles = {
 };
 
 std::array<Scalar, nbSet> deltas  = {
-    0.002,
-    0.0015,
+    0.005,
+    0.005,
 };
 
 std::array<Scalar, nbSet> overlaps = {
-    0.5,
-    0.6,
+    0.8,
+    0.8,
 };
 
 std::array<Scalar, nbSet> n_points = {
-    400,
-    400,
+    200,
+    200,
 };
 
 
