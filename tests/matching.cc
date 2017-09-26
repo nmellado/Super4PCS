@@ -110,7 +110,7 @@ std::array<std::string, nbSet> confFiles = {
 
 std::array<Scalar, nbSet> deltas  = {
     0.002,
-    0.002,
+    0.0015,
 };
 
 std::array<Scalar, nbSet> overlaps = {
