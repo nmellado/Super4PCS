@@ -51,9 +51,12 @@ struct TransformVisitor {
             float fraction,
             float best_LCP,
             Eigen::Ref<GlobalRegistration::Match4PCSBase::MatrixType> /*transformation*/) const {
-        printf("done: %d%c best: %f                  \r",
-               static_cast<int>(fraction * 100), '%', best_LCP);
-        fflush(stdout);
+      if(fraction >= 0)
+        {
+          printf("done: %d%c best: %f                  \r",
+                 static_cast<int>(fraction * 100), '%', best_LCP);
+          fflush(stdout);
+        }
     }
     constexpr bool needsGlobalTransformation() const { return false; }
 };
