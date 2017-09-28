@@ -1,0 +1,16 @@
+<map id="GlobalRegistration::Match4PCSBase::Perform_N_steps" name="GlobalRegistration::Match4PCSBase::Perform_N_steps">
+<area shape="rect" id="node2" href="$a05206.xhtml#adcacd57bf5844d8205a7620c72c0d450" title="GlobalRegistration\l::Match4PCSBase::TryOneBase" alt="" coords="239,177,451,219"/>
+<area shape="rect" id="node3" href="$a05206.xhtml#a423c63bc1aece6379b9b6a8cf9d5aa0f" title="GlobalRegistration\l::Match4PCSBase::TryQuadrilateral" alt="" coords="796,5,1027,47"/>
+<area shape="rect" id="node4" href="$a05206.xhtml#a3b37709e1bda55f4d109c9a2dbd7b170" title="GlobalRegistration\l::Match4PCSBase::SelectQuadrilateral" alt="" coords="499,112,748,153"/>
+<area shape="rect" id="node8" href="$a05206.xhtml#a869c21b7c49110f7301e78d64d9e0e57" title="GlobalRegistration\l::Match4PCSBase::ExtractPairs" alt="" coords="518,177,729,219"/>
+<area shape="rect" id="node9" href="$a05206.xhtml#ae197b4fe78911f96d3732d5faf0a6901" title="GlobalRegistration\l::Match4PCSBase::FindCongruent\lQuadrilaterals" alt="" coords="511,243,735,299"/>
+<area shape="rect" id="node10" href="$a05206.xhtml#acecb2de1f163aff07803ebf905ab3e36" title="GlobalRegistration\l::Match4PCSBase::TryCongruentSet" alt="" coords="504,356,743,397"/>
+<area shape="rect" id="node5" href="$a05206.xhtml#af9b9a0034ec3ff9646b36ce6250702cd" title="GlobalRegistration\l::Match4PCSBase::SelectRandom\lTriangle" alt="" coords="799,71,1024,127"/>
+<area shape="rect" id="node6" href="$a05142.xhtml#a81bcdc0c30914894311c78396d3781c7" title="Add a new vertex in the KdTree. " alt="" coords="847,152,976,193"/>
+<area shape="rect" id="node7" href="$a05142.xhtml#a6841c0418254813b75dd036a9e4e7c2b" title="Finalize the creation of the KdTree. " alt="" coords="847,217,976,259"/>
+<area shape="rect" id="node11" href="$a05238.xhtml#acd6175b6251a3fbf9e3e329ebfc58d06" title="GlobalRegistration\l::Point3D::pos" alt="" coords="847,283,976,324"/>
+<area shape="rect" id="node12" href="$a05206.xhtml#af4249983ba17f93c48ba4f4d83442511" title="GlobalRegistration\l::Match4PCSBase::ComputeRigid\lTransformation" alt="" coords="800,349,1023,405"/>
+<area shape="rect" id="node13" href="$a05206.xhtml#ac9a328320c7729722e3a4b9234f2dadf" title="GlobalRegistration\l::Match4PCSBase::Verify" alt="" coords="825,429,998,471"/>
+<area shape="rect" id="node15" href="$a05246.xhtml#a1662893334239560ac536fd6bb44f71c" title="GlobalRegistration\l::Match4PCSOptions::\lgetTerminateThreshold" alt="" coords="834,495,989,551"/>
+<area shape="rect" id="node14" href="$a05142.xhtml#ad6cd36f9f91e1e6b444b38b1a986d0c1" title="Finds the closest element index within the range [0:sqrt(sqdist)]. " alt="" coords="1075,422,1264,478"/>
+</map>

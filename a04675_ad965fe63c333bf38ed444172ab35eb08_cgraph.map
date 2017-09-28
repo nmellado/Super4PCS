@@ -1,0 +1,5 @@
+<map id="GlobalRegistration::Match4PCSBase::getSecondSampled" name="GlobalRegistration::Match4PCSBase::getSecondSampled">
+<area shape="rect" id="node2" href="$a04675.html#a75c9ca6da4d064f8484e432b7f795b8c" title="Computes an approximation of the best LCP (directional) from Q to P and the rigid transformation that..." alt="" coords="255,13,533,54"/>
+<area shape="rect" id="node4" href="$a04719.html#a80be1cf2fd1833a5062f0699e40fc396" title="GlobalRegistration\l::Utils::Logger::Log" alt="" coords="327,78,461,119"/>
+<area shape="rect" id="node3" href="$a04715.html#a91b3ac4a47f82c2c2ff8ecd0bbd43c2b" title="GlobalRegistration\l::Match4PCSOptions::\lgetOverlapEstimation" alt="" coords="581,5,736,61"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="IOManager::ReadObject" name="IOManager::ReadObject">
+<area shape="rect" id="node2" href="$a04707.html#a5045e2b156b9c70042f67a03f2f33102" title="GlobalRegistration\l::Point3D::x" alt="" coords="216,5,345,47"/>
+<area shape="rect" id="node3" href="$a04707.html#afda4bde657b8db9bd6ccd74e2c4adf8a" title="GlobalRegistration\l::Point3D::y" alt="" coords="216,71,345,112"/>
+<area shape="rect" id="node4" href="$a04707.html#a01b88c7f4d8aec81f77fff36eb4bc7a9" title="GlobalRegistration\l::Point3D::z" alt="" coords="216,136,345,177"/>
+<area shape="rect" id="node5" href="$a04707.html#a3fc39e91ad38e4144cb6e0feb363c9f0" title="GlobalRegistration\l::Point3D::set_rgb" alt="" coords="216,201,345,243"/>
+<area shape="rect" id="node6" href="$a04707.html#aea3ed1eb4ea38cbd76fb8db3e15270e7" title="GlobalRegistration\l::Point3D::rgb" alt="" coords="393,201,523,243"/>
+</map>

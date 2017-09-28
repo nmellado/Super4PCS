@@ -1,0 +1,8 @@
+<map id="GlobalRegistration::Match4PCS::~Match4PCS" name="GlobalRegistration::Match4PCS::~Match4PCS">
+<area shape="rect" id="node2" href="$a04638.html#a81bcdc0c30914894311c78396d3781c7" title="Add a new vertex in the KdTree. " alt="" coords="277,5,407,47"/>
+<area shape="rect" id="node3" href="$a04638.html#a6841c0418254813b75dd036a9e4e7c2b" title="Finalize the creation of the KdTree. " alt="" coords="277,71,407,112"/>
+<area shape="rect" id="node4" href="$a04638.html#adb92b4dfbf31774c3a59de574e89abd7" title="Performs distance query and return indices. " alt="" coords="241,137,443,193"/>
+<area shape="rect" id="node5" href="$a04738.html#acd6175b6251a3fbf9e3e329ebfc58d06" title="GlobalRegistration\l::Point3D::pos" alt="" coords="277,217,407,259"/>
+<area shape="rect" id="node6" href="$a04738.html#a09505dd544fdc8d8c3d2edc02e6abec7" title="GlobalRegistration\l::Point3D::normal" alt="" coords="277,283,407,324"/>
+<area shape="rect" id="node7" href="$a04738.html#aea3ed1eb4ea38cbd76fb8db3e15270e7" title="GlobalRegistration\l::Point3D::rgb" alt="" coords="277,348,407,389"/>
+</map>

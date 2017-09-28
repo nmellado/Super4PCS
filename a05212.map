@@ -1,0 +1,6 @@
+<map id="GlobalRegistration::PairCreationFunctor&lt; _Scalar &gt;" name="GlobalRegistration::PairCreationFunctor&lt; _Scalar &gt;">
+<area shape="rect" id="node3" href="$a05190.xhtml" title="{GlobalRegistration\l::Accelerators::PairExtraction\l::HyperSphere\&lt; Point, _dim,\l Scalar \&gt;\n||+ HyperSphere()\l+ HyperSphere()\l+ quantified()\l+ operator\&lt;()\l+ operator Point()\l+ intersect()\l+ intersectFast()\l+ intersectPoint()\l+ center()\l+ radius()\l+ radius()\l+ intersectPoint()\l}" alt="" coords="81,175,275,457"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="632,277,748,355"/>
+<area shape="rect" id="node11" href="$a05238.xhtml" title="{GlobalRegistration\l::Point3D\n||+ Point3D()\l+ Point3D()\l+ Point3D()\l+ Point3D()\l+ pos()\l+ pos()\l+ rgb()\l+ normal()\l+ set_rgb()\l+ set_normal()\l+ normalize()\l+ hasColor()\l+ x()\l+ y()\l+ z()\l+ x()\l+ y()\l+ z()\l}" alt="" coords="965,145,1095,487"/>
+<area shape="rect" id="node14" href="$a05246.xhtml" title="{GlobalRegistration\l::Match4PCSOptions\n||+ Match4PCSOptions()\l+ configureOverlap()\l+ getTerminateThreshold()\l+ getOverlapEstimation()\l}" alt="" coords="1344,623,1519,759"/>
+</map>

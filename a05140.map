@@ -1,0 +1,7 @@
+<map id="GlobalRegistration::KdTree&lt; _Scalar, _Index &gt;" name="GlobalRegistration::KdTree&lt; _Scalar, _Index &gt;">
+<area shape="rect" id="node4" title="STL class. " alt="" coords="184,299,300,377"/>
+<area shape="rect" id="node7" href="$a05162.xhtml" title="element of the stack " alt="" coords="642,277,789,399"/>
+<area shape="rect" id="node11" href="$a05146.xhtml" title="{GlobalRegistration\l::KdTree\&lt; _Scalar, \l_Index \&gt;::KdNode\n||}" alt="" coords="391,285,527,391"/>
+<area shape="rect" id="node15" href="$a05138.xhtml" title="{GlobalRegistration\l::AABB\&lt; Scalar \&gt;\n||+ AABB()\l+ AABB()\l+ AABB()\l+ AABB()\l+ operator=()\l+ extendTo()\l+ extendTo()\l+ contains()\l+ diagonal()\l+ center()\l+ min()\l+ max()\l+ depth()\l+ width()\l+ height()\l}" alt="" coords="916,549,1045,847"/>
+<area shape="rect" id="node17" href="$a05138.xhtml" title="{GlobalRegistration\l::AABB\&lt; _Scalar, _Dim \&gt;\n||+ AABB()\l+ AABB()\l+ AABB()\l+ AABB()\l+ operator=()\l+ extendTo()\l+ extendTo()\l+ contains()\l+ diagonal()\l+ center()\l+ min()\l+ max()\l+ depth()\l+ width()\l+ height()\l}" alt="" coords="1006,189,1179,487"/>
+</map>

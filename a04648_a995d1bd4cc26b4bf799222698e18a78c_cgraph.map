@@ -1,0 +1,5 @@
+<map id="GlobalRegistration::Match4PCSBase::base3D" name="GlobalRegistration::Match4PCSBase::base3D">
+<area shape="rect" id="node2" href="$a04648.xhtml#a869c21b7c49110f7301e78d64d9e0e57" title="Constructs pairs of points in Q, corresponding to a single pair in the in basein P. " alt="" coords="251,5,462,47"/>
+<area shape="rect" id="node3" href="$a04648.xhtml#ae197b4fe78911f96d3732d5faf0a6901" title="Finds congruent candidates in the set Q, given the invariants and threshold distances. Returns true if a non empty set can be found, false otherwise. " alt="" coords="245,71,469,127"/>
+<area shape="rect" id="node4" href="$a04648.xhtml#acecb2de1f163aff07803ebf905ab3e36" title="Loop over the set of congruent 4&#45;points and test compatiliby with the input base. ..." alt="" coords="237,152,476,193"/>
+</map>

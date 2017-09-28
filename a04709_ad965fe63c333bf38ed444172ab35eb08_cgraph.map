@@ -1,0 +1,7 @@
+<map id="GlobalRegistration::Match4PCSBase::getSecondSampled" name="GlobalRegistration::Match4PCSBase::getSecondSampled">
+<area shape="rect" id="node2" href="$a04709.html#a75c9ca6da4d064f8484e432b7f795b8c" title="Computes an approximation of the best LCP (directional) from Q to P and the rigid transformation that..." alt="" coords="255,86,533,127"/>
+<area shape="rect" id="node6" href="$a04753.html#a80be1cf2fd1833a5062f0699e40fc396" title="GlobalRegistration\l::Utils::Logger::Log" alt="" coords="327,151,461,193"/>
+<area shape="rect" id="node3" href="$a04749.html#a91b3ac4a47f82c2c2ff8ecd0bbd43c2b" title="GlobalRegistration\l::Match4PCSOptions::\lgetOverlapEstimation" alt="" coords="581,5,736,61"/>
+<area shape="rect" id="node4" href="$a04741.html#acd6175b6251a3fbf9e3e329ebfc58d06" title="GlobalRegistration\l::Point3D::pos" alt="" coords="594,86,723,127"/>
+<area shape="rect" id="node5" href="$a04749.html#a1662893334239560ac536fd6bb44f71c" title="GlobalRegistration\l::Match4PCSOptions::\lgetTerminateThreshold" alt="" coords="581,152,736,208"/>
+</map>

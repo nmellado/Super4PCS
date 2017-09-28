@@ -1,0 +1,14 @@
+<map id="GlobalRegistration::Match4PCSBase::Log" name="GlobalRegistration::Match4PCSBase::Log">
+<area shape="rect" id="node2" href="$a04692.xhtml#a80be1cf2fd1833a5062f0699e40fc396" title="GlobalRegistration\l::Utils::Logger::Log" alt="" coords="271,5,405,47"/>
+<area shape="rect" id="node3" href="$a04648.xhtml#abdead928eb9370da120c4735550ad5e8" title="Computes the mean distance between points in Q and their nearest neighbor. We need this for normaliza..." alt="" coords="511,49,733,91"/>
+<area shape="rect" id="node4" href="$a04648.xhtml#af9b9a0034ec3ff9646b36ce6250702cd" title="Selects a random triangle in the set P (then we add another point to keep the base as planar as possi..." alt="" coords="225,290,451,346"/>
+<area shape="rect" id="node5" href="$a04648.xhtml#a423c63bc1aece6379b9b6a8cf9d5aa0f" title="Takes quadrilateral as a base, computes robust intersection point (approximate as the lines might not..." alt="" coords="223,371,453,412"/>
+<area shape="rect" id="node6" href="$a04648.xhtml#af4249983ba17f93c48ba4f4d83442511" title="Computes the best rigid transformation between three corresponding pairs. The transformation is chara..." alt="" coords="227,437,449,493"/>
+<area shape="rect" id="node7" href="$a04648.xhtml#a8b3bea4c48cb1efbd844ba6ee629cfcd" title="For each randomly picked base, verifies the computed transformation by computing the number of points..." alt="" coords="535,115,709,156"/>
+<area shape="rect" id="node8" href="$a04648.xhtml#afd714116c6898bc5913a9d77eca865ff" title="Performs n RANSAC iterations, each one of them containing base selection, finding congruent sets and ..." alt="" coords="245,517,431,573"/>
+<area shape="rect" id="node9" href="$a04648.xhtml#adcacd57bf5844d8205a7620c72c0d450" title="Tries one base and finds the best transformation for this base. Returns true if the achieved LCP is g..." alt="" coords="516,556,728,597"/>
+<area shape="rect" id="node10" href="$a04648.xhtml#adac9aa457425985cf778c69c60fecc21" title="Initializes the data structures and needed values before the match computation. " alt="" coords="529,261,715,303"/>
+<area shape="rect" id="node11" href="$a04648.xhtml#a6da7132684e7b8285711303d136aed79" title="GlobalRegistration\l::Match4PCSBase::init" alt="" coords="260,173,416,215"/>
+<area shape="rect" id="node13" href="$a04648.xhtml#a3b37709e1bda55f4d109c9a2dbd7b170" title="Selects a quadrilateral from P and returns the corresponding invariants and point indices..." alt="" coords="213,648,463,689"/>
+<area shape="rect" id="node12" href="$a04688.xhtml#a91b3ac4a47f82c2c2ff8ecd0bbd43c2b" title="GlobalRegistration\l::Match4PCSOptions::\lgetOverlapEstimation" alt="" coords="545,181,699,237"/>
+</map>

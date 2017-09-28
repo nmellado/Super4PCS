@@ -1,0 +1,22 @@
+<map id="GlobalRegistration::Match4PCSBase::Log" name="GlobalRegistration::Match4PCSBase::Log">
+<area shape="rect" id="node2" href="$a05250.xhtml#a80be1cf2fd1833a5062f0699e40fc396" title="GlobalRegistration\l::Utils::Logger::Log" alt="" coords="239,5,373,47"/>
+<area shape="rect" id="node3" href="$a05206.xhtml#a63d5f8d1043f6993c0bc3f14291e04b6" title="GlobalRegistration\l::Match4PCSBase::MeanDistance" alt="" coords="447,56,669,97"/>
+<area shape="rect" id="node5" href="$a05206.xhtml#af9b9a0034ec3ff9646b36ce6250702cd" title="GlobalRegistration\l::Match4PCSBase::SelectRandom\lTriangle" alt="" coords="1017,735,1243,791"/>
+<area shape="rect" id="node6" href="$a05206.xhtml#a423c63bc1aece6379b9b6a8cf9d5aa0f" title="GlobalRegistration\l::Match4PCSBase::TryQuadrilateral" alt="" coords="1015,539,1245,580"/>
+<area shape="rect" id="node7" href="$a05206.xhtml#af4249983ba17f93c48ba4f4d83442511" title="GlobalRegistration\l::Match4PCSBase::ComputeRigid\lTransformation" alt="" coords="1019,282,1241,338"/>
+<area shape="rect" id="node8" href="$a05206.xhtml#ac9a328320c7729722e3a4b9234f2dadf" title="GlobalRegistration\l::Match4PCSBase::Verify" alt="" coords="1043,141,1217,183"/>
+<area shape="rect" id="node9" href="$a05206.xhtml#afd714116c6898bc5913a9d77eca865ff" title="GlobalRegistration\l::Match4PCSBase::Perform\l_N_steps" alt="" coords="213,522,399,578"/>
+<area shape="rect" id="node10" href="$a05206.xhtml#adcacd57bf5844d8205a7620c72c0d450" title="GlobalRegistration\l::Match4PCSBase::TryOneBase" alt="" coords="452,529,664,571"/>
+<area shape="rect" id="node11" href="$a05206.xhtml#a3b37709e1bda55f4d109c9a2dbd7b170" title="GlobalRegistration\l::Match4PCSBase::SelectQuadrilateral" alt="" coords="717,669,967,711"/>
+<area shape="rect" id="node19" href="$a05206.xhtml#adac9aa457425985cf778c69c60fecc21" title="GlobalRegistration\l::Match4PCSBase::Initialize" alt="" coords="465,304,651,345"/>
+<area shape="rect" id="node20" href="$a05206.xhtml#a6da7132684e7b8285711303d136aed79" title="GlobalRegistration\l::Match4PCSBase::init" alt="" coords="228,231,384,272"/>
+<area shape="rect" id="node4" href="$a05142.xhtml#ad6cd36f9f91e1e6b444b38b1a986d0c1" title="Finds the closest element index within the range [0:sqrt(sqdist)]. " alt="" coords="1293,94,1483,150"/>
+<area shape="rect" id="node14" href="$a05206.xhtml#a869c21b7c49110f7301e78d64d9e0e57" title="GlobalRegistration\l::Match4PCSBase::ExtractPairs" alt="" coords="737,552,947,593"/>
+<area shape="rect" id="node15" href="$a05206.xhtml#ae197b4fe78911f96d3732d5faf0a6901" title="GlobalRegistration\l::Match4PCSBase::FindCongruent\lQuadrilaterals" alt="" coords="730,471,954,527"/>
+<area shape="rect" id="node16" href="$a05206.xhtml#acecb2de1f163aff07803ebf905ab3e36" title="GlobalRegistration\l::Match4PCSBase::TryCongruentSet" alt="" coords="723,355,961,396"/>
+<area shape="rect" id="node12" href="$a05142.xhtml#a81bcdc0c30914894311c78396d3781c7" title="Add a new vertex in the KdTree. " alt="" coords="1065,604,1195,645"/>
+<area shape="rect" id="node13" href="$a05142.xhtml#a6841c0418254813b75dd036a9e4e7c2b" title="Finalize the creation of the KdTree. " alt="" coords="1065,669,1195,711"/>
+<area shape="rect" id="node17" href="$a05238.xhtml#acd6175b6251a3fbf9e3e329ebfc58d06" title="GlobalRegistration\l::Point3D::pos" alt="" coords="1065,363,1195,404"/>
+<area shape="rect" id="node18" href="$a05246.xhtml#a1662893334239560ac536fd6bb44f71c" title="GlobalRegistration\l::Match4PCSOptions::\lgetTerminateThreshold" alt="" coords="1053,429,1207,485"/>
+<area shape="rect" id="node21" href="$a05246.xhtml#a91b3ac4a47f82c2c2ff8ecd0bbd43c2b" title="GlobalRegistration\l::Match4PCSOptions::\lgetOverlapEstimation" alt="" coords="481,223,635,279"/>
+</map>

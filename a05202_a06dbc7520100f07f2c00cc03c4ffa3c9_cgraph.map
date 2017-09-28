@@ -1,0 +1,5 @@
+<map id="GlobalRegistration::Match4PCS::FindCongruentQuadrilaterals" name="GlobalRegistration::Match4PCS::FindCongruentQuadrilaterals">
+<area shape="rect" id="node2" href="$a05142.xhtml#a81bcdc0c30914894311c78396d3781c7" title="Add a new vertex in the KdTree. " alt="" coords="284,5,413,47"/>
+<area shape="rect" id="node3" href="$a05142.xhtml#a6841c0418254813b75dd036a9e4e7c2b" title="Finalize the creation of the KdTree. " alt="" coords="284,71,413,112"/>
+<area shape="rect" id="node4" href="$a05142.xhtml#a6865211d686d440c93e42101d2901a2e" title="Performs distance query and return indices. " alt="" coords="248,137,449,193"/>
+</map>

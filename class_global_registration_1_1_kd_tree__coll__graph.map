@@ -1,0 +1,5 @@
+<map id="GlobalRegistration::KdTree&lt; _Scalar, _Index &gt;" name="GlobalRegistration::KdTree&lt; _Scalar, _Index &gt;">
+<area shape="rect" id="node6" href="$struct_global_registration_1_1_kd_tree_1_1_query_node.xhtml" title="element of the stack " alt="" coords="588,608,735,729"/>
+<area shape="rect" id="node9" href="$class_global_registration_1_1_a_a_b_b.xhtml" title="{GlobalRegistration\l::AABB\&lt; Scalar \&gt;\n||+ AABB()\l+ AABB()\l+ AABB()\l+ AABB()\l+ operator=()\l+ extendTo()\l+ extendTo()\l+ contains()\l+ diagonal()\l+ center()\l+ min()\l+ max()\l+ depth()\l+ width()\l+ height()\l}" alt="" coords="759,520,889,817"/>
+<area shape="rect" id="node11" href="$class_global_registration_1_1_a_a_b_b.xhtml" title="{GlobalRegistration\l::AABB\&lt; _Scalar, _Dim \&gt;\n||+ AABB()\l+ AABB()\l+ AABB()\l+ AABB()\l+ operator=()\l+ extendTo()\l+ extendTo()\l+ contains()\l+ diagonal()\l+ center()\l+ min()\l+ max()\l+ depth()\l+ width()\l+ height()\l}" alt="" coords="853,160,1027,457"/>
+</map>

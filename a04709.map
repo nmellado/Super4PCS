@@ -1,0 +1,6 @@
+<map id="GlobalRegistration::PairCreationFunctor&lt; _Scalar &gt;" name="GlobalRegistration::PairCreationFunctor&lt; _Scalar &gt;">
+<area shape="rect" id="node3" href="$a04687.html" title="{GlobalRegistration\l::Accelerators::PairExtraction\l::HyperSphere\&lt; Point, _dim,\l Scalar \&gt;\n||+ HyperSphere()\l+ HyperSphere()\l+ quantified()\l+ operator\&lt;()\l+ operator Point()\l+ intersect()\l+ intersectFast()\l+ intersectPoint()\l+ center()\l+ radius()\l+ radius()\l+ intersectPoint()\l}" alt="" coords="81,175,275,457"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="632,277,748,355"/>
+<area shape="rect" id="node11" href="$a04735.html" title="The basic 3D point structure. A point potentially contains also directional information and color..." alt="" coords="965,145,1095,487"/>
+<area shape="rect" id="node14" href="$a04743.html" title="delta and overlap_estimation are the application parameters. All other parameters are more likely to ..." alt="" coords="1344,623,1519,759"/>
+</map>

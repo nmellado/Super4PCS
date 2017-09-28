@@ -1,0 +1,5 @@
+<map id="GlobalRegistration::Match4PCSBase::ComputeTransformation" name="GlobalRegistration::Match4PCSBase::ComputeTransformation">
+<area shape="rect" id="node2" href="$a04746.html#a91b3ac4a47f82c2c2ff8ecd0bbd43c2b" title="GlobalRegistration\l::Match4PCSOptions::\lgetOverlapEstimation" alt="" coords="332,5,487,61"/>
+<area shape="rect" id="node3" href="$a04738.html#acd6175b6251a3fbf9e3e329ebfc58d06" title="GlobalRegistration\l::Point3D::pos" alt="" coords="345,86,474,127"/>
+<area shape="rect" id="node4" href="$a04746.html#a1662893334239560ac536fd6bb44f71c" title="GlobalRegistration\l::Match4PCSOptions::\lgetTerminateThreshold" alt="" coords="332,152,487,208"/>
+</map>

@@ -1,0 +1,3 @@
+<map id="GlobalRegistration::KdTree&lt; _Scalar, _Index &gt;" name="GlobalRegistration::KdTree&lt; _Scalar, _Index &gt;">
+<area shape="rect" id="node2" href="$class_global_registration_1_1_kd_tree.xhtml" title="{GlobalRegistration\l::KdTree\&lt; Scalar \&gt;\n|# mPoints\l# mIndices\l# mAABB\l# mNodes\l# mNodeStack\l# _nofPointsPerCell\l# _maxDepth\l|+ _getNodes()\l+ _getPoints()\l+ _getIndices()\l+ KdTree()\l+ KdTree()\l+ add()\l+ add()\l+ finalize()\l+ aabb()\l+ ~KdTree()\l+ doQueryK()\l+ doQueryDist()\l+ doQueryDistIndices()\l+ doQueryDistProcessIndices()\l+ doQueryRestrictedClosest\lIndex()\l+ invalidIndex()\l# split()\l# createTree()\l# _doQueryDistIndicesWithFunctor()\l}" alt="" coords="5,541,240,1000"/>
+</map>

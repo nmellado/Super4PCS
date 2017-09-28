@@ -1,0 +1,5 @@
+<map id="GlobalRegistration::Match4PCS::ExtractPairs" name="GlobalRegistration::Match4PCS::ExtractPairs">
+<area shape="rect" id="node2" href="$class_global_registration_1_1_point3_d.xhtml#acd6175b6251a3fbf9e3e329ebfc58d06" title="GlobalRegistration\l::Point3D::pos" alt="" coords="235,5,364,47"/>
+<area shape="rect" id="node3" href="$class_global_registration_1_1_point3_d.xhtml#a09505dd544fdc8d8c3d2edc02e6abec7" title="GlobalRegistration\l::Point3D::normal" alt="" coords="235,71,364,112"/>
+<area shape="rect" id="node4" href="$class_global_registration_1_1_point3_d.xhtml#aea3ed1eb4ea38cbd76fb8db3e15270e7" title="GlobalRegistration\l::Point3D::rgb" alt="" coords="235,136,364,177"/>
+</map>

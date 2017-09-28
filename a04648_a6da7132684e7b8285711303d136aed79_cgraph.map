@@ -1,0 +1,6 @@
+<map id="GlobalRegistration::Match4PCSBase::init" name="GlobalRegistration::Match4PCSBase::init">
+<area shape="rect" id="node2" href="$a04648.xhtml#abdead928eb9370da120c4735550ad5e8" title="Computes the mean distance between points in Q and their nearest neighbor. We need this for normaliza..." alt="" coords="209,5,432,47"/>
+<area shape="rect" id="node3" href="$a04688.xhtml#a91b3ac4a47f82c2c2ff8ecd0bbd43c2b" title="GlobalRegistration\l::Match4PCSOptions::\lgetOverlapEstimation" alt="" coords="243,71,398,127"/>
+<area shape="rect" id="node4" href="$a04648.xhtml#adac9aa457425985cf778c69c60fecc21" title="Initializes the data structures and needed values before the match computation. " alt="" coords="227,152,414,193"/>
+<area shape="rect" id="node5" href="$a04648.xhtml#a8b3bea4c48cb1efbd844ba6ee629cfcd" title="For each randomly picked base, verifies the computed transformation by computing the number of points..." alt="" coords="234,217,407,259"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="GlobalRegistration::Match4PCSBase::TryCongruentSet" name="GlobalRegistration::Match4PCSBase::TryCongruentSet">
+<area shape="rect" id="node2" href="$class_global_registration_1_1_point3_d.xhtml#acd6175b6251a3fbf9e3e329ebfc58d06" title="GlobalRegistration\l::Point3D::pos" alt="" coords="339,5,468,47"/>
+<area shape="rect" id="node3" href="$class_global_registration_1_1_match4_p_c_s_base.xhtml#af4249983ba17f93c48ba4f4d83442511" title="GlobalRegistration\l::Match4PCSBase::ComputeRigid\lTransformation" alt="" coords="292,71,515,127"/>
+<area shape="rect" id="node4" href="$class_global_registration_1_1_match4_p_c_s_base.xhtml#ac9a328320c7729722e3a4b9234f2dadf" title="GlobalRegistration\l::Match4PCSBase::Verify" alt="" coords="317,152,490,193"/>
+<area shape="rect" id="node6" href="$struct_global_registration_1_1_match4_p_c_s_options.xhtml#a1662893334239560ac536fd6bb44f71c" title="GlobalRegistration\l::Match4PCSOptions::\lgetTerminateThreshold" alt="" coords="326,218,481,274"/>
+<area shape="rect" id="node5" href="$class_global_registration_1_1_kd_tree.xhtml#ad6cd36f9f91e1e6b444b38b1a986d0c1" title="Finds the closest element index within the range [0:sqrt(sqdist)]. " alt="" coords="563,145,752,201"/>
+</map>

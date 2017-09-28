@@ -1,0 +1,10 @@
+<map id="GlobalRegistration::Match4PCSBase::base3D" name="GlobalRegistration::Match4PCSBase::base3D">
+<area shape="rect" id="node2" href="$class_global_registration_1_1_match4_p_c_s_base.xhtml#a869c21b7c49110f7301e78d64d9e0e57" title="GlobalRegistration\l::Match4PCSBase::ExtractPairs" alt="" coords="251,5,462,47"/>
+<area shape="rect" id="node3" href="$class_global_registration_1_1_match4_p_c_s_base.xhtml#ae197b4fe78911f96d3732d5faf0a6901" title="GlobalRegistration\l::Match4PCSBase::FindCongruent\lQuadrilaterals" alt="" coords="245,71,469,127"/>
+<area shape="rect" id="node4" href="$class_global_registration_1_1_match4_p_c_s_base.xhtml#acecb2de1f163aff07803ebf905ab3e36" title="GlobalRegistration\l::Match4PCSBase::TryCongruentSet" alt="" coords="237,152,476,193"/>
+<area shape="rect" id="node5" href="$class_global_registration_1_1_point3_d.xhtml#acd6175b6251a3fbf9e3e329ebfc58d06" title="GlobalRegistration\l::Point3D::pos" alt="" coords="571,41,700,83"/>
+<area shape="rect" id="node6" href="$class_global_registration_1_1_match4_p_c_s_base.xhtml#af4249983ba17f93c48ba4f4d83442511" title="GlobalRegistration\l::Match4PCSBase::ComputeRigid\lTransformation" alt="" coords="524,107,747,163"/>
+<area shape="rect" id="node7" href="$class_global_registration_1_1_match4_p_c_s_base.xhtml#ac9a328320c7729722e3a4b9234f2dadf" title="GlobalRegistration\l::Match4PCSBase::Verify" alt="" coords="549,188,722,229"/>
+<area shape="rect" id="node9" href="$struct_global_registration_1_1_match4_p_c_s_options.xhtml#a1662893334239560ac536fd6bb44f71c" title="GlobalRegistration\l::Match4PCSOptions::\lgetTerminateThreshold" alt="" coords="558,254,713,310"/>
+<area shape="rect" id="node8" href="$class_global_registration_1_1_kd_tree.xhtml#ad6cd36f9f91e1e6b444b38b1a986d0c1" title="Finds the closest element index within the range [0:sqrt(sqdist)]. " alt="" coords="795,181,984,237"/>
+</map>
