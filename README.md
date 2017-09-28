@@ -16,7 +16,7 @@ Authors: Nicolas Mellado, Dror Aiger
 | :----:          | :-----:         |
 | ![stsimg-linux] | ![stsimg-windw] |
 
-Documentation: [http://nmellado.github.io/Super4PCS/] (http://nmellado.github.io/Super4PCS/)
+Documentation: [http://nmellado.github.io/Super4PCS/](http://nmellado.github.io/Super4PCS/)
 
 Paper project page: [http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS](http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS)
 
