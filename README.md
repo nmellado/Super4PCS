@@ -23,7 +23,7 @@ Paper project page: [http://geometry.cs.ucl.ac.uk/projects/2014/super4PCS](http:
 
 
 ## News
-* 28th September 2017: Super4PCS [v1.1.3](https://github.com/nmellado/Super4PCS/releases/tag/v1.1.3) is out, providing a new Meshlab plugin, PCL wrapper, doxygen-generated documentation (online [here] (http://nmellado.github.io/Super4PCS/)) and several bug fixes.
+* 28th September 2017: Super4PCS [v1.1.3](https://github.com/nmellado/Super4PCS/releases/tag/v1.1.3) is out, providing a new Meshlab plugin, PCL wrapper, doxygen-generated documentation (online [here](http://nmellado.github.io/Super4PCS/)) and several bug fixes.
 * 24th August 2017: Super4PCS [v1.1.2](https://github.com/nmellado/Super4PCS/releases/tag/v1.1.2) introduces Super4PCS CMake package, better testing (including on Windows plateform), cleaner code structure (moved demos away from library code).
 * 10th August 2017: Super4PCS [v1.1.1](https://github.com/nmellado/Super4PCS/releases/tag/v1.1.1) introduces minor fixes from previous release.
 * 10th August 2017: Super4PCS [v1.1.0](https://github.com/nmellado/Super4PCS/releases/tag/v1.1.0) is available, improving performances, fixing use as C++ library, and generalizing CI use.
