@@ -42,9 +42,9 @@ Since the exploration is performed randomly, it is recommended to use a large ti
 ### Overlap estimation (-o)
 This parameter defines the amount of expected overlap between the two clouds: it is ranging between 0 (no overlap) to 1 (100% overlap).
 
-The overlap parameter controls the size of the basis used for registration (#Match4PCSBase::init [link to code](http://github.com/nmellado/Super4PCS/blob/master/super4pcs/super4pcs.cc#L613)), as shown in the Figure below:
+The overlap parameter controls the size of the basis used for registration, as shown in the Figure below:
 
-![](https://raw.githubusercontent.com/nmellado/Super4PCS/gh-pages/images/super4PCS_overlap.png =100x20)
+<img src="img/super4PCS_overlap.png" width=1000px>
 
 Usually, the larger the overlap, the faster the algorithm.
 When the overlap is unknown, a simple way to set this parameter is to start from 100% overlap, and decrease the value until obtaining a good result.
