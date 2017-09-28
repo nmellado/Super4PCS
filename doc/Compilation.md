@@ -85,7 +85,7 @@ They can be set either when calling [CMake](https://blogs.msdn.microsoft.com/vcb
 * Include directories: ``path-to-opencv\build\include`,
 * Library directories: `path-to-opencv\build\x64\vc14\lib`.
 
-![](https://raw.githubusercontent.com/nmellado/Super4PCS/gh-pages/images/VStudio-globalFolders.png)
+![](img/VStudio-globalFolders.jpg)
 
 ***
 

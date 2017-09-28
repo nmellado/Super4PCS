@@ -47,11 +47,13 @@ In ASCII mode only, both float and double properties are supported (files genera
 
 The supported property lists are (any other property type will cause the program to run on wrong data!):
 ####Position only
+
     property float x
     property float y
     property float z
 
 ####Position + Normals
+
     property float x
     property float y
     property float z
@@ -60,6 +62,7 @@ The supported property lists are (any other property type will cause the program
     property float nz
 
 ####Position + Colors (RGB)
+
     property float x
     property float y
     property float z
@@ -68,6 +71,7 @@ The supported property lists are (any other property type will cause the program
     property uchar blue
 
 ####Position + Colors (RGBA)
+
     property float x
     property float y
     property float z
@@ -77,6 +81,7 @@ The supported property lists are (any other property type will cause the program
     property uchar alpha
 
 ####Position + Normals + Colors (RGB)
+
     property float x
     property float y
     property float z
@@ -88,6 +93,7 @@ The supported property lists are (any other property type will cause the program
     property uchar blue
 
 ####Position + Normals + Colors (RGBA)
+
     property float x
     property float y
     property float z

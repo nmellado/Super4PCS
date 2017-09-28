@@ -159,8 +159,8 @@ if(DOXYGEN_FOUND)
     add_custom_target(doc
         ${CMAKE_COMMAND} -E make_directory ${SUPER4PCS_DOC_DIRECTORY}
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/doc/images/
-        ${SUPER4PCS_DOC_DIRECTORY}/html/images
+        ${CMAKE_CURRENT_SOURCE_DIR}/doc/img/
+        ${SUPER4PCS_DOC_DIRECTORY}/html/img
         COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG
         ${SUPER4PCS_DOC_DIRECTORY}/
