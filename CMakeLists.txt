@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.3)
-project (Super4PCS LANGUAGES CXX VERSION 1.1.2)
+project (Super4PCS LANGUAGES CXX VERSION 1.1.3)
 
 ################################################################################
 ## User options
