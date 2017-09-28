@@ -1,8 +1,8 @@
-# Overview {#mainpage}
+# User documentation {#mainpage}
 
 ## About Super4PCS
 
-The Super4PCS library is a set C++ libraries, standalone applications and plugins released under the terms of the *APACHE V2 licence*, which makes it free for commercial and research use. 
+The Super4PCS library is a set C++ libraries, standalone applications and plugins released under the terms of the *APACHE V2 licence*, which makes it free for commercial and research use.
 
 It provides state of the art global registration techniques for 3d pointclouds. Still under active development, the library is currently improved by adding wrappers to existing software, and by stabilizing the API.
 
@@ -16,10 +16,16 @@ In a nutshell, it provides:
 * a [test suite](@ref GlobalRegistration::Testing)
 
 ### Usage and documentation
-If you plan to use the library in you own software, you want to look at:
-* [Match4PCSBase](@ref GlobalRegistration::Match4PCSBase), the base class for registration algorithms, providing the [ComputeTransformation](@ref GlobalRegistration::Match4PCSBase::ComputeTransformation) method. Two different algorithms are today available: [4PCS](@ref GlobalRegistration::Match4PCS) and its more efficient variant [Super4PCS](@ref GlobalRegistration::MatchSuper4PCS) 
 
-Super4PCS is also shipped with demo apps, checkout the `demos` folder.
+ - @subpage gettingstarted : How to use the library in 180 seconds
+ - @subpage compilation : Compilation instructions and supported platform(s...). Also describe how to link with the library using cmake.
+ - @subpage demos
+ - @subpage datasets
+ - @subpage fileformats : Supported file formats
+ - @subpage usage : Hints for usage and parameter tuning
+ - @subpage tests : Monitor continuous integration, run tests on your platform
+ - @subpage currentrelease : Changelog and status of the current release
+ - @subpage roadmap
 
 ## Compilation status
 [stsimg-linux]: https://api.travis-ci.org/nmellado/Super4PCS.svg?branch=master
