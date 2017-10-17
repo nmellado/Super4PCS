@@ -169,11 +169,11 @@ Match4PCSBase::MeanDistance() {
     query.sqdist = P_diameter_ * kDiameterFraction;
     query.queryPoint = sampled_P_3D_[i].pos().cast<Scalar>();
 
-    GlobalRegistration::KdTree<Scalar>::Index resId =
+    auto result =
         kd_tree_.doQueryRestrictedClosestIndex(query , i);
 
-    if (resId != GlobalRegistration::KdTree<Scalar>::invalidIndex()) {
-      distance += (sampled_P_3D_[i].pos() - sampled_P_3D_[resId].pos()).norm();
+    if (result.first != GlobalRegistration::KdTree<Scalar>::invalidIndex()) {
+      distance += std::sqrt(result.second);
       number_of_samples++;
     }
   }
@@ -528,14 +528,13 @@ Match4PCSBase::Verify(const Eigen::Ref<const MatrixType> &mat) const {
     query.queryPoint = (mat * sampled_Q_3D_[i].pos().homogeneous()).head<3>();
     query.sqdist     = sq_eps;
 
-    GlobalRegistration::KdTree<Scalar>::Index resId =
-    kd_tree_.doQueryRestrictedClosestIndex( query );
+    auto result = kd_tree_.doQueryRestrictedClosestIndex( query );
 
 #ifdef TEST_GLOBAL_TIMINGS
     kdTreeTime += Scalar(t.elapsed().count()) / Scalar(CLOCKS_PER_SEC);
 #endif
 
-    if ( resId != GlobalRegistration::KdTree<Scalar>::invalidIndex() ) {
+    if ( result.first != GlobalRegistration::KdTree<Scalar>::invalidIndex() ) {
 //      Point3D& q = sampled_P_3D_[near_neighbor_index[0]];
 //      bool rgb_good =
 //          (p.rgb()[0] >= 0 && q.rgb()[0] >= 0)
