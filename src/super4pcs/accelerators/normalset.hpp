@@ -55,10 +55,6 @@
 namespace GlobalRegistration{
 
 template <class Point, int dim, int _ngSize, typename Scalar>
-constexpr Scalar
-IndexedNormalSet<Point, dim, _ngSize, Scalar>::_nepsilon;
-
-template <class Point, int dim, int _ngSize, typename Scalar>
 IndexedNormalSet<Point, dim, _ngSize, Scalar>::~IndexedNormalSet(){
   for(unsigned int i = 0; i != _grid.size(); i++)
     delete(_grid[i]);

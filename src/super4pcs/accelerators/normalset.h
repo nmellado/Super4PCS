@@ -83,7 +83,7 @@ struct IndexedNormalSet{
 #endif
 
 private:
-  static constexpr Scalar _nepsilon = Scalar(1.)/Scalar(_ngSize) + 0.00001;
+  constexpr Scalar _nepsilon () { return Scalar(1)/Scalar(_ngSize) + Scalar(0.00001); }
   std::vector<AngularGrid*> _grid;
   Scalar _epsilon;
   int _egSize;    //! <\brief Size of the euclidean grid for each dimension
@@ -100,7 +100,7 @@ private:
   inline Point coordinatesNormal( const Point& n) const
   {
     static const Point half = Point::Ones()/Scalar(2.);
-    return (n/Scalar(2.) + half)/_nepsilon;
+    return (n/Scalar(2.) + half)/_nepsilon ();
   }
 
   /// Get the coordinates corresponding to position p \warning Bounds are not tested
