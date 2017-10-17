@@ -32,12 +32,17 @@ Tests:
 
 ### CMake Options
 Our CMake scripts can be configured using the following options:
-* `OPTION (SUPER4PCS_COMPILE_TESTS "Enable testing" TRUE)`
-* `OPTION (SUPER4PCS_COMPILE_DEMOS "Compile demo applications (including the Super4PCS standalone)" TRUE)`
-* `OPTION (IO_USE_OPENCV "Use OpenCV for texture loading" TRUE)`
-* `OPTION (ENABLE_TIMING "Enable computation time recording" FALSE)`
-* `OPTION (SUPER4PCS_USE_CHEALPIX "Use Chealpix for orientation filtering (deprecated)" FALSE)` We recommend to keep this option to `FALSE`.
-* `OPTION (DL_DATASETS "Download demo datasets and associated run scripts" FALSE)`
+* Compilation rules
+    * `OPTION (SUPER4PCS_COMPILE_TESTS "Enable testing" TRUE)`
+    * `OPTION (SUPER4PCS_COMPILE_DEMOS "Compile demo applications (including the Super4PCS standalone)" TRUE)`
+    * `OPTION (IO_USE_OPENCV "Use OpenCV for texture loading" TRUE)`
+    * `OPTION (SUPER4PCS_USE_CHEALPIX "Use Chealpix for orientation filtering (deprecated)" FALSE)` We recommend to keep this option to `FALSE`.
+* Advanced functionalities
+    * `+OPTION (SUPER4PCS_USE_WEIGHTED_LCP "Use gaussian weights for point samples when computing LCP" FALSE)` Was implicitely set to `FALSE` in previous release.
+* Extras
+    * `OPTION (DL_DATASETS "Download demo datasets and associated run scripts" FALSE)`
+* Debug options
+    * `OPTION (ENABLE_TIMING "Enable computation time recording" FALSE)`
 
 Options can be set by calling `cmake -DMY_OPTION=TRUE`, or by editing the file [CMakeList.txt](https://github.com/nmellado/Super4PCS/blob/master/CMakeLists.txt) (not recommended).
 

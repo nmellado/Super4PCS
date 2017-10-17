@@ -7,6 +7,7 @@ project (Super4PCS LANGUAGES CXX VERSION 1.1.3)
 # Set option to enable timing recording
 OPTION (SUPER4PCS_COMPILE_TESTS "Enable testing" TRUE)
 OPTION (SUPER4PCS_COMPILE_DEMOS "Compile demo applications (including the Super4PCS standalone)" TRUE)
+OPTION (SUPER4PCS_USE_WEIGHTED_LCP "Use gaussian weights for point samples when computing LCP" FALSE)
 OPTION (IO_USE_OPENCV "Use OpenCV for texture loading" TRUE)
 OPTION (ENABLE_TIMING "Enable computation time recording" FALSE)
 OPTION (SUPER4PCS_USE_CHEALPIX "Use Chealpix for orientation filtering (deprecated)" FALSE)
