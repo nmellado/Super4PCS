@@ -79,16 +79,21 @@ namespace CGAL {
    *
    * \return The Transformation aligning the second input point-cloud to the first
    */
-  template <class ForwardIterator,
+  template <typename Kernel,
+            class ForwardIterator,
             class PointPmap,
             typename NamedParameters>
-  Aff_transformation_3 align(
+  Aff_transformation_3<Kernel> align(
       ForwardIterator b1,
       ForwardIterator e1,
       ForwardIterator b2,
       ForwardIterator e2,
       PointPmap point_pmap,
-      const NamedParameters & np) ;
+      const NamedParameters & np){
+    Aff_transformation_3<Kernel> tr;
+
+    return tr;
+  }
 
 } // namespace CGAL
 
