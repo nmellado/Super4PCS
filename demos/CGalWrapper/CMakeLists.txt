@@ -6,7 +6,7 @@ file(GLOB_RECURSE Demo_CGAL_headers
                   ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 
 
-if( CGAL_FOUND AND ${CGAL_VERSION} VERSION_EQUAL 4.11 )
+if( CGAL_FOUND AND CGAL_VERSION AND ${CGAL_VERSION} VERSION_EQUAL 4.11 )
   message ("CGAL ${CGAL_VERSION} found. Compiling wrapper demo" )
 
   set(Demo_CGAL_SRC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp )
