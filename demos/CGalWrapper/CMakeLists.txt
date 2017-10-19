@@ -6,7 +6,8 @@ file(GLOB_RECURSE Demo_CGAL_headers
                   ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 
 
-if( CGAL_FOUND )
+if( CGAL_FOUND AND ${CGAL_VERSION} VERSION_GREATER 4.10 )
+  message ("CGAL ${CGAL_VERSION} found. Compiling wrapper demo" )
 
   set(Demo_CGAL_SRC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp )
 
@@ -17,6 +18,7 @@ if( CGAL_FOUND )
   target_link_libraries(${PROJECT_NAME} super4pcs_algo super4pcs_utils)
 
   install( TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+
 endif()
 
 install( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
