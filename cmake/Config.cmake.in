@@ -1,4 +1,4 @@
-# - Config file for the FooBar package
+# - Config file for the Super4PCS package
 # It defines the following variables
 #  Super4PCS_INCLUDE_DIRS - include directories for Super4PCS
 #  Super4PCS_LIB_DIR    - libraries to link against
