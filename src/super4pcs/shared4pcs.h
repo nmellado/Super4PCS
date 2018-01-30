@@ -87,7 +87,7 @@ class Point3D {
   }
 
   inline void normalize() {
-    pos_.normalize();
+    normal_.normalize();
   }
   inline bool hasColor() const { return rgb_.squaredNorm() > Scalar(0.001); }
 
