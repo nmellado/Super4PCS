@@ -83,7 +83,7 @@ struct IndexedNormalSet{
 #endif
 
 private:
-  static constexpr Scalar _nepsilon = Scalar(1.)/Scalar(_ngSize) + 0.00001;
+  const Scalar _nepsilon;
   std::vector<AngularGrid*> _grid;
   Scalar _epsilon;
   int _egSize;    //! <\brief Size of the euclidean grid for each dimension
@@ -112,7 +112,9 @@ private:
 
 public:
   inline IndexedNormalSet(const Scalar epsilon)
-  : _epsilon(epsilon) {
+    : _nepsilon(Scalar(1.)/Scalar(_ngSize) + 0.00001),
+      _epsilon(epsilon)
+  {
     /// We need to check if epsilon is a power of two and correct it if needed
     const int gridDepth = -std::log2(epsilon);
     _egSize = std::pow(2,gridDepth);
