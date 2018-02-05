@@ -216,9 +216,11 @@ void verify_impl(bool condition, const char *testname, const char *file, int lin
                   __LINE__, SUPER4PCS_PP_MAKE_STRING(a))
 
 #define CALL_SUBTEST(FUNC) do { \
-    GlobalRegistration::Testing::g_test_stack.push_back(SUPER4PCS_PP_MAKE_STRING(FUNC));\
+    _Pragma("omp critical") \
+    { GlobalRegistration::Testing::g_test_stack.push_back(SUPER4PCS_PP_MAKE_STRING(FUNC)); }\
     FUNC; \
-    GlobalRegistration::Testing::g_test_stack.pop_back(); \
+    _Pragma("omp critical") \
+    { GlobalRegistration::Testing::g_test_stack.pop_back(); } \
   } while (0)
 
 inline void set_repeat_from_string(const char *str)
