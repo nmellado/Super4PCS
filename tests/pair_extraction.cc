@@ -227,6 +227,7 @@ void callSubTests()
     unsigned int nbPoint = 2500;  // size of Q point cloud
     int minNodeSize = 50;
 
+#pragma omp parallel for
     for(int i = 0; i < Testing::g_repeat; ++i)
     {
         CALL_SUBTEST(( testFunction<Scalar,
@@ -256,7 +257,7 @@ void callMatchSubTests()
 
     Scalar pair_distance_epsilon = MatchType::distance_factor * opt.delta;
 
-
+#pragma omp parallel for
     for(int i = 0; i < Testing::g_repeat; ++i)
     {
 
