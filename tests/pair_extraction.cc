@@ -67,6 +67,8 @@
 
 #include "testing.h"
 
+#define TRACE
+
 using namespace GlobalRegistration;
 
 struct MyPairCreationFunctor{
@@ -92,11 +94,16 @@ struct TrVisitorType {
             float fraction,
             float best_LCP,
             Eigen::Ref<Match4PCSBase::MatrixType> /*transformation*/) {
+#ifdef TRACE
         std::cout << "New LCP: "
                   << static_cast<int>(fraction * 100)
                   << '%'
                   << best_LCP
                   <<std::endl;
+#else
+      void(fraction);
+      void(best_LCP);
+#endif
     }
     constexpr bool needsGlobalTransformation() const { return false; }
 };
@@ -169,7 +176,9 @@ void testFunction( Scalar r, Scalar epsilon,
     // Extract pairs using rendering process
     t.reset();
     IF.process(primitives, points, epsilon, minNodeSize, functor);
+#ifdef TRACE
     const auto IFtimestep = t.elapsed();
+#endif
 
 
     // Extract pairs using brute force
@@ -178,6 +187,8 @@ void testFunction( Scalar r, Scalar epsilon,
       for(unsigned int j = i+1; j < nbPoints; j++)
          if (primitives[j].intersectPoint(points[i], epsilon))
           p2.emplace_back(i,j);
+
+#ifdef TRACE
     const auto BFtimestep = t.elapsed();
 
     std::cout << "Timers (" << (IFtimestep.count() < BFtimestep.count()
@@ -190,6 +201,7 @@ void testFunction( Scalar r, Scalar epsilon,
                                 ? "PASSED" : "NOT PASSED")
               << "): \t Functor: " << functor.pairs.size()
               << " \t BruteForce: " << p2.size() << std::endl;
+#endif
 
     // sort to ensure containers consistency
     std::sort(functor.pairs.begin(), functor.pairs.end());
@@ -295,6 +307,8 @@ void callMatchSubTests()
         std::sort(pairs1.begin(), pairs1.end());
         std::sort(pairs2.begin(), pairs2.end());
 
+#ifdef TRACE
+
         // Check we get the same set size
         std::cout << "Size check 1 (" << (pairs1.size() == gtpairs1.size()
                                           ? "PASSED" : "NOT PASSED")
@@ -304,6 +318,7 @@ void callMatchSubTests()
                                           ? "PASSED" : "NOT PASSED")
                   << "): \t Functor: " << pairs2.size()
                   << " \t GT: " << gtpairs2.size() << std::endl;
+#endif
 
         VERIFY( gtpairs1.size() == pairs1.size() );
         VERIFY( std::equal(pairs1.begin(), pairs1.end(), gtpairs1.begin()));
