@@ -2,7 +2,7 @@ language: cpp
 
 script:
   - make -j2 VERBOSE=1 && make install
-  - if [ "$CHEALPIX" == "Off" ]; then  make buildtests && ctest -V; fi
+  - if [ "$CHEALPIX" == "Off" ]; then  make VERBOSE=1 buildtests && ctest -V; fi
 
 cache:
   directories:
@@ -45,7 +45,7 @@ before_install:
 matrix:
   include:
     # mac clang Release
-    - env: BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
+    - env: BUILD_TYPE=Release BOOST=Off CHEALPIX=Off FAST_TESTS=On
       os: osx
       compiler: clang
       
@@ -80,7 +80,7 @@ matrix:
     # BOOST
     ############################################################################
     # mac clang Release
-    - env: BUILD_TYPE=Release BOOST=On CHEALPIX=Off
+    - env: BUILD_TYPE=Release BOOST=On CHEALPIX=Off FAST_TESTS=On
       os: osx
       compiler: clang
       
@@ -116,12 +116,12 @@ matrix:
     # Chealpix
     ############################################################################
     # mac clang
-    - env: BUILD_TYPE=Release BOOST=Off CHEALPIX=On
+    - env: BUILD_TYPE=Release BOOST=Off CHEALPIX=On FAST_TESTS=On
       os: osx
       compiler: clang
 
     # clang 3.8
-    - env: CLANG_VERSION=3.9 BUILD_TYPE=Release BOOST=Off CHEALPIX=On
+    - env: BUILD_TYPE=Release BOOST=Off CHEALPIX=On
       os: linux
       addons: &clang39
         apt:
@@ -133,7 +133,7 @@ matrix:
             - llvm-toolchain-precise-3.9
 
     # gcc5
-    - env: GCC_VERSION=7 BUILD_TYPE=Release BOOST=Off CHEALPIX=On
+    - env: BUILD_TYPE=Release BOOST=Off CHEALPIX=On
       os: linux
       addons: &gcc7
         apt:
@@ -150,7 +150,8 @@ install:
   - mkdir -p build
   - cd build
   - if [ "$GCC_VERSION" == "5" ]; then CXX_FLAGS="${CXX_FLAGS} -DRANGES_CXX_CONSTEXPR=RANGES_CXX_CONSTEXPR11"; fi
-  - if [ -n "$CLANG_VERSION" ]; then CXX_FLAGS="${CXX_FLAGS} -D__extern_always_inline=inline -DFAST_TESTS"; fi
+  - if [ -n "$CLANG_VERSION" ]; then CXX_FLAGS="${CXX_FLAGS} -D__extern_always_inline=inline"; fi
+  - if [ -n "$FAST_TESTS" ]; then CXX_FLAGS="${CXX_FLAGS} -DFAST_TESTS "; fi
   - cmake .. -DSUPER4PCS_COMPILE_TESTS=TRUE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=$CHEALPIX -DDL_DATASETS=FALSE -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${SUPER4PCS_RELEASE_DIR}/
 
 
