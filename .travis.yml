@@ -2,15 +2,17 @@ language: cpp
 
 script:
   - make -j2 VERBOSE=1 && make install
-  - if [ "$CHEALPIX" == "Off" ]; then  make buildtests && make test; fi
+  - if [ "$CHEALPIX" == "Off" ]; then  make buildtests && ctest -V; fi
 
 cache:
   directories:
     - ${TRAVIS_BUILD_DIR}/deps/cmake
+    - ${TRAVIS_BUILD_DIR}/cmake3.3
 
 env:
   global:
     - DEPS_DIR=${TRAVIS_BUILD_DIR}/deps
+    - OMP_NUM_THREADS=4
 
 
 before_install:
@@ -46,28 +48,30 @@ matrix:
     - env: BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
       os: osx
       compiler: clang
-
-
-    # clang 3.8 Release
-    - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
+      
+    # linx clang Release
+    - env: BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
       os: linux
-      addons: &clang38
+      addons: &clang39
         apt:
           packages:
+            - libboost-filesystem-dev
+            - libboost-system-dev
             - util-linux
-            - clang-3.8
+            - clang-3.9
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.8
-
-
-    # gcc-5 Release
-    - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
+            - llvm-toolchain-precise-3.9
+      
+    # linx gcc Release
+    - env: BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
       os: linux
-      addons: &gcc5
+      addons: &gcc7
         apt:
           packages:
-            - g++-5
+            - libboost-filesystem-dev
+            - libboost-system-dev
+            - g++-7
           sources:
             - ubuntu-toolchain-r-test
 
@@ -79,77 +83,62 @@ matrix:
     - env: BUILD_TYPE=Release BOOST=On CHEALPIX=Off
       os: osx
       compiler: clang
-
-    # clang 3.6 Release
-    - env: CLANG_VERSION=3.6 BUILD_TYPE=Release BOOST=On CHEALPIX=Off
+      
+    # linx clang Release
+    - env: BUILD_TYPE=Release BOOST=On CHEALPIX=Off
       os: linux
-      addons: &clang36
-        apt:
-          packages:
-            - libboost-filesystem-dev
-            - libboost-system-dev
-            - clang-3.6
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.6
-
-    # clang 3.8 Release
-    - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=On CHEALPIX=Off
-      os: linux
-      addons: &clang38
+      addons: &clang39
         apt:
           packages:
             - libboost-filesystem-dev
             - libboost-system-dev
             - util-linux
-            - clang-3.8
+            - clang-3.9
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.8
-
-    # gcc-5 Release
-    - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=On CHEALPIX=Off
+            - llvm-toolchain-precise-3.9
+      
+    # linx gcc Release
+    - env: BUILD_TYPE=Release BOOST=On CHEALPIX=Off
       os: linux
-      addons: &gcc5
+      addons: &gcc7
         apt:
           packages:
             - libboost-filesystem-dev
             - libboost-system-dev
-            - g++-5
+            - g++-7
           sources:
             - ubuntu-toolchain-r-test
+      
+
 
     ############################################################################
     # Chealpix
     ############################################################################
     # mac clang
-    - env: BUILD_TYPE=Release BOOST=On CHEALPIX=On
+    - env: BUILD_TYPE=Release BOOST=Off CHEALPIX=On
       os: osx
       compiler: clang
 
     # clang 3.8
-    - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=On CHEALPIX=On
+    - env: CLANG_VERSION=3.9 BUILD_TYPE=Release BOOST=Off CHEALPIX=On
       os: linux
-      addons: &clang38
+      addons: &clang39
         apt:
           packages:
-            - libboost-filesystem-dev
-            - libboost-system-dev
             - util-linux
-            - clang-3.8
+            - clang-3.9
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.8
+            - llvm-toolchain-precise-3.9
 
     # gcc5
-    - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=On CHEALPIX=On
+    - env: GCC_VERSION=7 BUILD_TYPE=Release BOOST=Off CHEALPIX=On
       os: linux
-      addons: &gcc5
+      addons: &gcc7
         apt:
           packages:
-            - libboost-filesystem-dev
-            - libboost-system-dev
-            - g++-5
+            - g++-7
           sources:
             - ubuntu-toolchain-r-test
 
