@@ -339,7 +339,7 @@ int main(int argc, const char **argv) {
     using std::endl;
     using namespace GlobalRegistration::Accelerators::PairExtraction;
 
-
+#ifndef FAST_TESTS
     cout << "Extract pairs in 2 dimensions (BRUTE FORCE)..." << endl;
     callSubTests<float, 2, BruteForceFunctor>();
     callSubTests<double, 2, BruteForceFunctor>();
@@ -351,6 +351,7 @@ int main(int argc, const char **argv) {
     callSubTests<double, 2, IntersectionFunctor>();
     callSubTests<long double, 2, IntersectionFunctor>();
     cout << "Ok..." << endl;
+#endif
 
     cout << "Extract pairs in 3 dimensions (BRUTE FORCE)..." << endl;
     callSubTests<float, 3, BruteForceFunctor>();
@@ -364,6 +365,7 @@ int main(int argc, const char **argv) {
     callSubTests<long double, 3, IntersectionFunctor>();
     cout << "Ok..." << endl;
 
+#ifndef FAST_TESTS
     cout << "Extract pairs in 4 dimensions (BRUTE FORCE)..." << endl;
     callSubTests<float, 4, BruteForceFunctor>();
     callSubTests<double, 4, BruteForceFunctor>();
@@ -375,6 +377,7 @@ int main(int argc, const char **argv) {
     callSubTests<double, 4, IntersectionFunctor>();
     callSubTests<long double, 4, IntersectionFunctor>();
     cout << "Ok..." << endl;
+#endif
 
     cout << "Extract pairs using Match4PCS" << endl;
     callMatchSubTests<Match4PCS>();
