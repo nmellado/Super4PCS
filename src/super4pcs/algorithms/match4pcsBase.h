@@ -175,9 +175,9 @@ protected:
 
 #ifdef TEST_GLOBAL_TIMINGS
 
-    Scalar totalTime;
-    Scalar kdTreeTime;
-    Scalar verifyTime;
+    mutable Scalar totalTime;
+    mutable Scalar kdTreeTime;
+    mutable Scalar verifyTime;
 
     using Timer = GlobalRegistration::Utils::Timer;
 

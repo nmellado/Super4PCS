@@ -207,7 +207,7 @@ MatchSuper4PCS::ExtractPairs(Scalar pair_distance,
 
 #ifdef MULTISCALE
   BruteForceFunctor
-  <PairCreationFunctor<Scalar>::Point, 3, Scalar> interFunctor;
+  <PairCreationFunctor<Scalar>::Primitive, PairCreationFunctor<Scalar>::Point, 3, Scalar> interFunctor;
 #else
   IntersectionFunctor
           <PairCreationFunctor<Scalar>::Primitive,
