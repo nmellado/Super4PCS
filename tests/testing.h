@@ -215,11 +215,17 @@ void verify_impl(bool condition, const char *testname, const char *file, int lin
                   GlobalRegistration::Testing::g_test_stack.back().c_str(), __FILE__, \
                   __LINE__, SUPER4PCS_PP_MAKE_STRING(a))
 
+#if defined (_MSC_VER) && ! defined (__INTEL_COMPILER)
+#  define MYPRAGMA(X) __pragma(X)
+#else
+#  define MYPRAGMA(X) _Pragma(X)
+#endif
+
 #define CALL_SUBTEST(FUNC) do { \
-    _Pragma("omp critical") \
+    MYPRAGMA("omp critical") \
     { GlobalRegistration::Testing::g_test_stack.push_back(SUPER4PCS_PP_MAKE_STRING(FUNC)); }\
     FUNC; \
-    _Pragma("omp critical") \
+    MYPRAGMA("omp critical") \
     { GlobalRegistration::Testing::g_test_stack.pop_back(); } \
   } while (0)
 
