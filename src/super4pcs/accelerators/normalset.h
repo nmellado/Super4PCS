@@ -100,7 +100,7 @@ private:
   inline Point coordinatesNormal( const Point& n) const
   {
     static const Point half = Point::Ones()/Scalar(2.);
-    return (n/Scalar(2.) + half)/_nepsilon ();
+    return (n/Scalar(2.) + half)/_nepsilon;
   }
 
   /// Get the coordinates corresponding to position p \warning Bounds are not tested
