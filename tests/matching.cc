@@ -375,7 +375,7 @@ int main(int argc, const char **argv) {
     VERIFY(transforms.size() == files.size());
 
 #ifdef FAST_TESTS
-    const int nbTests = std::min( transforms.size()-1, 2 );
+    const int nbTests = std::min( int(transforms.size()-1), int(2) );
 #else
     const int nbTests = transforms.size()-1;
 #endif
