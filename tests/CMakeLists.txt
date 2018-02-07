@@ -102,6 +102,11 @@ if (Boost_FOUND)
     add_executable(matching ${matching_SRCS} ${testing_SRCS})
     add_dependencies(buildtests matching)
     set (matching_subtests 0 1)
+
+    if (FAST_TESTS)
+      set (matching_subtests 0)
+    endif()
+
     foreach(subtest_id ${matching_subtests})
         add_test(NAME "matching_${subtest_id}"
                  #CONFIGURATIONS Release
