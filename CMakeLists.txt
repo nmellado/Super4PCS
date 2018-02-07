@@ -12,6 +12,7 @@ OPTION (IO_USE_OPENCV "Use OpenCV for texture loading" TRUE)
 OPTION (ENABLE_TIMING "Enable computation time recording" FALSE)
 OPTION (SUPER4PCS_USE_CHEALPIX "Use Chealpix for orientation filtering (deprecated)" FALSE)
 OPTION (DL_DATASETS "Download demo datasets and associated run scripts" FALSE)
+OPTION (FAST_TESTS FALSE)
 
 ################################################################################
 ## DO NOT EDIT AFTER THIS LINE
@@ -120,8 +121,14 @@ add_subdirectory(${SRC_DIR}/super4pcs/algorithms)
 ################################################################################
 
 if(SUPER4PCS_COMPILE_TESTS)
-        include(cmake/ConfigureTesting.cmake)
-        add_subdirectory(tests EXCLUDE_FROM_ALL)
+  include(cmake/ConfigureTesting.cmake)
+
+  if (FAST_TESTS)
+    ADD_DEFINITIONS( -DFAST_TESTS )
+    message (STATUS "TESTS: Fast tests")
+  endif()
+
+  add_subdirectory(tests EXCLUDE_FROM_ALL)
 endif(SUPER4PCS_COMPILE_TESTS)
 
 include(cmake/AssetsAndScripts.cmake)
