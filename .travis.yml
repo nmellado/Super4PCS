@@ -13,6 +13,7 @@ env:
   global:
     - DEPS_DIR=${TRAVIS_BUILD_DIR}/deps
     - OMP_NUM_THREADS=4
+    - TIMEOUT=1000
 
 
 before_install:
