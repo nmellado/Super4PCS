@@ -373,8 +373,12 @@ int main(int argc, const char **argv) {
     extractFilesAndTrFromStandfordConfFile(confFiles.at(i), transforms, files);
 
     VERIFY(transforms.size() == files.size());
-    const int nbTests = transforms.size()-1;
 
+#ifdef FAST_TESTS
+    const int nbTests = std::min( transforms.size()-1, 2 );
+#else
+    const int nbTests = transforms.size()-1;
+#endif
 
     // In this test we match each frame to the union of the previously matched
     // frames.
