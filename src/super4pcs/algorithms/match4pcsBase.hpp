@@ -108,9 +108,32 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
     sampled_P_3D_.clear();
     sampled_Q_3D_.clear();
 
+    auto sampleCloud = [this, sampler] (
+            const std::vector<Point3D>& whole,
+                  std::vector<Point3D>& reduced )
+    {
+        Scalar spacing = options_.delta / Scalar(2.);
+        if (whole.size() > options_.sample_size){
+
+            do {
+                sampler(whole, spacing, reduced);
+                spacing /= Scalar(2.);
+            } while (options_.sample_size > reduced.size());
+            std::shuffle(reduced.begin(), reduced.end(), randomGenerator_);
+            reduced.resize(options_.sample_size);
+        }
+        else
+        {
+            Log<LogLevel::ErrorReport>( "More samples requested than available: use whole cloud" );
+            reduced = whole;
+        }
+    };
+    //sampleCloud( P, sampled_P_3D_ );
+    sampleCloud( Q, sampled_Q_3D_ );
+
     // prepare P
     if (P.size() > options_.sample_size){
-        sampler(P, options_, sampled_P_3D_);
+        sampler(P, options_.delta, sampled_P_3D_);
     }
     else
     {
@@ -120,22 +143,22 @@ void Match4PCSBase::init(const std::vector<Point3D>& P,
 
 
 
-    // prepare Q
-    if (Q.size() > options_.sample_size){
-        std::vector<Point3D> uniform_Q;
-        sampler(Q, options_, uniform_Q);
+//    // prepare Q
+//    if (Q.size() > options_.sample_size){
+//        std::vector<Point3D> uniform_Q;
+//        sampler(Q, options_, uniform_Q);
 
 
-        std::shuffle(uniform_Q.begin(), uniform_Q.end(), randomGenerator_);
-        size_t nbSamples = std::min(uniform_Q.size(), options_.sample_size);
-        auto endit = uniform_Q.begin(); std::advance(endit, nbSamples );
-        std::copy(uniform_Q.begin(), endit, std::back_inserter(sampled_Q_3D_));
-    }
-    else
-    {
-        Log<LogLevel::ErrorReport>( "(Q) More samples requested than available: use whole cloud" );
-        sampled_Q_3D_ = Q;
-    }
+//        std::shuffle(uniform_Q.begin(), uniform_Q.end(), randomGenerator_);
+//        size_t nbSamples = std::min(uniform_Q.size(), options_.sample_size);
+//        auto endit = uniform_Q.begin(); std::advance(endit, nbSamples );
+//        std::copy(uniform_Q.begin(), endit, std::back_inserter(sampled_Q_3D_));
+//    }
+//    else
+//    {
+//        Log<LogLevel::ErrorReport>( "(Q) More samples requested than available: use whole cloud" );
+//        sampled_Q_3D_ = Q;
+//    }
 
 
     // center points around centroids

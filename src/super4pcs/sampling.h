@@ -105,11 +105,11 @@ public:
     template <typename Point>
     inline
     void operator() (const std::vector<Point>& inputset,
-                     const Match4PCSOptions& options,
+                     const typename Point::Scalar& spacing,
                      std::vector<Point>& output) const {
       int num_input = inputset.size();
       output.clear();
-      HashTable<typename Point::Scalar> hash(num_input, options.delta);
+      HashTable<typename Point::Scalar> hash(num_input, spacing);
       for (int i = 0; i < num_input; i++) {
         uint64_t& ind = hash[inputset[i]];
         if (ind >= num_input) {
