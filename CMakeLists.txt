@@ -1,15 +1,15 @@
 cmake_minimum_required (VERSION 3.3)
-project (Super4PCS LANGUAGES CXX VERSION 1.1.3)
+project (OpenGR LANGUAGES CXX VERSION 1.1.3)
 
 ################################################################################
 ## User options
 ################################################################################
 # Set option to enable timing recording
-OPTION (SUPER4PCS_COMPILE_TESTS "Enable testing" TRUE)
-OPTION (SUPER4PCS_COMPILE_DEMOS "Compile demo applications (including the Super4PCS standalone)" TRUE)
+OPTION (OpenGR_COMPILE_TESTS "Enable testing" TRUE)
+OPTION (OpenGR_COMPILE_DEMOS "Compile demo applications (including the Super4PCS standalone)" TRUE)
 OPTION (IO_USE_OPENCV "Use OpenCV for texture loading" TRUE)
 OPTION (ENABLE_TIMING "Enable computation time recording" FALSE)
-OPTION (SUPER4PCS_USE_CHEALPIX "Use Chealpix for orientation filtering (deprecated)" FALSE)
+OPTION (OpenGR_USE_CHEALPIX "Use Chealpix for orientation filtering (deprecated)" FALSE)
 OPTION (DL_DATASETS "Download demo datasets and associated run scripts" FALSE)
 
 ################################################################################
@@ -24,7 +24,7 @@ set(SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # Used by Config.cmake.in
-set(Super4PCS_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}")
+set(OpenGR_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}")
 
 ################################################################################
 ## GUARDS
@@ -82,9 +82,9 @@ endif (DL_DATASETS)
 ## Dependencies
 ################################################################################
 
-if(SUPER4PCS_USE_CHEALPIX)
+if(OpenGR_USE_CHEALPIX)
     include(cmake/ConfigureChealpix.cmake)
-endif(SUPER4PCS_USE_CHEALPIX)
+endif(OpenGR_USE_CHEALPIX)
 
 ## Eigen: automatic configuration:
 ##  1. if EIGEN3_INCLUDE_DIR is set, use it directly
@@ -106,7 +106,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 message(STATUS "Eigen3 root path: ${EIGEN3_INCLUDE_DIR}")
 
 ################################################################################
-## Super4PCS algo
+## OPENGR algo
 ################################################################################
 
 include_directories(${SRC_DIR})
@@ -120,16 +120,16 @@ add_subdirectory(${SRC_DIR}/super4pcs/algorithms)
 ## Demos, tests, assets and scripts
 ################################################################################
 
-if(SUPER4PCS_COMPILE_TESTS)
+if(OpenGR_COMPILE_TESTS)
         include(cmake/ConfigureTesting.cmake)
         add_subdirectory(tests EXCLUDE_FROM_ALL)
-endif(SUPER4PCS_COMPILE_TESTS)
+endif(OpenGR_COMPILE_TESTS)
 
 include(cmake/AssetsAndScripts.cmake)
 
-if(SUPER4PCS_COMPILE_DEMOS)
+if(OpenGR_COMPILE_DEMOS)
         add_subdirectory(demos)
-endif(SUPER4PCS_COMPILE_DEMOS)
+endif(OpenGR_COMPILE_DEMOS)
 
 ################################################################################
 # API documentation (generated with Doxygen)                                   #
@@ -152,34 +152,34 @@ endif()
 find_package(Doxygen 1.8.0)
 if(DOXYGEN_FOUND)
 
-    set (SUPER4PCS_PROJECT_NUMBER "V${Super4PCS_VERSION} (${GIT_CHANGESET_SHORT})")
-    set (SUPER4PCS_DOC_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc)
-    file (GLOB_RECURSE SUPER4PCS_MD_FILES ${CMAKE_CURRENT_SOURCE_DIR}/doc/*.md)
+    set (OpenGR_PROJECT_NUMBER "V${Super4PCS_VERSION} (${GIT_CHANGESET_SHORT})")
+    set (OpenGR_DOC_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc)
+    file (GLOB_RECURSE OpenGR_MD_FILES ${CMAKE_CURRENT_SOURCE_DIR}/doc/*.md)
 
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${SUPER4PCS_DOC_DIRECTORY}/Doxyfile @ONLY)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in ${OpenGR_DOC_DIRECTORY}/Doxyfile @ONLY)
 
     add_custom_target(doc
-        ${CMAKE_COMMAND} -E make_directory ${SUPER4PCS_DOC_DIRECTORY}
+        ${CMAKE_COMMAND} -E make_directory ${OpenGR_DOC_DIRECTORY}
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/doc/img/
-        ${SUPER4PCS_DOC_DIRECTORY}/html/img
+        ${OpenGR_DOC_DIRECTORY}/html/img
         COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG
-        ${SUPER4PCS_DOC_DIRECTORY}/
-        COMMAND ${DOXYGEN_EXECUTABLE} ${SUPER4PCS_DOC_DIRECTORY}/Doxyfile
+        ${OpenGR_DOC_DIRECTORY}/
+        COMMAND ${DOXYGEN_EXECUTABLE} ${OpenGR_DOC_DIRECTORY}/Doxyfile
         DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
         ${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG
-        ${SUPER4PCS_MD_FILES}
+        ${OpenGR_MD_FILES}
         SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
         ${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG
-        ${SUPER4PCS_MD_FILES}
+        ${OpenGR_MD_FILES}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen" VERBATIM
         )
 
-    install( DIRECTORY ${SUPER4PCS_DOC_DIRECTORY}/ DESTINATION ${CMAKE_INSTALL_PREFIX}/doc )
+    install( DIRECTORY ${OpenGR_DOC_DIRECTORY}/ DESTINATION ${CMAKE_INSTALL_PREFIX}/doc )
 endif(DOXYGEN_FOUND)
 
 ################################################################################
@@ -232,9 +232,9 @@ install(EXPORT Super4PCS-IOLibTargets    DESTINATION ${config_install_dir})
 install(EXPORT Super4PCS-AlgoLibTargets  DESTINATION ${config_install_dir})
 install(EXPORT Super4PCS-AccelLibTargets DESTINATION ${config_install_dir})
 
-if(SUPER4PCS_USE_CHEALPIX)
+if(OpenGR_USE_CHEALPIX)
     install(EXPORT chealpixTargets DESTINATION ${config_install_dir})
-endif(SUPER4PCS_USE_CHEALPIX)
+endif(OpenGR_USE_CHEALPIX)
 
 # Headers:
 #   * Source/foo/Bar.hpp -> <prefix>/include/foo/Bar.hpp
