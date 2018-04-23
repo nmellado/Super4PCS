@@ -19,10 +19,10 @@ skip_commits:
 # specify custom environment variables
 environment:
   MSVC_DEFAULT_OPTIONS: ON
-  OpenGR_REPOSITORY_ROOT: C:\projects\Super4PCS
-  OpenGR_BUILD_DIR: C:\projects\Super4PCS\build
-  OpenGR_RELEASE_DIR: C:\projects\Super4PCS\Super4PCS-%platform%-%configuration%
-  OpenGR_RELEASE_NAME: Super4PCS-%platform%-%configuration%
+  OpenGR_REPOSITORY_ROOT: C:\projects\OpenGR
+  OpenGR_BUILD_DIR: C:\projects\OpenGR\build
+  OpenGR_RELEASE_DIR: C:\projects\OpenGR\OpenGR-%platform%-%configuration%
+  OpenGR_RELEASE_NAME: OpenGR-%platform%-%configuration%
 
 # build configuration, i.e. Debug, Release, etc.
 configuration:
@@ -35,7 +35,7 @@ init:
   - cmd: msbuild /version
 
 # clone directory
-clone_folder: C:\projects\Super4PCS
+clone_folder: C:\projects\OpenGR
 
 # branches to build
 branches:
@@ -60,7 +60,7 @@ before_build:
   - cmd: dir .
 
 build:
-  project: C:\projects\Super4PCS\build\INSTALL.vcxproj  # path to Visual Studio solution or project
+  project: C:\projects\OpenGR\build\INSTALL.vcxproj  # path to Visual Studio solution or project
   parallel: true                           # enable MSBuild parallel builds
   verbosity: quiet                         # MSBuild verbosity level (quiet|minimal|normal|detailed)
 
@@ -69,8 +69,8 @@ after_build:
   - cmd: dir %OpenGR_RELEASE_DIR%
 
 artifacts:
-  - path: Super4PCS-%platform%-%configuration% # use relative path
-    name: Super4PCS-%platform%-%configuration%
+  - path: OpenGR-%platform%-%configuration% # use relative path
+    name: OpenGR-%platform%-%configuration%
     type: zip
 
 test: on
