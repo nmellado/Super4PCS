@@ -4,9 +4,9 @@ script:
   - make -j2 VERBOSE=1 && make install
   - if [ "$CHEALPIX" == "Off" ]; then  make buildtests && make test; fi
 
-cache:
-  directories:
-    - ${TRAVIS_BUILD_DIR}/deps/cmake
+#cache:
+#  directories:
+#    - ${TRAVIS_BUILD_DIR}/deps/cmake
 
 env:
   global:
@@ -18,25 +18,11 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew install gnu-which --with-default-names; fi
   - if [ -n "$GCC_VERSION" ]; then export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}"; fi
   - if [ -n "$CLANG_VERSION" ]; then export CXX="clang++-${CLANG_VERSION}" CC="clang-${CLANG_VERSION}"; fi
-  - export SUPER4PCS_RELEASE_NAME="Super4PCS-${TRAVIS_TAG}-${TRAVIS_OS_NAME}-${CXX}"
-  - export SUPER4PCS_RELEASE_DIR="${CHECKOUT_PATH}/${SUPER4PCS_RELEASE_NAME}"
+  - export OpenGR_RELEASE_NAME="Super4PCS-${TRAVIS_TAG}-${TRAVIS_OS_NAME}-${CXX}"
+  - export OpenGR_RELEASE_DIR="${CHECKOUT_PATH}/${OpenGR_RELEASE_NAME}"
   - which $CXX
   - which $CC
   - $CXX --version
-  
-  ############################################################################
-  # Install a recent CMake
-  ############################################################################
-  - |
-    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      apt-cache search libboost-system
-      # remove existing cmake install
-      sudo apt-get remove -qq cmake cmake-data
-
-      CMAKE_URL="https://www.cmake.org/files/v3.3/cmake-3.3.1-Linux-x86_64.tar.gz"
-      mkdir cmake3.3 && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake3.3
-      export PATH=${PWD}/cmake3.3/bin:${PATH}
-    fi
   - cmake --version
 
 
@@ -48,26 +34,29 @@ matrix:
       compiler: clang
 
 
-    # clang 3.8 Release
-    - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
+    # clang 5.0 Release
+    - env: CLANG_VERSION=5.0 BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
       os: linux
-      addons: &clang38
+      addons: &clang50
         apt:
           packages:
             - util-linux
-            - clang-3.8
+            - clang-5.0
+            - g++-7
+            - cmake3
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.8
+            - llvm-toolchain-trusty-5.0
 
 
-    # gcc-5 Release
-    - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
+    # gcc-7 Release
+    - env: GCC_VERSION=7 BUILD_TYPE=Release BOOST=Off CHEALPIX=Off
       os: linux
-      addons: &gcc5
+      addons: &gcc7
         apt:
           packages:
-            - g++-5
+            - g++-7
+            - cmake3
           sources:
             - ubuntu-toolchain-r-test
 
@@ -80,42 +69,34 @@ matrix:
       os: osx
       compiler: clang
 
-    # clang 3.6 Release
-    - env: CLANG_VERSION=3.6 BUILD_TYPE=Release BOOST=On CHEALPIX=Off
-      os: linux
-      addons: &clang36
-        apt:
-          packages:
-            - libboost-filesystem-dev
-            - libboost-system-dev
-            - clang-3.6
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.6
 
-    # clang 3.8 Release
-    - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=On CHEALPIX=Off
+    # clang 5.0 Release
+    - env: CLANG_VERSION=5.0 BUILD_TYPE=Release BOOST=On CHEALPIX=Off
       os: linux
-      addons: &clang38
+      addons: &clang50
         apt:
           packages:
-            - libboost-filesystem-dev
-            - libboost-system-dev
             - util-linux
-            - clang-3.8
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.8
-
-    # gcc-5 Release
-    - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=On CHEALPIX=Off
-      os: linux
-      addons: &gcc5
-        apt:
-          packages:
+            - clang-5.0
+            - g++-7
+            - cmake3
             - libboost-filesystem-dev
             - libboost-system-dev
-            - g++-5
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-5.0
+
+
+    # gcc-7 Release
+    - env: GCC_VERSION=7 BUILD_TYPE=Release BOOST=On CHEALPIX=Off
+      os: linux
+      addons: &gcc7
+        apt:
+          packages:
+            - g++-7
+            - cmake3
+            - libboost-filesystem-dev
+            - libboost-system-dev
           sources:
             - ubuntu-toolchain-r-test
 
@@ -127,29 +108,34 @@ matrix:
       os: osx
       compiler: clang
 
-    # clang 3.8
-    - env: CLANG_VERSION=3.8 BUILD_TYPE=Release BOOST=On CHEALPIX=On
+
+    # clang 5.0
+    - env: CLANG_VERSION=5.0 BUILD_TYPE=Release BOOST=On CHEALPIX=On
       os: linux
-      addons: &clang38
+      addons: &clang50
         apt:
           packages:
+            - util-linux
+            - clang-5.0
+            - g++-7
+            - cmake3
             - libboost-filesystem-dev
             - libboost-system-dev
-            - util-linux
-            - clang-3.8
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.8
+            - llvm-toolchain-trusty-5.0
 
-    # gcc5
-    - env: GCC_VERSION=5 BUILD_TYPE=Release BOOST=On CHEALPIX=On
+
+    # gcc-7
+    - env: GCC_VERSION=7 BUILD_TYPE=Release BOOST=On CHEALPIX=On
       os: linux
-      addons: &gcc5
+      addons: &gcc7
         apt:
           packages:
+            - g++-7
+            - cmake3
             - libboost-filesystem-dev
             - libboost-system-dev
-            - g++-5
           sources:
             - ubuntu-toolchain-r-test
 
@@ -162,7 +148,7 @@ install:
   - cd build
   - if [ "$GCC_VERSION" == "5" ]; then CXX_FLAGS="${CXX_FLAGS} -DRANGES_CXX_CONSTEXPR=RANGES_CXX_CONSTEXPR11"; fi
   - if [ -n "$CLANG_VERSION" ]; then CXX_FLAGS="${CXX_FLAGS} -D__extern_always_inline=inline"; fi
-  - cmake .. -DSUPER4PCS_COMPILE_TESTS=TRUE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DSUPER4PCS_USE_CHEALPIX=$CHEALPIX -DDL_DATASETS=FALSE -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${SUPER4PCS_RELEASE_DIR}/
+  - cmake .. -DOpenGR_COMPILE_TESTS=TRUE -DIO_USE_OPENCV=FALSE -DENABLE_TIMING=FALSE -DOpenGR_USE_CHEALPIX=$CHEALPIX -DDL_DATASETS=FALSE -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${OpenGR_RELEASE_DIR}/
 
 
 # safelist
@@ -173,16 +159,16 @@ branches:
 ############################################################################
 # Artifacts creation
 ############################################################################
-after_success:
-  - zip -r ${SUPER4PCS_RELEASE_NAME}.zip ${SUPER4PCS_RELEASE_DIR}
+#after_success:
+#  - zip -r ${OpenGR_RELEASE_NAME}.zip ${OpenGR_RELEASE_DIR}
 
-deploy:
-  provider: releases
-  draft: true
-  skip_cleanup: true
-  api_key:
-    secure: inU1jKE5PfPyhONbz7OvNLggEAQ0RE4CwY+WaWLsteEXkd7jl+IsIsIJ52E8xSma15HZHw9cqTGlQcZ+Hk8fBJBC4b5wVFOvoVauyMGYY/askI9uQqsmhDzmGk7sbDv/RtPoMfEPOJ8Y78M+NqCBbF8j5Xn9K/xpVOCpQKwG8JJB0/3z/NUu6fmcBwFvu2rqcdqX6FpfZSDOYCZJ0pK7JGKgah4DmV7M71emIlj5GOj007rbhq/C4j4hb9/CyWnh65yC5SA9In/DBgX3t2ipjnOX19Ft/7upCjLDq4KlblmGexdSvN8S3HV6Bcr3lqNU2XcOHML7xeR87EVYclioEqz937rav4XEuhMaRlonY6nPPZUeSyFns29m2K194oupRzgf4FwsdmWdpZN51baO+zy2X+nAovrLGBEjr+rMrg6COsno4pKJT+CDG0UbE34DpnyNPx7rF8T++FzS8LUdIWTLZSHQSBlJhWX3EzAAy7KJ+xOiOXswg7T7D9LoErS8wygDw21ssW0z/vgFzvyOKbfT1O6B3SGnL+e5vnc1A9VqXm/Gp8Rs3lRCOilwC5HIWczJaczCJiHR+boImPNZXuhz9e3WIjMlJ/upqbpMnwKPC+pH4d6d6LWZzaDQDXSZ7bqShBvFQCgAkgy+IVPUU7AwKYkXlkNaba9J2xuRaA0=
-  file: ${SUPER4PCS_RELEASE_NAME}.zip
-  tag_name: $TRAVIS_TAG  #https://github.com/travis-ci/travis-ci/issues/6132#issuecomment-303634652
-  on:
-    tags: true
+#deploy:
+#  provider: releases
+#  draft: true
+#  skip_cleanup: true
+#  api_key:
+#    secure: inU1jKE5PfPyhONbz7OvNLggEAQ0RE4CwY+WaWLsteEXkd7jl+IsIsIJ52E8xSma15HZHw9cqTGlQcZ+Hk8fBJBC4b5wVFOvoVauyMGYY/askI9uQqsmhDzmGk7sbDv/RtPoMfEPOJ8Y78M+NqCBbF8j5Xn9K/xpVOCpQKwG8JJB0/3z/NUu6fmcBwFvu2rqcdqX6FpfZSDOYCZJ0pK7JGKgah4DmV7M71emIlj5GOj007rbhq/C4j4hb9/CyWnh65yC5SA9In/DBgX3t2ipjnOX19Ft/7upCjLDq4KlblmGexdSvN8S3HV6Bcr3lqNU2XcOHML7xeR87EVYclioEqz937rav4XEuhMaRlonY6nPPZUeSyFns29m2K194oupRzgf4FwsdmWdpZN51baO+zy2X+nAovrLGBEjr+rMrg6COsno4pKJT+CDG0UbE34DpnyNPx7rF8T++FzS8LUdIWTLZSHQSBlJhWX3EzAAy7KJ+xOiOXswg7T7D9LoErS8wygDw21ssW0z/vgFzvyOKbfT1O6B3SGnL+e5vnc1A9VqXm/Gp8Rs3lRCOilwC5HIWczJaczCJiHR+boImPNZXuhz9e3WIjMlJ/upqbpMnwKPC+pH4d6d6LWZzaDQDXSZ7bqShBvFQCgAkgy+IVPUU7AwKYkXlkNaba9J2xuRaA0=
+#  file: ${OpenGR_RELEASE_NAME}.zip
+#  tag_name: $TRAVIS_TAG  #https://github.com/travis-ci/travis-ci/issues/6132#issuecomment-303634652
+#  on:
+#    tags: true
