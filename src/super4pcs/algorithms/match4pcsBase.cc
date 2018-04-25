@@ -52,7 +52,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-const double pi = std::acos(-1);
+//const double pi = std::acos(-1);
 
 
 
@@ -61,9 +61,8 @@ const double pi = std::acos(-1);
 // point that determines the invariants. Since the 4 points are not exactly
 // planar, we use the center of the line segment connecting the two closest
 // points as the "intersection".
-template < typename VectorType, typename Scalar>
-static Scalar
-distSegmentToSegment(const VectorType& p1, const VectorType& p2,
+/*template < typename VectorType, typename Scalar>
+static Scalar distSegmentToSegment(const VectorType& p1, const VectorType& p2,
                      const VectorType& q1, const VectorType& q2,
                      Scalar& invariant1, Scalar& invariant2) {
 
@@ -132,7 +131,6 @@ distSegmentToSegment(const VectorType& p1, const VectorType& p2,
 
 
 namespace GlobalRegistration{
-
 Match4PCSBase::Match4PCSBase(  const Match4PCSOptions& options
                              , const Utils::Logger& logger
 #ifdef SUPER4PCS_USE_OPENMP
@@ -152,6 +150,7 @@ Match4PCSBase::Match4PCSBase(  const Match4PCSOptions& options
 {
   base_3D_.resize(4);
 }
+
 
 Match4PCSBase::~Match4PCSBase(){}
 
@@ -564,3 +563,4 @@ Match4PCSBase::Verify(const Eigen::Ref<const MatrixType> &mat) const {
 
 } // namespace Super4PCS
 
+*/

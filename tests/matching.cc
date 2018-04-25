@@ -84,7 +84,7 @@ struct TrVisitorType {
     inline void operator() (
             float fraction,
             float best_LCP,
-            Eigen::Ref<Match4PCSBase::MatrixType> /*transformation*/) {
+            Eigen::Ref<Match4PCSBase<>::MatrixType> /*transformation*/) {
         std::cout << "New LCP: "
                   << static_cast<int>(fraction * 100)
                   << '%'
@@ -234,7 +234,7 @@ void test_model(const vector<Transform> &transforms,
     // accumulate error during the matching process
     // Transforms Q by the new transformation.
     {
-        Match4PCSBase::MatrixType transformation = transforms[i-1].inverse().matrix();
+        Match4PCSBase<>::MatrixType transformation = transforms[i-1].inverse().matrix();
         for (int j = 0; j < set1.size(); ++j) {
             set1[j].pos() = (transformation * set1[j].pos().homogeneous()).head<3>();
 
@@ -253,10 +253,10 @@ void test_model(const vector<Transform> &transforms,
     mergedset.insert(mergedset.end(), set1.begin(), set1.end());
 
     // Our matcher.
-    Match4PCSOptions options;
+    Match4PCSOptions options; //TODO: MatchOptions
 
     // Set parameters.
-    Match4PCSBase::MatrixType mat (Match4PCSBase::MatrixType::Identity());
+    Match4PCSBase<>::MatrixType mat (Match4PCSBase<>::MatrixType::Identity());
     VERIFY(options.configureOverlap(overlaps[param_i]));
     options.sample_size = n_points[param_i];
     options.max_time_seconds = max_time_seconds;

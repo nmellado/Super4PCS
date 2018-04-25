@@ -61,10 +61,15 @@
 
 namespace GlobalRegistration{
 
+struct DefaultFunctor {
+    using TypeBase = std::vector<Point3D>;
+};
 
+template <typename Functor = DefaultFunctor>
 class Match4PCSBase {
 
 public:
+    using TypeBase = typename Functor::TypeBase;
     using PairsVector =  std::vector< std::pair<int, int> >;
     using Scalar = typename Point3D::Scalar;
     using VectorType = typename Point3D::VectorType;
@@ -147,7 +152,8 @@ protected:
     /// Sampled Q (3D coordinates).
     std::vector<Point3D> sampled_Q_3D_;
     /// The 3D points of the base.
-    std::vector<Point3D> base_3D_;
+    TypeBase base_3D_;
+    //std::vector<Point3D> base_3D_;
     /// The copy of the input Q. We transform Q to match P and returned the
     /// transformed version.
     std::vector<Point3D> Q_copy_;
@@ -163,10 +169,10 @@ protected:
     KdTree<Scalar> kd_tree_;
     /// Parameters.
     const Match4PCSOptions options_;
-
+    // conts MatchOptions options_;
     std::mt19937 randomGenerator_;
-
     const Utils::Logger &logger_;
+    Functor fun_;
 
 #ifdef SUPER4PCS_USE_OPENMP
     /// number of threads used to verify the congruent set
@@ -184,6 +190,12 @@ protected:
 #endif
 
 protected:
+    // Match4PCSBase(const MatchOptions& options
+    //                  , const Utils::Logger &logger
+    //#ifdef SUPER4PCS_USE_OPENMP
+    //                  , const int omp_nthread_congruent = omp_get_max_threads()
+    //#endif
+    //        );
 
     Match4PCSBase(const Match4PCSOptions& options
                   , const Utils::Logger &logger
@@ -282,7 +294,8 @@ protected:
     bool SelectQuadrilateral(Scalar &invariant1, Scalar &invariant2,
                              int& base1, int& base2, int& base3, int& base4);
 
-    const std::vector<Point3D>& base3D() const { return base_3D_; }
+    const TypeBase base3D() const { return base_3D_; }
+    //const std::vector<Point3D>& base3D() const { return base_3D_; }
 
     /// Constructs pairs of points in Q, corresponding to a single pair in the
     /// in basein P.
@@ -337,7 +350,7 @@ protected:
                          const Visitor &v,
                          size_t &nbCongruent);
 private:
-    void initKdTree();
+    void initKdTree(); //TODO : void initKdTree(KdTree kd_tree_, std::vector<Point3D> sampled_P_3D_);
 
 }; /// class Match4PCSBase
 } /// namespace Super4PCS

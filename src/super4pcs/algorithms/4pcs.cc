@@ -109,10 +109,9 @@ bool Match4PCS::FindCongruentQuadrilaterals(
 }
 
 // Constructs two sets of pairs in Q, each corresponds to one pair in the base
-// in P, by having the same distance (up to some tolerantz) and optionally the
+// in P, by having the same distance (up to some tolerant) and optionally the
 // same angle between normals and same color.
-void
-Match4PCS::ExtractPairs(Scalar pair_distance,
+void Match4PCS::ExtractPairs(Scalar pair_distance,
                         Scalar pair_normals_angle,
                         Scalar pair_distance_epsilon,
                         int base_point1,

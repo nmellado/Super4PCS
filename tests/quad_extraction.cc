@@ -69,7 +69,7 @@ void callSubTests()
     using Scalar = typename MatchType::Scalar;
     using PairsVector = typename MatchType::PairsVector;
 
-    match_4pcs::Match4PCSOptions opt;
+    match_4pcs::Match4PCSOptions opt; //TODO: MatchOptions
     opt.delta = 0.1;
     opt.overlap_estimation = 0.9;
 
