@@ -53,7 +53,7 @@
 namespace GlobalRegistration {
 
 /// Class for the computation of the 4PCS algorithm.
-class MatchSuper4PCS : public Match4PCSBase {
+class MatchSuper4PCS : public Match4PCSBase<> {
  public:
   using Base        = Match4PCSBase;
   using Scalar      = typename Base::Scalar;

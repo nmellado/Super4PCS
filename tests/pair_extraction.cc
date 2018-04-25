@@ -91,7 +91,7 @@ struct TrVisitorType {
     inline void operator() (
             float fraction,
             float best_LCP,
-            Eigen::Ref<Match4PCSBase::MatrixType> /*transformation*/) {
+            Eigen::Ref<typename Match4PCSBase<>::MatrixType> /*transformation*/) {
         std::cout << "New LCP: "
                   << static_cast<int>(fraction * 100)
                   << '%'
@@ -242,7 +242,7 @@ void callMatchSubTests()
     using Scalar = typename MatchType::Scalar;
     using PairsVector = typename MatchType::PairsVector;
 
-    Match4PCSOptions opt;
+    Match4PCSOptions opt; //TODO: MatchOptions
     opt.delta = 0.1;
     VERIFY(opt.configureOverlap(0.5));
 
