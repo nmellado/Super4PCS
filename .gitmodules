@@ -1,3 +1,3 @@
 [submodule "3rdparty/Eigen"]
 	path = 3rdparty/Eigen
-	url = https://github.com/RLovelett/eigen.git
+	url = https://github.com/eigenteam/eigen-git-mirror.git
