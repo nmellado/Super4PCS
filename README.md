@@ -1,3 +1,13 @@
+---
+This library is not maintained anymore
+---
+It is replaced by the fork OpenGR: https://github.com/STORM-IRIT/OpenGR
+
+Except critical bug fix, no changes will be added to this repo. Please request support on OpenGR issue tracker.
+
+---
+
+
 Super4PCS
 =========
 
