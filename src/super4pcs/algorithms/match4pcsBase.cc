@@ -420,6 +420,8 @@ bool Match4PCSBase::ComputeRigidTransformation(
   if (vector_p2.squaredNorm() == 0) return kLargeNumber;
   vector_p2.normalize();
   VectorType vector_p3 = vector_p1.cross(vector_p2);
+  if (vector_p3.squaredNorm() == 0) return kLargeNumber;
+  vector_p3.normalize();
 
   VectorType vector_q1 = q1 - q0;
   if (vector_q1.squaredNorm() == 0) return kLargeNumber;
@@ -428,6 +430,8 @@ bool Match4PCSBase::ComputeRigidTransformation(
   if (vector_q2.squaredNorm() == 0) return kLargeNumber;
   vector_q2.normalize();
   VectorType vector_q3 = vector_q1.cross(vector_q2);
+  if (vector_q3.squaredNorm() == 0) return kLargeNumber;
+  vector_q3.normalize();
 
   //cv::Mat rotation = cv::Mat::eye(3, 3, CV_64F);
   Eigen::Matrix<Scalar, 3, 3> rotation = Eigen::Matrix<Scalar, 3, 3>::Identity();
